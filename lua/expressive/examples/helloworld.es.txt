@@ -1,0 +1,4 @@
+let foo = 55;
+const bar = "Hello World";
+
+print(bar)
