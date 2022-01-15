@@ -1,0 +1,1 @@
+--- Parse the internals of a class Foo {} block.

@@ -1,0 +1,17 @@
+{
+	"title"		:	"Expressive",
+	"type"		:	"tool",
+	"tags"		:	[ "build", "fun" ],
+	"description":	"The Expressive programming language",
+	"ignore"	:
+	[
+		"*.jpg",
+		"*.bat",
+		"*.txt",
+		"*.md",
+		".git*",
+		"*.pdf",
+		"definitions",
+		"LICENSE"
+	]
+}
