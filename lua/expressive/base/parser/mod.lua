@@ -74,6 +74,16 @@ function Node:__tostring()
 	return string.format("Node \"%s\" (#%u)", KINDS_INV[self.kind], #self.data)
 end
 
+--- Returns a human friendly string description of the node, for error handling.
+---@return string
+function Node:human()
+	if self:isStatement() then
+		return string.format("%s statement", KINDS_INV[self.kind])
+	else
+		return string.format("%s expression", KINDS_INV[self.kind])
+	end
+end
+
 ---@return boolean # Whether the node is an expression node.
 function Node:isExpression()
 	return self.kind > KINDS.Declare
@@ -93,11 +103,11 @@ function Node.new(kind, data)
 	}, Node)
 end
 
----@param tokens table<number, Token>
+--- Parses a stream of tokens into an abstract syntax tree (AST)
+---@param tokens table<number, Token> # Tokens retrieved from the [Tokenizer]
 ---@return table<number, Node>
 function Parser:parse(tokens)
-	-- Error if tokens is not a table
-	assert( type(tokens) == "table", "Expected table, got " .. type(tokens) .. " in function parse" )
+	assert(istable(tokens), "bad argument #1 to 'Parser:parse' (table expected, got " .. type(tokens) .. ")")
 	self.tokens = tokens
 
 	local ok, res = pcall(self.root, self)
@@ -142,11 +152,7 @@ function Parser:next()
 	local tok = self:nextToken()
 	local res = self:parseStatement(tok) or self:parseExpression(tok)
 
-	if res then
-		return res
-	else
-		error("Unexpected token " .. TOKEN_KINDS_INV[tok.kind] .. " '" .. tok.raw .. "'")
-	end
+	return assert(res, "Unexpected token " .. TOKEN_KINDS_INV[tok.kind] .. " '" .. tok.raw .. "'")
 end
 
 --- Shifts the parser to the next token.
@@ -354,6 +360,7 @@ end
 
 include("stmt.lua")
 include("expr.lua")
+include("declare.lua")
 
 ---@type fun(tok: Token): Node?
 Parser.parseExpression = Parser.parseExpression
@@ -362,6 +369,6 @@ Parser.parseExpression = Parser.parseExpression
 Parser.parseStatement = Parser.parseStatement
 
 ---@type fun(tok: Token): Node?
-Parser.parseExtern = Parser.parseExtern
+Parser.acceptDeclare = Parser.acceptDeclare
 
 return Parser

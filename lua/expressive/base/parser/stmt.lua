@@ -206,8 +206,11 @@ local Statements = {
 		end
 	end,
 
+	---@param self Parser
+	---@param token Token
 	[PARSER_KINDS.Declare] = function(self, token)
-		self:parseDeclare(token)
+		print("declare", token, self:peek())
+		return self:acceptDeclare(token)
 	end
 }
 

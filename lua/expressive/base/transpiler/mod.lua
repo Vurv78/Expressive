@@ -298,7 +298,13 @@ local Transpilers = {
 			catch_var,
 			catch_block
 		)
-	end
+	end,
+
+	[NODE_KINDS.Declare] = function(self, node)
+		-- kind is "var", "function", "type" or "namespace"
+		local kind, name = unpack(node.data)
+		return fmt("-- declare %s as %s", name, kind)
+	end,
 }
 
 function Transpiler:pushScope()
@@ -346,10 +352,13 @@ end
 
 --- Transpiles ES code into Lua.
 --- Get the ast from the [Analyzer].
----@param ctx Context
----@param ast table<number, Node>
+---@param ctx Context # Context retrieved from [Context.new]
+---@param ast table<number, Node> # AST retrieved from the [Analyzer] or [Parser]
 ---@return string
 function Transpiler:process(ctx, ast)
+	assert(ELib.Context.instanceof(ctx), "bad argument #1 to 'Transpiler:process' (Context expected, got " .. type(ctx) .. ")")
+	assert(istable(ast), "bad argument #2 to 'Transpiler:process' (table expected, got " .. type(ast) .. ")")
+
 	self.ctx = ctx
 	self.ast = ast
 	return self:transpileAst(ast)

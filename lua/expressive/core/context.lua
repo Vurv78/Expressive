@@ -18,6 +18,12 @@ function Context.new()
 	}, Context)
 end
 
+--- Returns if ``var`` is a ``Context``
+---@return boolean
+function Context.instanceof(var)
+	return istable(var) and getmetatable(var) == Context
+end
+
 -- Todo
 function Context:registerFn(signature, fn)
 	self.funcs[signature] = fn

@@ -64,49 +64,74 @@ Library.Operators = {
 }
 
 Library.Keywords = {
+	-- ES6 Keywords (Active)
 	["if"] = true,
-	["elseif"] = true,
 	["else"] = true,
 	["while"] = true,
 	["for"] = true,
 	["function"] = true,
-	["in"] = true,
-	["as"] = true,
-	["delegate"] = true,
 	["true"] = true,
 	["false"] = true,
 	["void"] = true,
 	["break"] = true,
 	["continue"] = true,
 	["return"] = true,
-	["server"] = true,
-	["client"] = true,
-	["new"] = true,
 	["try"] = true,
 	["catch"] = true,
-	["interface"] = true,
-	["implements"] = true,
-	["class"] = true,
-	["method"] = true,
-	["extends"] = true,
-	["instanceof"] = true,
-	["super"] = true,
-	["null"] = true,
-
-	-- New from E3/E2 beyond here:
 	["var"] = true,
 	["let"] = true,
 	["const"] = true,
+	["declare"] = true, -- LOCKED to header files
 
-	-- Used in standard libraries
-	["declare"] = true,
+	-- Custom Expressive Syntax (Active)
+	["server"] = true,
+	["client"] = true,
+	["delegate"] = true,
+	["elseif"] = true, -- TODO: Remove and support else if instead.
 
-	-- Reserved
-	["enum"] = true,
-	["export"] = true,
-	["module"] = true,
-	["this"] = true,
-	["undefined"] = true,
+	-- ES6 Keywords (Reserved)
+	-- These have not been implemented into Expressive so that is why they are (Reserved)
+	-- https://github.com/Microsoft/TypeScript/issues/2536
+	-- * `✔️` - Will be implemented
+	-- * `👍` - Likely to be implemented
+	-- * `🤷‍♂️` - Not sure if will implement
+	-- * `❌` - Will probably not be implemented
+	["enum"] = true, -- 👍
+	["this"] = true, -- ✔️
+	["undefined"] = true, -- 🤷‍♂️
+	["throw"] = true, -- 👍
+	["typeof"] = true, -- 👍
+	["delete"] = true, -- ❌
+	["case"] = true, -- 🤷‍♂️
+	["switch"] = true, -- 🤷‍♂️
+	["type"] = true, -- 👍
+	["private"] = true, -- ❌
+	["protected"] = true, -- ❌
+	["public"] = true, -- 🤷‍♂️
+	["static"] = true, -- 🤷‍♂️
+	["yield"] = true, -- 🤷‍♂️
+	["await"] = true, -- 🤷‍♂️
+	["async"] = true, -- 🤷‍♂️
+	["abstract"] = true, -- 🤷‍♂️
+	["import"] = true, -- 👍
+	["export"] = true, -- 👍
+	["extends"] = true,
+	["class"] = true, -- ✔️
+	["interface"] = true, -- 👍
+	["implements"] = true, -- 👍
+	["instanceof"] = true, -- 👍
+	["super"] = true, -- 👍
+	["null"] = true, -- 🤷‍♂️
+	["in"] = true, -- 🤷‍♂️
+	["as"] = true, -- 🤷‍♂️
+	["new"] = true, -- ✔️
+	["finally"] = true, -- 🤷‍♂️
+	["namespace"] = true, -- 👍
+	["symbol"] = true, -- ❌
+	["unique"] = true, -- ❌
+	["get"] = true, -- 🤷‍♂️
+	["set"] = true, -- 🤷‍♂️
+	["constructor"] = true, -- 👍
 }
 
 local function sort_values(a, b)

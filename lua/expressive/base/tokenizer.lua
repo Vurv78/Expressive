@@ -249,9 +249,12 @@ local Matchers = {
 
 Tokenizer.Matchers = Matchers
 
----@param input string
+--- Tokenizes a string into an array (sequential table) of tokens.
+---@param input string # Expressive source code to tokenize
 ---@return table<number, Token>
 function Tokenizer:parse(input)
+	assert(isstring(input), "bad argument #1 to 'Tokenizer:parse' (string expected, got " .. type(input) .. ")")
+
 	self.input = input
 
 	local tokens, ntokens = {}, 0

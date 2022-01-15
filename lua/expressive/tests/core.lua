@@ -1,5 +1,5 @@
 --- TODO: This should adapt to different addon names, using the value fetched from autorun
-local src = file.Read("expressive/examples/helloworld.es.txt", "LUA")
+local src = file.Read("expressive/examples/core.es.txt", "LUA")
 
 ---@type Context
 local Context = include("expressive/core/context.lua")
@@ -23,10 +23,11 @@ local transpiler = Transpiler.new()
 local ctx = Context.new()
 local tokens = tok:parse(src)
 local ast = parser:parse(tokens)
-local new_ast = analyzer:process(ctx, ast)
+local new_ast = analyzer:process(ctx, ast, {
+	AllowDeclare = true,
+	StrictTyping = false
+})
 local code = transpiler:process(ctx, new_ast)
 
 print("Generated Lua code!")
 print(code)
-
-file.Write("foo.es.txt", code)

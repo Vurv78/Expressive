@@ -1,0 +1,24 @@
+/*
+	Example Extension for Expressive.
+	Yes, they're written in Expressive!
+
+	Difference is that these cores have access to the ``declare`` statements
+	which access variables given by lua.
+
+	They are also untyped, so that you can interact with _G properly.
+*/
+
+declare var pi: number;
+declare const foo: number;
+
+declare function bar();
+declare type number;
+
+// declare function print(...args: string[]);
+
+/*declare namespace my_namespace {
+	namespace bar {
+		var baz: number;
+	}
+}
+*/

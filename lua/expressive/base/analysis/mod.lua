@@ -86,13 +86,18 @@ local AnalyzerConfigs = {
 }
 
 --- Processes the given AST, properly assigning scopes and types along the way
----@param ctx Context
+---@param ctx Context # Context retrieved from [Context.new]
+---@param ast table<number, Node> # AST Retrieved from the [Parser]
 ---@param configs AnalyzerConfigs? # Optional configs for the analyzer, uses default values if passed nil.
----@param ast table<number, Node>
----@return table<number, Node> # A processed and optimized AST.
-function Analyzer:process(ctx, configs, ast)
+---@return table<number, Node> new_ast # A processed and optimized AST.
+function Analyzer:process(ctx, ast, configs)
 	local configs = configs or AnalyzerConfigs
 	self.configs = configs
+
+	--- Throws a C like lua param error if ``ast`` param is not a table.
+	assert(ELib.Context.instanceof(ctx), "bad argument #1 to 'Analyzer:process' (Context expected, got " .. type(ctx) .. ")")
+	assert(istable(ast), "bad argument #2 to 'Analyzer:process' (table expected, got " .. type(ast) .. ")")
+	assert(istable(configs), "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
 
 	self:loadContext(ctx)
 	-- Get initial types.
@@ -100,10 +105,10 @@ function Analyzer:process(ctx, configs, ast)
 	-- Optimizing pass. This is where the ast is changed a bit.
 	local new_ast = self:optimize(ast)
 
-	for id, scope in pairs(self.scopes) do
-		for name, var in pairs(scope.priv) do
-			if not var.type then
-				error("Could not determine type of variable '" .. name .. "'")
+	if self.configs.StrictTyping then
+		for id, scope in pairs(self.scopes) do
+			for name, var in pairs(scope.priv) do
+				assert(var, "Could not determine type of variable '" .. name .. "'")
 			end
 		end
 	end
