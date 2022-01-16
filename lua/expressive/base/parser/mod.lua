@@ -21,47 +21,94 @@ function Parser.new()
 	}, Parser)
 end
 
+---@param name string # Name of the statement
+---@param desc string # Human description of the statement, for debugging.
+---@return table
+local function Stmt(name, desc)
+	return { name = name, udata = { desc = desc, type = "stmt" } }
+end
+
+---@param name string # Name of the statement
+---@param desc string # Human description of the statement, for debugging.
+---@return table
+local function Expr(name, desc)
+	return { name = name, udata = { desc = desc, type = "expr" } }
+end
+
 ---@class ParserKinds
-local KINDS = {
+---@field If number
+---@field Elseif number
+---@field Else number
+---@field While number
+---@field For number
+---@field Try number
+---@field Realm number
+---@field VarDeclare number
+---@field VarModify number
+---@field Delegate number
+---@field Class number
+---@field Interface number
+---@field Function number
+---@field Escape number
+---@field Declare number
+---@field Ternary number
+---@field LogicalOps number
+---@field BitwiseOps number
+---@field ComparisonOps number
+---@field BitShiftOps number
+---@field ArithmeticOps number
+---@field UnaryOps number
+---@field CallExpr number
+---@field GroupedExpr number
+---@field Index number
+---@field Array number
+---@field Block number
+---@field Lambda number
+---@field Literal number
+---@field Variable number
+local KINDS, KINDS_UDATA = ELib.MakeEnum {
 	--- Statements
-	If = 1, -- if (true) {}
-	Elseif = 2, -- if (true) {} elseif (true) {}
-	Else = 3, -- if (true) {} else {}
-	While = 4, -- while (true) {}
-	For = 5, -- for(let foo = 5; foo < 5; foo++) {}
-	Try = 6, -- try {} catch (e: int) {}
-	Realm = 7, -- Set realm for block
-	VarDeclare = 8, -- var Foo = 5;
-	VarModify = 9, -- Foo += 5;
-	Delegate = 10,
-	Class = 11, -- class Main {}
-	Interface = 12, -- interface Main {}
-	Function = 13, -- function foo(): number {}
-	Escape = 14, -- Either return Var?, break or continue.
-	Declare = 15, -- declare function foo(): number
+	Stmt("If", "if statement"), -- if (true) {}
+	Stmt("Elseif", "elseif statement"), -- if (true) {} elseif (true) {}
+	Stmt("Else", "else statement"), -- if (true) {} else {}
+	Stmt("While", "while loop"), -- while (true) {}
+	Stmt("For", "for loop"), -- for(let foo = 5; foo < 5; foo++) {}
+	Stmt("Try", "try"), -- try {} catch (e: int) {}
+	Stmt("Realm", "realm block"), -- Set realm for block
+	Stmt("VarDeclare", "variable declaration"), -- var Foo = 5;
+	Stmt("VarModify", "variable modification"), -- Foo += 5;
+	Stmt("Delegate", "delegate"),
+	Stmt("Class", "class definition"), -- class Main {}
+	Stmt("Interface", "interface definition"), -- interface Main {}
+	Stmt("Function", "function definition"), -- function foo(): number {}
+	Stmt("Escape", "return, break or continue"), -- Either return Var?, break or continue.
+	Stmt("Declare", "extern declaration"), -- declare function foo(): number
 
 	--- Expressions
-	Ternary = 16, -- a ? b : c (a ?? b)
-	LogicalOps = 17, -- || &&
-	BitwiseOps = 18, -- | ^ &
-	ComparisonOps = 19, -- == != > >= < <=
-	BitShiftOps = 20, -- << >>
-	ArithmeticOps = 21, -- + - / * %
-	UnaryOps = 22, -- ! # ~ $
-	CallExpr = 23, -- foo()
-	GroupedExpr = 24, -- (x + y)
-	Index = 25, -- x.y or x[y]
-	Array = 26, -- [1, 2, 3]
-	Block = 27, -- { ... }
-	Lambda = 28, -- function(x...) { ... }
-	Literal = 29, -- 5, "foo", true, false, nil
-	Variable = 30 -- foo
+	Expr("Ternary", "ternary operation"), -- a ? b : c (a ?? b)
+	Expr("LogicalOps", "logical operation"), -- || &&
+	Expr("BitwiseOps", "binary operation"), -- | ^ &
+	Expr("ComparisonOps", "comparison"), -- == != > >= < <=
+	Expr("BitShiftOps", "bit shift operation"), -- << >>
+	Expr("ArithmeticOps", "arithmetic"), -- + - / * %
+	Expr("UnaryOps", "unary operation"), -- ! # ~ $
+	Expr("CallExpr", "call"), -- foo()
+	Expr("GroupedExpr", "grouped expression"), -- (x + y)
+	Expr("Index", "index"), -- x.y or x[y]
+	Expr("Array", "array literal"), -- [1, 2, 3]
+	Expr("Block", "block"), -- { ... }
+	Expr("Lambda", "lambda / closure"), -- function(x...) { ... }
+	Expr("Literal", "literal value"), -- 5, "foo", true, false, nil
+	Expr("Variable", "variable") -- foo
 }
 
 local KINDS_INV = ELib.GetInverted(KINDS)
 
 Parser.KINDS = KINDS
 Parser.KINDS_INV = KINDS_INV
+
+---@type table<number, {type: string}>
+Parser.KINDS_UDATA = KINDS_UDATA
 
 ---@class Node
 ---@field kind ParserKinds
@@ -77,21 +124,18 @@ end
 --- Returns a human friendly string description of the node, for error handling.
 ---@return string
 function Node:human()
-	if self:isStatement() then
-		return string.format("%s statement", KINDS_INV[self.kind])
-	else
-		return string.format("%s expression", KINDS_INV[self.kind])
-	end
+	local udata = KINDS_UDATA[self.kind]
+	return udata.desc
 end
 
 ---@return boolean # Whether the node is an expression node.
 function Node:isExpression()
-	return self.kind > KINDS.Declare
+	return KINDS_UDATA[self.kind].type == "expr"
 end
 
 ---@return boolean # Whether the node is a statement node.
 function Node:isStatement()
-	return self.kind <= KINDS.Declare
+	return KINDS_UDATA[self.kind].type == "stmt"
 end
 
 ---@param kind ParserKinds
@@ -128,15 +172,18 @@ function Parser:root()
 	local node = self:next()
 
 	while node do
-		self.node_idx = self.node_idx + 1
-		nodes[self.node_idx] = node
+		nodes[#nodes + 1] = node
+		-- assert(node, "Expected ; after statement")
 
-		--self:popToken(TOKEN_KINDS.Grammar, ";")
+		print(node)
 		if node:isStatement() then
-			assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after statement")
-		else
 			self:popToken(TOKEN_KINDS.Grammar, ";")
 		end
+
+		if self:popToken(TOKEN_KINDS.Grammar, "}") then
+			return nodes
+		end
+
 		node = self:next()
 	end
 
@@ -152,7 +199,12 @@ function Parser:next()
 	local tok = self:nextToken()
 	local res = self:parseStatement(tok) or self:parseExpression(tok)
 
-	return assert(res, "Unexpected token " .. TOKEN_KINDS_INV[tok.kind] .. " '" .. tok.raw .. "'")
+	if res then
+		assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after " .. res:human())
+		return res
+	else
+		error("Unexpected token " .. TOKEN_KINDS_INV[tok.kind] .. " '" .. tok.raw .. "'")
+	end
 end
 
 --- Shifts the parser to the next token.
@@ -310,7 +362,7 @@ function Parser:acceptBlock()
 
 	while node do
 		nodes[#nodes + 1] = node
-		assert(node:isStatement() or self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after statement")
+		-- assert(node, "Expected ; after statement")
 
 		if self:popToken(TOKEN_KINDS.Grammar, "}") then
 			return nodes

@@ -3,13 +3,13 @@ local ELib = require("expressive/library")
 -- First pass of the analyzer.
 -- Just gather any data that can be gathered without any other variables in context.
 local Analyzer = ELib.Analyzer
-local PARSER_KINDS = ELib.Parser.KINDS
+local NODE_KINDS = ELib.Parser.KINDS
 local Var = Analyzer.Var
 
 local Handlers = {
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.VarDeclare] = function(self, node)
+	[NODE_KINDS.VarDeclare] = function(self, node)
 		-- kw is either "var", "let" or "const"
 		local kw, name, type, expr = unpack(node.data)
 
@@ -33,7 +33,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.VarModify] = function(self, node)
+	[NODE_KINDS.VarModify] = function(self, node)
 		local name, how, expr2 = unpack(node.data)
 
 		local scope = self:getScope()
@@ -57,7 +57,7 @@ local Handlers = {
 	-- Scan for variable references
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Variable] = function(self, node)
+	[NODE_KINDS.Variable] = function(self, node)
 		local name = node.data[1]
 		assert( self:getScope():lookup(name), "Variable " .. name .. " is not defined")
 	end,
@@ -65,7 +65,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Block] = function(self, node)
+	[NODE_KINDS.Block] = function(self, node)
 		local body = unpack(node.data)
 		self:pushScope()
 			self:firstPass(body)
@@ -74,7 +74,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Realm] = function(self, node)
+	[NODE_KINDS.Realm] = function(self, node)
 		local realm, body = unpack(node.data)
 
 		self:pushScope()
@@ -84,7 +84,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.If] = function(self, node)
+	[NODE_KINDS.If] = function(self, node)
 		local cond, body = unpack(node.data)
 		self:pushScope()
 			self:firstPass(body)
@@ -93,7 +93,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Elseif] = function(self, node)
+	[NODE_KINDS.Elseif] = function(self, node)
 		local cond, body = unpack(node.data)
 		self:pushScope()
 			self:firstPass(body)
@@ -102,7 +102,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Else] = function(self, node)
+	[NODE_KINDS.Else] = function(self, node)
 		local body = unpack(node.data)
 		self:pushScope()
 			self:firstPass(body)
@@ -111,7 +111,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.While] = function(self, node)
+	[NODE_KINDS.While] = function(self, node)
 		local cond, body = unpack(node.data)
 		self:pushScope()
 			self:firstPass(body)
@@ -120,7 +120,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Function] = function(self, node)
+	[NODE_KINDS.Function] = function(self, node)
 		local name, args, block = unpack(node.data)
 		-- Set function in the outer scope.
 		self:getScope():setType(name, "function")
@@ -129,6 +129,7 @@ local Handlers = {
 			local scope = self:getScope()
 
 			for _, data in ipairs(args) do
+				print(data[1], data[2])
 				scope:setType( data[1], data[2] )
 			end
 
@@ -139,7 +140,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.CallExpr] = function(self, node)
+	[NODE_KINDS.CallExpr] = function(self, node)
 		---@type Node
 		local expr = node.data[1]
 		---@type table<number, Node>
@@ -154,7 +155,7 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
-	[PARSER_KINDS.Declare] = function(self, node)
+	[NODE_KINDS.Declare] = function(self, node)
 		assert(self.configs.AllowDeclare, "Declare statements are not allowed in regular code")
 	end
 }

@@ -1,7 +1,7 @@
 local ELib = require("expressive/library")
 -- Analysis
 -- Type checking and whatnot for the output Expression4 AST.
-local PARSER_KINDS = ELib.Parser.KINDS
+local NODE_KINDS = ELib.Parser.KINDS
 
 ---@class Analyzer
 ---@field scopes table<number, Scope>

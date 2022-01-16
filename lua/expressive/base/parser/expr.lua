@@ -8,7 +8,7 @@ local isAnyOf = ELib.Parser.isAnyOf
 local isAnyOfKind = ELib.Parser.isAnyOfKind
 
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
-local PARSER_KINDS = ELib.Parser.KINDS
+local NODE_KINDS = ELib.Parser.KINDS
 
 -- Inferred types from lexer number formats.
 -- Do not ever assume uint as that'd get pretty annoying
@@ -30,13 +30,13 @@ Expressions = {
 		-- x ?? y
 		if self:popToken(TOKEN_KINDS.Operator, "??") then
 			local els = Expressions[2](self, self:nextToken())
-			return Node.new(PARSER_KINDS.Ternary, { expr, els })
+			return Node.new(NODE_KINDS.Ternary, { expr, els })
 		elseif self:popToken(TOKEN_KINDS.Operator, "?") then
 			-- cond ? x : y
 			local iff = Expressions[2](self, self:nextToken())
 			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : after ternary '?'" )
 			local els = Expressions[2](self, self:nextToken())
-			return Node.new(PARSER_KINDS.Ternary, { expr, iff, els })
+			return Node.new(NODE_KINDS.Ternary, { expr, iff, els })
 		end
 
 		return expr
@@ -51,7 +51,7 @@ Expressions = {
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"&&", "||"})
 		if raw then
 			local right = assert( Expressions[3](self, self:nextToken()), "Expected expression after " .. raw )
-			return Node.new(PARSER_KINDS.LogicalOps, { raw, left, right })
+			return Node.new(NODE_KINDS.LogicalOps, { raw, left, right })
 		end
 
 		return left
@@ -64,7 +64,7 @@ Expressions = {
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"|", "&"})
 		if raw then
 			local right = assert( Expressions[4](self, self:nextToken()), "Expected expression after " .. raw )
-			return Node.new(PARSER_KINDS.BitwiseOps, { raw, left, right })
+			return Node.new(NODE_KINDS.BitwiseOps, { raw, left, right })
 		end
 
 		return left
@@ -79,7 +79,7 @@ Expressions = {
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"==", "!=", ">=", "<=", ">", "<"})
 		if raw then
 			local right = assert( Expressions[5](self, self:nextToken()), "Expected expression after " .. raw )
-			return Node.new(PARSER_KINDS.ComparisonOps, { raw, left, right })
+			return Node.new(NODE_KINDS.ComparisonOps, { raw, left, right })
 		end
 
 		return left
@@ -94,7 +94,7 @@ Expressions = {
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"<<", ">>"})
 		if raw then
 			local right = assert( Expressions[6](self, self:nextToken()), "Expected expression after " .. raw )
-			return Node.new(PARSER_KINDS.BitShiftOps, { raw, left, right })
+			return Node.new(NODE_KINDS.BitShiftOps, { raw, left, right })
 		end
 
 		return left
@@ -110,7 +110,7 @@ Expressions = {
 		if raw then
 			local right = assert( Expressions[7](self, self:nextToken()), "Expected expression after " .. raw )
 
-			return Node.new(PARSER_KINDS.ArithmeticOps, { raw, left, right })
+			return Node.new(NODE_KINDS.ArithmeticOps, { raw, left, right })
 		end
 
 		return left
@@ -126,7 +126,7 @@ Expressions = {
 			self:nextToken()
 
 			local expr = assert( Expressions[8](self, self:nextToken()), "Expected expression after " .. raw )
-			return Node.new(PARSER_KINDS.UnaryOps, { raw, expr })
+			return Node.new(NODE_KINDS.UnaryOps, { raw, expr })
 		end
 
 		return Expressions[8](self, token)
@@ -155,7 +155,7 @@ Expressions = {
 				end
 			end
 
-			return Node.new(PARSER_KINDS.CallExpr, { expr, args })
+			return Node.new(NODE_KINDS.CallExpr, { expr, args })
 		end
 		return expr
 	end,
@@ -168,7 +168,7 @@ Expressions = {
 			local expr = Expressions[1](self, self:nextToken())
 			assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to close grouped expression" )
 
-			return Node.new(PARSER_KINDS.GroupedExpr, { expr })
+			return Node.new(NODE_KINDS.GroupedExpr, { expr })
 		end
 
 		return Expressions[10](self, token)
@@ -183,12 +183,12 @@ Expressions = {
 			local key = Expressions[1](self, self:nextToken())
 			assert( self:popToken(TOKEN_KINDS.Grammar, "]"), "Expected ] to close indexed expression" )
 
-			return Node.new(PARSER_KINDS.Index, { "[]", tbl, key })
+			return Node.new(NODE_KINDS.Index, { "[]", tbl, key })
 		end
 
 		if self:popToken(TOKEN_KINDS.Operator, ".") then
 			local key = assert( self:popAnyOfKind({TOKEN_KINDS.Identifier, TOKEN_KINDS.Integer}), "Expected identifier or integer after ." )
-			return Node.new(PARSER_KINDS.Index, { ".", tbl, key })
+			return Node.new(NODE_KINDS.Index, { ".", tbl, key })
 		end
 
 		return tbl
@@ -217,7 +217,7 @@ Expressions = {
 				end
 			end
 
-			return Node.new(PARSER_KINDS.Array, { args })
+			return Node.new(NODE_KINDS.Array, { args })
 		end
 		return Expressions[12](self, token)
 	end,
@@ -230,7 +230,7 @@ Expressions = {
 			self.tok_idx = self.tok_idx - 1 -- Move backward to accept block
 			local block = self:acceptBlock()
 
-			return Node.new(PARSER_KINDS.Block, { block })
+			return Node.new(NODE_KINDS.Block, { block })
 		end
 		return Expressions[13](self, token)
 	end,
@@ -243,7 +243,7 @@ Expressions = {
 			local params = self:acceptTypedParameters("Expected parameters (foo: int) after lambda definition")
 			local block = self:acceptBlock()
 
-			return Node.new(PARSER_KINDS.Lambda, { params, block })
+			return Node.new(NODE_KINDS.Lambda, { params, block })
 		end
 		return Expressions[14](self, token)
 	end,
@@ -254,13 +254,13 @@ Expressions = {
 	[14] = function(self, token)
 		local num = isAnyOfKind(token, {TOKEN_KINDS.Decimal, TOKEN_KINDS.Hexadecimal, TOKEN_KINDS.Integer, TOKEN_KINDS.Octal})
 		if num then
-			return Node.new(PARSER_KINDS.Literal, { "number", token.value, token.negative, NumFormats[num] })
+			return Node.new(NODE_KINDS.Literal, { "number", token.value, token.negative, NumFormats[num] })
 		elseif isToken(token, TOKEN_KINDS.String) then
-			return Node.new(PARSER_KINDS.Literal, { "string", token.value })
+			return Node.new(NODE_KINDS.Literal, { "string", token.value })
 		elseif isToken(token, TOKEN_KINDS.Boolean) then
-			return Node.new(PARSER_KINDS.Literal, { "boolean", token.value })
+			return Node.new(NODE_KINDS.Literal, { "boolean", token.value })
 		elseif isToken(token, TOKEN_KINDS.Keyword, "null") then
-			return Node.new(PARSER_KINDS.Literal, { "null" })
+			return Node.new(NODE_KINDS.Literal, { "null" })
 		end
 
 		return Expressions[15](self, token)
@@ -271,7 +271,7 @@ Expressions = {
 	---@param token Token
 	[15] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Identifier) then
-			return Node.new(PARSER_KINDS.Variable, { token.raw })
+			return Node.new(NODE_KINDS.Variable, { token.raw })
 		end
 	end
 }

@@ -83,7 +83,7 @@ function ENT:Compile()
 	self.instance = instance
 	function instance.runOnError(err)
 		-- Have to make sure it's valid because the chip can be deleted before deinitialization and trigger errors
-		if self:IsValid() then
+		if IsValid(self) then
 			self:Error(err)
 		end
 	end
@@ -92,7 +92,6 @@ function ENT:Compile()
 	if not ok then return end
 
 	if SERVER then
-		print("compile success")
 		self.ErroredPlayers = {}
 		local clr = self:GetColor()
 		self:SetColor(Color(255, 255, 255, clr.a))
@@ -167,7 +166,7 @@ function ENT:Error(err)
 	end
 
 	if self.owner:IsValid() then
-		--SF.AddNotify(self.owner, msg, "ERROR", 7, "ERROR1")
+		ELib.Notify(self.owner, 1, err)
 	end
 
 	if self.instance then
@@ -175,11 +174,7 @@ function ENT:Error(err)
 		self.instance = nil
 	end
 
-	if SERVER then
-		if self.owner:IsValid() then
-			ELib.PrintTo(self.owner, err)
-		end
-	else
+	if CLIENT then
 		if self.owner ~= LocalPlayer() and self.owner:IsValid() and GetConVarNumber("es_timebuffer_cl")>0 then
 			ELib.StartNet("Processor.Errored")
 				net.WriteEntity(self)

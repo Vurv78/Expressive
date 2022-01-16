@@ -52,10 +52,14 @@ end
 require("fix_require")
 
 local ELib = require("expressive/library")
+--- TODO: Probably want to cut down on these for servers with a massive load of addons.
+-- Or get a system to condense this into one single network string. Could be made into a tiny autorun library.
 
 ELib.AddNetworkString("InitializedClient")
 ELib.AddNetworkString("OpenEditor")
+
 ELib.AddNetworkString("PrintTo")
+ELib.AddNetworkString("Notify")
 
 ELib.AddNetworkString("Processor.Used")
 ELib.AddNetworkString("Processor.Kill")

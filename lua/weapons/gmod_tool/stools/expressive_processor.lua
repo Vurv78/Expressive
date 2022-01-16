@@ -207,7 +207,7 @@ function TOOL:LeftClick(trace)
 		if not IsValid(chip) then return end -- Removed while transmitting
 		chip:SetupFiles(data)
 	end) then
-		ELib.PrintTo(ply, "Cannot upload code, please wait for the current upload to finish.")
+		ELib.Notify(ply, 1, "Cannot upload code, please wait for the current upload to finish.")
 		return false
 	end
 

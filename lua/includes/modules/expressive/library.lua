@@ -199,12 +199,29 @@ function Library.Inspect(object, depth, dumped)
 	end
 end
 
+--- Creates an enum from a sequential table of tables
+---@param t table<number, table<number, {name: number, udata: table}>>
+---@return table<string, number>
+---@return table<number, table> # Table of Enum value => Userdata table
+function Library.MakeEnum(t)
+	local ret, ret2 = {}, {}
+	for k, entry in ipairs(t) do
+		ret[entry.name] = k
+		ret2[k] = entry.udata
+	end
+	return ret, ret2
+end
+
 function Library.GetInverted(t)
 	local out = {}
 	for k, v in pairs(t) do
 		out[v] = k
 	end
 	return out
+end
+
+function Library.GetIDE()
+	return ExpressiveEditor.Get()
 end
 
 ---@class Validator
@@ -421,7 +438,8 @@ if SERVER then
 				end
 			else
 				if upload_data[ply] == updata then
-					Library.PrintTo(ply, "There was a problem uploading your code. Try again in a second.")
+					-- NOTIFY_ERROR
+					Library.Notify(ply, 1, "There was a problem uploading your code. Try again in a second.")
 				end
 			end
 			upload_data[ply] = nil
@@ -434,17 +452,27 @@ else
 		local mainfile = net.ReadString()
 		if #mainfile == 0 then mainfile = nil end
 
-		local handler = ExpressiveEditor.IDE:GetActiveTabHandler()
-		local entrypoint = handler.tabs[handler.active_tab].name
+		local handler = Library.GetIDE():GetActiveTabHandler()
+		if handler then
+			print("AA", handler.active_tab)
+			local active_tab = handler.tabs[handler.active_tab]
+			if not active_tab then
+				notification.AddLegacy("You must have an active tab to upload code.", NOTIFY_ERROR, 5)
+				return
+			end
+			local entrypoint = active_tab.name
 
-		local code = ExpressiveEditor.GetCode()
+			local code = ExpressiveEditor.GetCode()
 
-		Library.SendProcessor("Processor.Upload", {
-			modules = { [entrypoint] = code },
-			main = entrypoint
-		})
+			Library.SendProcessor("Processor.Upload", {
+				modules = { [entrypoint] = code },
+				main = entrypoint
+			})
 
-		print("upload received on client")
+			print("upload received on client")
+		else
+			notification.AddLegacy("You must have an active tab to upload code.", NOTIFY_ERROR, 5)
+		end
 	end)
 end
 
@@ -455,9 +483,28 @@ function Library.PrintTo(ply, msg)
 	net.Send(ply)
 end
 
+---@param ply GPlayer
+---@param type "NOTIFY_GENERIC|NOTIFY_ERROR|NOTIFY_UNDO|NOTIFY_HINT|NOTIFY_CLEANUP" # Notify enum. From 0 - 4.
+---@param msg string
+function Library.Notify(ply, type, msg)
+	if SERVER then
+		Library.StartNet("Notify")
+			net.WriteUInt(type, 3)
+			net.WriteString(msg)
+		net.Send(ply)
+	elseif ply == LocalPlayer() then
+		notification.AddLegacy(msg, type, 5)
+	end
+end
+
 if CLIENT then
 	Library.ReceiveNet("PrintTo", function(len, ply)
 		print( net.ReadString() )
+	end)
+
+	Library.ReceiveNet("Notify", function(len, ply)
+		local ty, msg = net.ReadUInt(3), net.ReadString()
+		Library.Notify(ty, msg)
 	end)
 end
 

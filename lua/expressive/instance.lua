@@ -44,7 +44,7 @@ function Instance.from(ctx, main, modules, chip, owner)
 	self.cpu_total = 0
 	self.cpu_average = 0
 	self.cpu_softquota = 1
-	self.start_time = -1
+	-- self.start_time = -1
 
 	self.chip = chip
 	self.owner = owner
@@ -75,13 +75,13 @@ function Instance.from(ctx, main, modules, chip, owner)
 end
 
 function Instance:checkCpu()
-	--[[self.cpu_total = SysTime() - self.start_time
+	self.cpu_total = SysTime() - self.start_time
 	local used_ratio = self:movingCPUAverage() / self.cpu_quota
 	if used_ratio > 1 then
-		error("CPU Quota exceeded.")
+		self:error("CPU Quota exceeded.")
 	elseif used_ratio > self.cpu_softquota then
-		error("CPU Quota warning.")
-	end]]
+		self:error("CPU Quota warning.")
+	end
 end
 
 --- Runs an event for a chip.
@@ -104,6 +104,7 @@ function Instance:init()
 	self.cpu_total = 0
 	self.cpu_average = 0
 	self.cpu_softquota = 1
+	self.start_time = SysTime()
 
 	-- Run extension constructors
 	for ext in pairs(self.ctx.extensions) do
@@ -118,6 +119,12 @@ function Instance:init()
 	end
 end
 
+---@class RuntimeError
+---@field msg string?
+---@field trace string
+---@field obj any # Optional object to pass through as the error
+
+---@param err RuntimeError|string
 function Instance:error(err)
 	if self.errored then return end
 	if self.runOnError then -- We have a custom error function, use that instead
@@ -135,18 +142,18 @@ function Instance:runFunction(fn, ...)
 	if self.stack_level == 0 then
 		self.start_time = SysTime() - self.cpu_total
 	elseif self.stack_level == 128 then
-		return false, { "Stack Overflow" }
+		return false, "Stack Overflow"
 	end
 
-	local old_hook = debug.gethook()
+	local old_hook, old_mask = debug.gethook()
 
 	local function checkCpu()
 		self.cpu_total = SysTime() - self.start_time
 		local usedRatio = self:movingCPUAverage() / self.cpu_quota
 		if usedRatio > 1 then
-			error(self, "CPU Quota exceeded")
+			self:error("CPU Quota exceeded")
 		elseif usedRatio > self.cpu_softquota then
-			error(self, "CPU Quota warning")
+			self:error("CPU Quota warning")
 		end
 	end
 
@@ -157,7 +164,7 @@ function Instance:runFunction(fn, ...)
 	debug.sethook(checkCpu, "", 2000)
 		jit.on(fn, true)  -- Turn JIT compilation on just for the chip.
 		local rets = { xpcall(fn, xpcall_callback, ...) }
-	debug.sethook(old_hook)
+	debug.sethook(old_hook, old_mask, old_count)
 
 	local ok = table.remove(rets, 1)
 

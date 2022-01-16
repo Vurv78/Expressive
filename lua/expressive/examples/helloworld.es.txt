@@ -1,4 +1,11 @@
 let foo = 55;
 const bar = "Hello World";
 
+function foo() {
+	let bar = 5;
+	return bar;
+};
+
+"Foo bar";
+
 // No print here, smh

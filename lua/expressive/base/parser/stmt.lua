@@ -9,13 +9,13 @@ local isAnyOf = Parser.isAnyOf
 local isAnyOfKind = Parser.isAnyOfKind
 
 local TOKEN_KINDS = Tokenizer.KINDS
-local PARSER_KINDS = Parser.KINDS
+local NODE_KINDS = Parser.KINDS
 
 ---@type table<number, fun(self: Parser, token: Token)>
 local Statements = {
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.If] = function(self, token)
+	[NODE_KINDS.If] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "if") then
 			local cond = assert( self:acceptCondition(), "Expected condition after 'if'" )
 			local body = self:acceptBlock()
@@ -26,11 +26,11 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Elseif] = function(self, token)
+	[NODE_KINDS.Elseif] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "elseif") then
 			print( ELib.Inspect( self:lastNode() ) )
 
-			assert( self:lastNodeWith(PARSER_KINDS.If), "Expected if statement before elseif" )
+			assert( self:lastNodeWith(NODE_KINDS.If), "Expected if statement before elseif" )
 			local cond = assert( self:acceptCondition(), "Expected condition after 'elseif'" )
 			local block = assert( self:acceptBlock(), "Expected block after 'elseif'" )
 
@@ -40,10 +40,10 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Else] = function(self, token)
+	[NODE_KINDS.Else] = function(self, token)
 		-- TODO: Also needs to account for elseif
 		if isToken(token, TOKEN_KINDS.Keyword, "else") then
-			assert( self:lastNodeAnyOfKind({PARSER_KINDS.If, PARSER_KINDS.Elseif}), "Expected if or elseif statement before else" )
+			assert( self:lastNodeAnyOfKind({NODE_KINDS.If, NODE_KINDS.Elseif}), "Expected if or elseif statement before else" )
 
 			local body = self:acceptBlock()
 			return { body }
@@ -52,7 +52,7 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.While] = function(self, token)
+	[NODE_KINDS.While] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "while") then
 			local cond = assert( self:acceptCondition(), "Expected condition after 'while'" )
 			local body = self:acceptBlock()
@@ -66,7 +66,7 @@ local Statements = {
 	--- for(int foo = 0; foo < 10; foo++) {
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.For] = function(self, token)
+	[NODE_KINDS.For] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "for") then
 			assert( self:popToken(TOKEN_KINDS.Grammar, "("), "Expected ( in for statement" )
 			local kw = assert( self:popAnyOf(TOKEN_KINDS.Keyword, {"let", "const", "var"}), "Expected keyword to start for loop (for (let x...))" )
@@ -87,7 +87,7 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Try] = function(self, token)
+	[NODE_KINDS.Try] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "try") then
 			local block = assert( self:acceptBlock(), "Expected block after try statement" )
 			assert( self:popToken(TOKEN_KINDS.Keyword, "catch"), "Expected catch after try statement" )
@@ -104,7 +104,7 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Realm] = function(self, token)
+	[NODE_KINDS.Realm] = function(self, token)
 		local realm = isAnyOf(token, TOKEN_KINDS.Keyword, {"server", "client"})
 		if realm then
 			local block = assert( self:acceptBlock(), "Expected block after realm statement" )
@@ -114,7 +114,7 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.VarDeclare] = function(self, token)
+	[NODE_KINDS.VarDeclare] = function(self, token)
 		local assign_kw = isAnyOf(token, TOKEN_KINDS.Keyword, {"var", "let", "const"})
 		if assign_kw then
 			local vname = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected variable name in variable declaration, got " .. ELib.Inspect(self:peek()) ).raw
@@ -128,7 +128,7 @@ local Statements = {
 			-- Check that number precision is correct, if explicit type is given.
 			-- So you can't just do var foo: int = 5.2143;
 			if ty then
-				if expr.kind == PARSER_KINDS.Literal then
+				if expr.kind == NODE_KINDS.Literal then
 					if expr.data[1] == "number" then
 						assert(ty == expr.data[4], "Expected type " .. ty .. " for variable " .. vname .. ", got " .. expr.data[4])
 					end
@@ -143,7 +143,7 @@ local Statements = {
 	--- For example Var += 5 or Var++
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.VarModify] = function(self, token)
+	[NODE_KINDS.VarModify] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Identifier) then
 			local op = self:popAnyOf(TOKEN_KINDS.Operator, {"+=", "-=", "/=", "*=", "%=", "="})
 			if op then
@@ -160,26 +160,26 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Delegate] = function(self, token)
+	[NODE_KINDS.Delegate] = function(self, token)
 		-- todo
 	end,
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Class] = function(self, token)
+	[NODE_KINDS.Class] = function(self, token)
 
 	end,
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Interface] = function(self, token)
+	[NODE_KINDS.Interface] = function(self, token)
 
 	end,
 
 	--- Function definition
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Function] = function(self, token)
+	[NODE_KINDS.Function] = function(self, token)
 		local name = self:popToken(TOKEN_KINDS.Identifier)
 		if isToken(token, TOKEN_KINDS.Keyword, "function") and name then
 			name = name.raw
@@ -194,7 +194,7 @@ local Statements = {
 	--- Either break, return or continue
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Escape] = function(self, token)
+	[NODE_KINDS.Escape] = function(self, token)
 		local kw = isAnyOf(token, TOKEN_KINDS.Keyword, {"break", "continue"})
 		if kw then
 			return { kw }
@@ -208,7 +208,7 @@ local Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[PARSER_KINDS.Declare] = function(self, token)
+	[NODE_KINDS.Declare] = function(self, token)
 		print("declare", token, self:peek())
 		return self:acceptDeclare(token)
 	end
