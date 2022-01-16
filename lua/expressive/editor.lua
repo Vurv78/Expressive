@@ -10,22 +10,11 @@ local Editor = {
 	}
 }
 
-surface.CreateFont("FontAwesome", {
-	font = "Font Awesome 6 Free Regular", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+surface.CreateFont("Expressive.FontAwesome", {
+	font = "Font Awesome 5 Free Solid", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
 	extended = true,
 	size = 15,
-	weight = 500,
-	blursize = 0,
-	scanlines = 0,
-	antialias = true,
-	underline = false,
-	italic = false,
-	strikeout = false,
-	symbol = false,
-	rotary = false,
-	shadow = false,
-	additive = false,
-	outline = false,
+	antialias = true
 })
 
 if not file.Exists("expressive", "DATA") then

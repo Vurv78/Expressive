@@ -2,13 +2,13 @@
 
 local TOKEN = Syper.TOKEN
 -- Const data
-local CLASSES
+local CLASSES = {"int", "double", "string", "bool", "void"} -- Base types for now
 local LIBRARIES
 local OPERATORS
 local KEYWORDS
 
 if ExpressiveEditor then
-	CLASSES = table.GetKeys(ExpressiveEditor.HelperData.classes)
+	-- CLASSES = table.GetKeys(ExpressiveEditor.HelperData.classes)
 	LIBRARIES = table.GetKeys(ExpressiveEditor.HelperData.libraries)
 	OPERATORS = table.GetKeys(ELib.Operators)
 	KEYWORDS = table.GetKeys(ELib.Keywords)
@@ -93,32 +93,30 @@ return {
 	func = {
 		{"(\n)", TOKEN.Whitespace},
 		{"([^%S\n]+)", TOKEN.Whitespace},
+		{"(%a%w*)", TOKEN.Identifier, "func_arg"}, -- Function name
 		{"(%()", TOKEN.Punctuation, "func_arg"}, -- This is a lambda, skip name.
-		{"(%w+)", TOKEN.Identifier_Modifier, "func_name"}, -- Return Type
 		{"([^\n]+\n)", TOKEN.Error, "main"},
 	},
 	-- {"([%a_][%w_]*)%s*\n", TOKEN.Error, "main"}
 	func_name = {
 		{"([%s\n]+)", TOKEN.Whitespace},
 		{"(%w+)", TOKEN.Function}, -- Name
-		{"([^%()])", TOKEN.Punctuation, "main"}, -- Probably using the ``function`` type, not a declaration.
+		{"([^%()])", TOKEN.Punctuation, "main"},
 		{"(%()", TOKEN.Punctuation, "func_arg"}
 	},
 	func_arg = {
 		{"(\n)", TOKEN.Whitespace},
 		{"([^%S\n]+)", TOKEN.Whitespace},
-		{
-			"([%a_][%w_]*)", TOKEN.Class, list = CLASSES
-		},
+		{"([%a_][%w_]*)", TOKEN.Class, list = CLASSES},
 		{"([%a_\128-\255][%w_\128-\255]*)", TOKEN.Argument},
-		{"(,)", TOKEN.Punctuation},
-		{"([^%a_%)]+)", TOKEN.Error},
-		{"(%))", TOKEN.Punctuation, "main"}
+		{"(%))", TOKEN.Punctuation, "main"},
+		{"([:,])", TOKEN.Punctuation},
+		{"([^%a_%)]+)", TOKEN.Error}
 	},
 	class = {
 		{"(\n)", TOKEN.Whitespace},
 		{"([^%S\n]+)", TOKEN.Whitespace},
-		{"(%w+)", TOKEN.Class, "main"}, -- Class name
+		{"(%a%w*)", TOKEN.Class, "main"}, -- Class name
 		{"([^\n]+\n)", TOKEN.Error, "main"}
 	}
 }
