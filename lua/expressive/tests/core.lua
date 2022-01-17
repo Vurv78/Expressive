@@ -1,6 +1,7 @@
 --- TODO: This should adapt to different addon names, using the value fetched from autorun
 local src = file.Read("expressive/examples/core.es.txt", "LUA")
 local ELib = require("expressive/library")
+require("expressive/startup")
 
 ---@type Context
 local Context = include("expressive/core/context.lua")

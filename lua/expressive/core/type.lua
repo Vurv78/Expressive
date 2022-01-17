@@ -2,7 +2,7 @@ local ELib = require("expressive/library")
 local class = require("voop")
 
 --- A type for Expression4
----@class Type
+---@class Type: Object
 ---@field name string
 ---@field typeof fun(x: any): boolean # Function that returns true if x is an instance of this type.
 local Type = class("Type")

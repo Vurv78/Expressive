@@ -5,7 +5,7 @@ local class = require("voop")
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
 local TOKEN_KINDS_INV = ELib.Tokenizer.KINDS_INV
 
----@class Parser
+---@class Parser: Object
 ---@field tok_idx number Index of the current token
 ---@field tokens table<number, Token>
 ---@field node_idx number Index of the current node
@@ -111,7 +111,7 @@ Parser.KINDS_INV = KINDS_INV
 ---@type table<number, {type: string}>
 Parser.KINDS_UDATA = KINDS_UDATA
 
----@class Node
+---@class Node: Object
 ---@field kind ParserKinds
 ---@field data table
 local Node = class("Node")

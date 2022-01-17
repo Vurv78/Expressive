@@ -4,7 +4,7 @@ local class = require("voop")
 local Var = ELib.Var
 
 --- The context in that an E4 chip runs in.
----@class Context
+---@class Context: Object
 ---@field funcs table<string, fun()>
 ---@field types table<TypeSig, Type>
 ---@field constants table<string, {value: any, type: Type}>

@@ -11,6 +11,8 @@
 ---@field Context Context
 ---@field Transpiler Transpiler
 ---@field Var Variable
+---@field ExtensionCtx Context
+---@field DefaultCtx Context
 local Library = {
 	Version = "0.1.0",
 	Version_NUM = 100 -- 1.0.0 -> 100, 1.0.1 -> 101, 0.2.0 -> 020, etc.
@@ -73,7 +75,6 @@ Library.Keywords = {
 	["function"] = true,
 	["true"] = true,
 	["false"] = true,
-	["void"] = true,
 	["break"] = true,
 	["continue"] = true,
 	["return"] = true,
@@ -300,6 +301,8 @@ function Library.ReadProcessor(from, callback)
 
 	net.ReadStream(from, function(data)
 		if data then
+			data = util.Decompress(data)
+			--print(string.format("%q", data), string.format("%q", util.Decompress(data)))
 			local stream = DataStream.new(data)
 			local n_files = stream:readU(16)
 

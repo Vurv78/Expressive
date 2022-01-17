@@ -3,7 +3,7 @@ local class = require("voop")
 
 local Var = ELib.Var
 
----@class Scope
+---@class Scope: Object
 ---@field priv table<string, Variable>
 ---@field parent Scope?
 ---@field index number

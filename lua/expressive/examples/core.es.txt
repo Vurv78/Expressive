@@ -8,15 +8,8 @@
 	They are also untyped, so that you can interact with _G properly.
 */
 
-declare var pi: number;
-declare const foo: number;
-
-declare function bar(): number;
-declare type number;
-
-function foo(fooo: number) {};
-
-add(5, 6);
+declare function print(): void;
+print(5, 6);
 
 // declare function print(...args: string[]);
 

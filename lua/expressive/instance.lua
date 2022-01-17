@@ -4,7 +4,7 @@ local class = require("voop")
 --- Instance
 --- This is different from the [Context], which is the immutable environment it runs in.
 --- Basically this extends it and is runtime based while the Context is available to extensions at compile time.
----@class Instance
+---@class Instance: Object
 ---@field src string
 ---@field main function
 ---@field modules table<string, function>

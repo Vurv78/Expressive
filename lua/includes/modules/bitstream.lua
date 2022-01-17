@@ -58,7 +58,7 @@ end
 ---@return string
 function DataStream:readUntil(byte)
 	self.ptr = self.ptr + 1
-	local ed = string.find(self.content, string.char(byte), self.ptr, true)
+	local ed = string.find(self.content, string.char(byte), self.ptr, true) or #self.content
 	local ret = string.sub(self.content, self.ptr, ed - 1)
 	self.ptr = ed
 	return ret

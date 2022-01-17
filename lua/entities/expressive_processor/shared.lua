@@ -64,7 +64,7 @@ function ENT:Compile()
 		self:Error("Failed to compile: " .. why)
 	end
 
-	local instance = ELib.Instance.from(ctx, data.main, lua_modules, self, self.owner)
+	local instance = ELib.Instance.from(ELib.ExtensionCtx, data.main, lua_modules, self, self.owner)
 
 	--[[if instance.ppdata.scriptnames and instance.mainfile and instance.ppdata.scriptnames[instance.mainfile] then
 		self.name = string.sub(tostring(instance.ppdata.scriptnames[instance.mainfile]), 1, 64)

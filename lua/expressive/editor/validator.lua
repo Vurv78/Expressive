@@ -2,7 +2,7 @@
 local class = require("voop")
 require("expressive/startup")
 
----@class Validator
+---@class Validator: Object
 ---@field editor any
 local Validator = class("Validator")
 
@@ -30,16 +30,14 @@ function Validator:Validate(code, move_to, export_compiled)
 		return self:Throw(ast, true)
 	end
 
-	local ctx = ELib.ExtensionCtx
-
 	local Analyzer = ELib.Analyzer.new()
-	local ok, ast = pcall(Analyzer.process, Analyzer, ctx, ast)
+	local ok, ast = pcall(Analyzer.process, Analyzer, ELib.ExtensionCtx, ast)
 	if not ok then
 		return self:Throw(ast, true)
 	end
 
 	local Transpiler = ELib.Transpiler.new()
-	local ok, code = pcall(Transpiler.process, Transpiler, ctx, ast)
+	local ok, code = pcall(Transpiler.process, Transpiler, ELib.ExtensionCtx, ast)
 	if not ok then
 		return self:Throw(code, true)
 	end

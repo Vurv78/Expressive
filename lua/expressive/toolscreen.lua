@@ -24,7 +24,7 @@ HexMesh:BuildFromTriangles({
 })
 
 --- Hexagon object on the toolgun
----@class Hex
+---@class Hex: Object
 ---@field ang GAngle
 ---@field angvel GAngle
 ---@field pos GVector
