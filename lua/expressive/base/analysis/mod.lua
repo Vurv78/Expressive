@@ -99,7 +99,6 @@ function Analyzer:process(ctx, ast, configs)
 	assert(istable(ast), "bad argument #2 to 'Analyzer:process' (table expected, got " .. type(ast) .. ")")
 	assert(istable(configs), "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
 
-	print("process", ctx, ELib.ExtensionCtx, ELib.Inspect(ctx))
 	self.ctx = ctx
 	self:loadContext(ctx)
 	-- Get initial types.
@@ -137,7 +136,7 @@ function Analyzer:loadContext(ctx)
 			end
 		end
 	end
-	print("adding variables", ELib.Inspect(ctx.variables))
+	print( ELib.Inspect(ctx.variables) )
 	addVars(ctx.variables, self.global_scope)
 end
 

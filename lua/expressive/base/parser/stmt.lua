@@ -28,8 +28,6 @@ local Statements = {
 	---@param token Token
 	[NODE_KINDS.Elseif] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "elseif") then
-			print( ELib.Inspect( self:lastNode() ) )
-
 			assert( self:lastNodeWith(NODE_KINDS.If), "Expected if statement before elseif" )
 			local cond = assert( self:acceptCondition(), "Expected condition after 'elseif'" )
 			local block = assert( self:acceptBlock(), "Expected block after 'elseif'" )

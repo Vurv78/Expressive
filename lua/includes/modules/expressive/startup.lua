@@ -50,13 +50,12 @@ local function reload()
 	---@return table<number, string>
 	local files = file.Find("expressive/core/extensions/*.es.txt", "LUA")
 
+	print("<< Loading Expressive Extensions >>")
 	---@type string
 	for _, file_name in ipairs(files) do
-		print("Loading Expressive extension: " .. file_name)
 		local src = file.Read("expressive/core/extensions/" .. file_name, "LUA")
 
 		local ok, res = pcall(function()
-			print(Tokenizer.parse)
 			local tokens = Tokenizer:parse(src)
 			local ast = Parser:parse(tokens)
 
@@ -69,7 +68,7 @@ local function reload()
 		if not ok then
 			ErrorNoHalt("Failed to load extension " .. file_name .. " {\n\t>> " .. string.gsub(res, "\n", "\n\t>>") .. "\n}\n")
 		else
-			print("Loaded E4 Extension " .. file_name)
+			print("Loaded extension " .. file_name)
 		end
 
 		--[[local ok, res = pcall(include, "expressive/core/extensions/" .. file)

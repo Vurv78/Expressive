@@ -175,7 +175,6 @@ function Parser:root()
 		nodes[#nodes + 1] = node
 		-- assert(node, "Expected ; after statement")
 
-		print(node)
 		if node:isStatement() then
 			self:popToken(TOKEN_KINDS.Grammar, ";")
 		end
