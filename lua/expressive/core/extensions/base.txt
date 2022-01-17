@@ -1,8 +1,0 @@
-declare function add(x: number, y: number);
-declare function print(...args: string[]): void;
-
-declare var Number: number;
-
-export function test() {
-	print("Hello world!");
-}

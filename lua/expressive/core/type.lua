@@ -1,11 +1,11 @@
 local ELib = require("expressive/library")
+local class = require("voop")
 
 --- A type for Expression4
 ---@class Type
 ---@field name string
----@field instanceof fun(x: any): boolean # Function that returns true if x is an instance of this type.
-local Type = {}
-Type.__index = Type
+---@field typeof fun(x: any): boolean # Function that returns true if x is an instance of this type.
+local Type = class("Type")
 
 --- Creates a new type, to be registered in an extension
 ---@param name string
@@ -29,7 +29,7 @@ end
 --- Asserts that a [Type] struct is completely ready to be used by E4.
 --- Used internally.
 function Type:isReady()
-	return self.instanceof ~= nil
+	return self.typeof ~= nil
 end
 
 ELib.Type = Type

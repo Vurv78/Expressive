@@ -1,13 +1,13 @@
 local ELib = require("expressive/library")
+local class = require("voop")
 
-local Var = ELib.Analyzer.Var
+local Var = ELib.Var
 
 ---@class Scope
 ---@field priv table<string, Variable>
 ---@field parent Scope?
 ---@field index number
-local Scope = {}
-Scope.__index = Scope
+local Scope = class("Scope")
 
 local counter = 0
 

@@ -1,0 +1,12 @@
+declare type double;
+
+declare function add(x: double, y: double): double;
+// declare function print(...args: string[]): void;
+
+/*declare var awesome: double;
+
+function test() {
+	_G.print("Hello world!");
+};
+
+*/

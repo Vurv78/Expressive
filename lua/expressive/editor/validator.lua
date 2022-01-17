@@ -1,10 +1,10 @@
 ﻿local ELib = require("expressive/library")
+local class = require("voop")
 require("expressive/startup")
 
 ---@class Validator
 ---@field editor any
-local Validator = {}
-Validator.__index = Validator
+local Validator = class("Validator")
 
 --- Validates given code and returns true and transpiled code if successful
 ---@return boolean
@@ -30,7 +30,7 @@ function Validator:Validate(code, move_to, export_compiled)
 		return self:Throw(ast, true)
 	end
 
-	local ctx = ELib.DefaultCtx
+	local ctx = ELib.ExtensionCtx
 
 	local Analyzer = ELib.Analyzer.new()
 	local ok, ast = pcall(Analyzer.process, Analyzer, ctx, ast)
@@ -47,7 +47,6 @@ function Validator:Validate(code, move_to, export_compiled)
 	self.editor.validation_bar:SetBGColor(Color(100, 200, 100))
 	self.editor.validation_bar:SetText("Validation Successful!")
 
-	print("pcall", ok, code)
 	return true, code
 end
 

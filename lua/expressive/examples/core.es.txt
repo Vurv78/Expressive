@@ -11,8 +11,12 @@
 declare var pi: number;
 declare const foo: number;
 
-declare function bar();
+declare function bar(): number;
 declare type number;
+
+function foo(fooo: number) {};
+
+add(5, 6);
 
 // declare function print(...args: string[]);
 

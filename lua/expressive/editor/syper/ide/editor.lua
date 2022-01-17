@@ -2969,7 +2969,6 @@ function Editor:AddValidateBar()
 				local success, lua = self:Validate(code)
 
 				if success then
-					print("ran", #lua, lua)
 					RunString(lua, "Expressive:Run", true)
 				end
 			end)

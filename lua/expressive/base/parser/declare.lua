@@ -22,7 +22,10 @@ Declarations = {
 		if isToken(token, TOKEN_KINDS.Keyword, "function") then
 			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected function after 'function'" )
 			local params = self:acceptTypedParameters("Expected typed parameters after function name")
-			return {"function", name.raw, params}
+			assert(self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : to precede return type of declared function")
+			local ret_type = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected return type after :, got " .. self:peek().raw )
+
+			return {"function", name.raw, params, ret_type}
 		end
 	end,
 
@@ -106,13 +109,10 @@ Declarations = {
 ---@return table # Custom arguments for each different kind of declaration
 function Parser:acceptDeclare(tok)
 	if isToken(tok, TOKEN_KINDS.Keyword, "declare") then
-		-- print(">> ", tok, self:peek())
 		local tok = self:nextToken()
-		print(">> tok", tok)
 		for k, handler in ipairs(Declarations) do
 			local data = handler(self, tok)
 			if data then
-				print("<<", k)
 				return data
 			end
 		end

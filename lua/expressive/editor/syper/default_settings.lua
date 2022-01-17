@@ -8,7 +8,8 @@
 	// Syntax style
 	// monokai
 	// vs_darkplus
-	"style": "vs_darkplus",
+	// onedark
+	"style": "onedark",
 
 	// Show the value of a variable
 	"livevalueview": false,

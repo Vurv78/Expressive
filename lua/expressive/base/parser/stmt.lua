@@ -209,7 +209,6 @@ local Statements = {
 	---@param self Parser
 	---@param token Token
 	[NODE_KINDS.Declare] = function(self, token)
-		print("declare", token, self:peek())
 		return self:acceptDeclare(token)
 	end
 }

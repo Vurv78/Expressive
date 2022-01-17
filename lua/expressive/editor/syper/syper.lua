@@ -8,8 +8,6 @@ do
 		end
 	end
 
-	print("SYPER: INCLUDING")
-
 	ExpressiveEditor.include = add
 	add("lib.lua")
 	add("filetype.lua")

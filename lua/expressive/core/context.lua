@@ -1,4 +1,7 @@
 local ELib = require("expressive/library")
+local class = require("voop")
+
+local Var = ELib.Var
 
 --- The context in that an E4 chip runs in.
 ---@class Context
@@ -6,22 +9,22 @@ local ELib = require("expressive/library")
 ---@field types table<TypeSig, Type>
 ---@field constants table<string, {value: any, type: Type}>
 ---@field extensions table<Extension, boolean>
-local Context = {}
-Context.__index = Context
+---@field variables table<string, Variable> # Runtime variables
+local Context = class("Context")
 
 function Context.new()
 	return setmetatable({
 		funcs = {},
 		types = {},
 		constants = {},
+		variables = {},
 		extensions = {}
 	}, Context)
 end
 
---- Returns if ``var`` is a ``Context``
----@return boolean
-function Context.instanceof(var)
-	return istable(var) and getmetatable(var) == Context
+---@param var Variable
+function Context:registerVar(name, var)
+	self.variables[name] = var
 end
 
 -- Todo
@@ -53,6 +56,11 @@ function Context:getType(name)
 	return assert(self.types[name], "Missing type " .. name)
 end
 
+---@param typed boolean
+function Context:setTyped(typed)
+
+end
+
 ---@param ext Extension
 function Context:load(ext)
 	self.extensions[ext] = true
@@ -63,6 +71,20 @@ end
 ---@return table
 function Context:getEnv()
 	local env = {}
+
+	local function addVars(v)
+		for name, var in pairs(v) do
+			if Var:instanceof(var) then
+				env[name] = _G[name]
+			elseif istable(var) then
+				-- Namespace.
+				addVars(var)
+			else
+				error("Invalid variable type: " .. type(var))
+			end
+		end
+	end
+	addVars(self.variables)
 
 	for name, const in pairs(self.constants) do
 		env[name] = const.value

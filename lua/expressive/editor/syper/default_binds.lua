@@ -6,6 +6,8 @@
 	"ctrl+g": {"act": "command_overlay", "args": [":"]},
 	"ctrl+f": {"act": "find"},
 	"ctrl+h": {"act": "replace"},
+	// Same effect as clicking validate bar
+	"ctrl+space": {"act": "validate"},
 
 	"ctrl+pageup": {"act": "focus", "args": ["prev"]},
 	"ctrl+pagedown": {"act": "focus", "args": ["next"]},
@@ -48,7 +50,6 @@
 	"delete": {"act": "delete", "args": ["char", 1]},
 	"ctrl+backspace": {"act": "delete", "args": ["word", -1]},
 	"ctrl+delete": {"act": "delete", "args": ["word", 1]},
-	"ctrl+space": {"act": "validate"},
 
 	"left": {"act": "move", "args": ["char", -1]},
 	"right": {"act": "move", "args": ["char", 1]},

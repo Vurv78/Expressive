@@ -1,27 +1,28 @@
 local ELib = require("expressive/library")
+local class = require("voop")
+
 -- Analysis
 -- Type checking and whatnot for the output Expression4 AST.
 local NODE_KINDS = ELib.Parser.KINDS
 
----@class Analyzer
+---@class Analyzer: Object
 ---@field scopes table<number, Scope>
 ---@field global_scope Scope
 ---@field current_scope Scope
 ---@field configs AnalyzerConfigs
-local Analyzer = {}
-Analyzer.__index = Analyzer
+---@field ctx Context
+---@field externs table<string, Type> # Extern values retrieved from extensions. Not to be confused with imports
+local Analyzer = class("Analyzer")
 ELib.Analyzer = Analyzer
 
----@type Variable
-local Var = include("variable.lua")
+local Var = ELib.Var
 ---@type Scope
 local Scope = include("scope.lua")
 
----@param env table # Table of environment data: like function signatures with their return types.
-function Analyzer.new(env)
+---@return Analyzer
+function Analyzer.new()
 	local global_scope = Scope.new()
 	return setmetatable({
-		env = env,
 		scopes = { [0] = global_scope },
 		global_scope = global_scope,
 		current_scope = global_scope
@@ -52,8 +53,6 @@ end
 function Analyzer:getScope()
 	return self.current_scope
 end
-
-local Handlers = {}
 
 ---@class AnalyzerConfigs
 local AnalyzerConfigs = {
@@ -93,12 +92,15 @@ local AnalyzerConfigs = {
 function Analyzer:process(ctx, ast, configs)
 	local configs = configs or AnalyzerConfigs
 	self.configs = configs
+	self.externs = {}
 
 	--- Throws a C like lua param error if ``ast`` param is not a table.
-	assert(ELib.Context.instanceof(ctx), "bad argument #1 to 'Analyzer:process' (Context expected, got " .. type(ctx) .. ")")
+	assert(ELib.Context:instanceof(ctx), "bad argument #1 to 'Analyzer:process' (Context expected, got " .. type(ctx) .. ")")
 	assert(istable(ast), "bad argument #2 to 'Analyzer:process' (table expected, got " .. type(ast) .. ")")
 	assert(istable(configs), "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
 
+	print("process", ctx, ELib.ExtensionCtx, ELib.Inspect(ctx))
+	self.ctx = ctx
 	self:loadContext(ctx)
 	-- Get initial types.
 	self:firstPass(ast)
@@ -106,7 +108,7 @@ function Analyzer:process(ctx, ast, configs)
 	local new_ast = self:optimize(ast)
 
 	if self.configs.StrictTyping then
-		for id, scope in pairs(self.scopes) do
+		for _, scope in pairs(self.scopes) do
 			for name, var in pairs(scope.priv) do
 				assert(var, "Could not determine type of variable '" .. name .. "'")
 			end
@@ -121,6 +123,22 @@ function Analyzer:loadContext(ctx)
 	for name, const in pairs(ctx.constants) do
 		self.global_scope:set(name, Var.new(const.type.name, const.value, false))
 	end
+
+	---@param vars table<string, Variable>
+	---@param scope Scope
+	local function addVars(vars, scope)
+		for name, var in pairs(vars) do
+			if Var:instanceof(var) then
+				scope:set(name, var)
+			elseif istable(var) then
+				-- Namespace, TODO
+			else
+				error("Invalid variable type: " .. type(var))
+			end
+		end
+	end
+	print("adding variables", ELib.Inspect(ctx.variables))
+	addVars(ctx.variables, self.global_scope)
 end
 
 include("infer.lua")

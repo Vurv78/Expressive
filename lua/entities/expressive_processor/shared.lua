@@ -42,7 +42,6 @@ function ENT:Compile()
 		return
 	end
 
-	local ctx = ELib.DefaultCtx
 	local Tok = ELib.Tokenizer.new()
 	local Parser = ELib.Parser.new()
 	local Transpiler = ELib.Transpiler.new()
@@ -54,9 +53,9 @@ function ENT:Compile()
 			local ast = Parser:parse(tokens)
 
 			local Analyzer = ELib.Analyzer.new()
-			local new_ast = Analyzer:process(ctx, ast)
+			local new_ast = Analyzer:process(ELib.ExtensionCtx, ast)
 
-			local lua = Transpiler:process(ctx, new_ast)
+			local lua = Transpiler:process(ELib.ExtensionCtx, new_ast)
 			lua_modules[name] = lua
 		end
 	end)

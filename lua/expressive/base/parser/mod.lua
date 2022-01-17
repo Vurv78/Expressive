@@ -1,4 +1,5 @@
 local ELib = require("expressive/library")
+local class = require("voop")
 
 ---@type TokenKinds
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
@@ -9,10 +10,10 @@ local TOKEN_KINDS_INV = ELib.Tokenizer.KINDS_INV
 ---@field tokens table<number, Token>
 ---@field node_idx number Index of the current node
 ---@field nodes table<number, Node>
-local Parser = {}
-Parser.__index = Parser
+local Parser = class("Parser")
 ELib.Parser = Parser
 
+---@return Parser
 function Parser.new()
 	return setmetatable({
 		tok_idx = 0, -- Current token position
@@ -113,8 +114,7 @@ Parser.KINDS_UDATA = KINDS_UDATA
 ---@class Node
 ---@field kind ParserKinds
 ---@field data table
-local Node = {}
-Node.__index = Node
+local Node = class("Node")
 Parser.Node = Node
 
 function Node:__tostring()

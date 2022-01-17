@@ -10,6 +10,7 @@
 ---@field Instance Instance
 ---@field Context Context
 ---@field Transpiler Transpiler
+---@field Var Variable
 local Library = {
 	Version = "0.1.0",
 	Version_NUM = 100 -- 1.0.0 -> 100, 1.0.1 -> 101, 0.2.0 -> 020, etc.
@@ -359,25 +360,19 @@ function Library.CompressFiles(files)
 		stream:writeU32( #src )
 		stream:writeString(src, true)
 	end
-	return stream:getBuffer()
-	--return util.Compress(stream:getBuffer())
+	return util.Compress(stream:getBuffer())
 end
 
 ---@param files_str string
 ---@return table<string, string>
 function Library.DecompressFiles(files_str)
-	--files_str = util.Decompress(files_str)
-	print("files", string.sub(files_str, 11))
+	files_str = util.Decompress(files_str)
 
 	local stream = DataStream.new(files_str)
 	local files = {}
 
 	for i = 1, stream:readU(16) do
 		local name, len = stream:readString(), stream:readU(32)
-		print(name, len)
-		print("ptr", stream.ptr, stream.index)
-		print( "sub", string.byte(stream.content, stream.ptr, stream.ptr) )
-		print( string.sub( stream.content, stream.ptr, stream.ptr + len - 1) )
 		files[name] = stream:read( len )
 	end
 
@@ -454,7 +449,6 @@ else
 
 		local handler = Library.GetIDE():GetActiveTabHandler()
 		if handler then
-			print("AA", handler.active_tab)
 			local active_tab = handler.tabs[handler.active_tab]
 			if not active_tab then
 				notification.AddLegacy("You must have an active tab to upload code.", NOTIFY_ERROR, 5)

@@ -25,7 +25,7 @@ local transpiler = Transpiler.new()
 local ctx = Context.new()
 
 local DoubleType = Type.new("double")
-DoubleType.instanceof = isnumber
+DoubleType.typeof = isnumber
 
 ctx:registerType("double", DoubleType)
 
@@ -33,7 +33,7 @@ local IntType = Type.new("int", DoubleType)
 ctx:registerType("int", IntType)
 
 local Function = Type.new("function")
-Function.instanceof = isfunction
+Function.typeof = isfunction
 
 ctx:registerType("function", Function)
 

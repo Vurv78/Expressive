@@ -203,7 +203,6 @@ function TOOL:LeftClick(trace)
 
 	-- request code
 	if not ELib.RequestCode(ply, function(data)
-		print("reqcode", chip, data)
 		if not IsValid(chip) then return end -- Removed while transmitting
 		chip:SetupFiles(data)
 	end) then

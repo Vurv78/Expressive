@@ -74,7 +74,7 @@ function Settings.lookupAct(act)
 end
 
 function Settings.loadBinds()
-	Settings.binds = ExpressiveEditor.jsonToTable(include("syper/default_binds.lua"))
+	Settings.binds = ExpressiveEditor.jsonToTable(include("default_binds.lua"))
 
 	if not pcall(function()
 		for k, v in pairs(ExpressiveEditor.jsonToTable(file.Read("syper/keybinds.json", "DATA"))) do
@@ -122,7 +122,7 @@ function Settings.loadSettings()
 		Settings.settings[k] = nil
 	end
 
-	for k, v in pairs(ExpressiveEditor.jsonToTable(include("syper/default_settings.lua"))) do
+	for k, v in pairs(ExpressiveEditor.jsonToTable(include("default_settings.lua"))) do
 		Settings.settings[k] = v
 	end
 

@@ -1,4 +1,5 @@
-local Lib = require("expressive/library")
+local ELib = require("expressive/library")
+local class = require("voop")
 
 --- Instance
 --- This is different from the [Context], which is the immutable environment it runs in.
@@ -20,8 +21,7 @@ local Lib = require("expressive/library")
 ---@field stack_level number
 ---@field owner GEntity|GPlayer
 ---@field chip GEntity
-local Instance = {}
-Instance.__index = Instance
+local Instance = class("Expressive Instance")
 
 --- Most of the cpu limiting stuff is taken from E3 / StarfallEx.
 function Instance:movingCPUAverage()
@@ -51,8 +51,6 @@ function Instance.from(ctx, main, modules, chip, owner)
 
 	self.ctx =  ctx
 	self.env = ctx:getEnv()
-
-	local ELib = require("expressive/library")
 
 	self.cpu_quota = TimeBuffer:GetFloat()
 	self.cpu_quota_ratio = 1 / TimeBufferSize:GetInt()
@@ -145,7 +143,7 @@ function Instance:runFunction(fn, ...)
 		return false, "Stack Overflow"
 	end
 
-	local old_hook, old_mask = debug.gethook()
+	local old_hook, old_mask, old_count = debug.gethook()
 
 	local function checkCpu()
 		self.cpu_total = SysTime() - self.start_time
@@ -178,6 +176,6 @@ function Instance:runFunction(fn, ...)
 	return ok, rets
 end
 
-Lib.Instance = Instance
+ELib.Instance = Instance
 
 return Instance

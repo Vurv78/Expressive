@@ -1,14 +1,15 @@
 local ELib = require("expressive/library")
+local class = require("voop")
+
 local Keywords = ELib.Keywords
 
----@class Tokenizer
+---@class Tokenizer: Object
 ---@field input string
 ---@field pos number
 ---@field line number
 ---@field startchar number # 'pos', but reset for each line
 ---@field endchar number
-local Tokenizer = {}
-Tokenizer.__index = Tokenizer
+local Tokenizer = class("Tokenizer")
 ELib.Tokenizer = Tokenizer
 
 ---@return Tokenizer
@@ -44,7 +45,7 @@ local KINDS_INV = ELib.GetInverted(KINDS)
 Tokenizer.KINDS = KINDS
 Tokenizer.KINDS_INV = KINDS_INV
 
----@class Token
+---@class Token: Object
 ---@field kind number
 ---@field value any? # Value of the token if it can immediately be determined. This would be for literals (numbers, strings, bools)
 ---@field data table # Misc lexed data from the tokens
@@ -52,8 +53,7 @@ Tokenizer.KINDS_INV = KINDS_INV
 ---@field line number
 ---@field startchar number
 ---@field endchar number
-local Token = {}
-Token.__index = Token
+local Token = class("Token")
 
 function Token:__tostring()
 	return string.format("Token [%s] %s (#%u)", KINDS_INV[self.kind], self.raw and '"' .. self.raw .. '"' or "", self.line)
