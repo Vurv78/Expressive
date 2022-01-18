@@ -17,7 +17,9 @@ if SERVER then
 		local files, folders = file.Find(AddonRoot .. "/lua/" .. path .. "/*", "GAME")
 
 		for _, file in pairs(files) do
-			AddCSLuaFile(path .. '/' .. file)
+			if string.match(file, "%.lua$") then
+				AddCSLuaFile(path .. '/' .. file)
+			end
 		end
 
 		if recursive then
@@ -42,9 +44,19 @@ if SERVER then
 	end
 
 	addLuaFiles("expressive", true)
+	addLuaFiles("includes", true)
+
 	addResources("materials", true)
 	addResources("resource", true)
-	addLuaFiles("includes", true)
+
+	-- Expressive Extensions are written in Expressive.
+	-- Commented out as they are networked to the client for now.
+	-- https://github.com/Facepunch/garrysmod-issues/issues/5146
+	--[[
+		addResources("lua/expressive/core/extensions")
+		addResources("lua/expressive/core/extensions/client")
+		-- Note the absence of the server extension folder.
+	]]
 end
 
 -- Fix require() function to return values.
@@ -56,6 +68,7 @@ local ELib = require("expressive/library")
 -- Or get a system to condense this into one single network string. Could be made into a tiny autorun library.
 
 ELib.AddNetworkString("InitializedClient")
+ELib.AddNetworkString("LoadExtensions")
 ELib.AddNetworkString("OpenEditor")
 
 ELib.AddNetworkString("PrintTo")

@@ -248,14 +248,15 @@ function Library.AddNetworkString(name)
 end
 
 ---@param name string
-function Library.StartNet(name)
+---@param unreliable boolean
+function Library.StartNet(name, unreliable)
 	if net then
 		local str = "Expressive." .. name
 		if util.NetworkStringToID(str) == 0 then
 			ErrorNoHalt("ES: Trying to start net message with unpooled name '" .. name .. "'\n")
 			return
 		end
-		net.Start(str)
+		net.Start(str, unreliable)
 	end
 end
 

@@ -84,9 +84,9 @@ function Analyzer:optimize(ast)
 		if handler then
 			local old = node
 			node = handler(self, node)
-			if node ~= old then
+			--[[if node ~= old then
 				print("Optimized away: ", old)
-			end
+			end]]
 		end
 		table.insert(new, node)
 	end
