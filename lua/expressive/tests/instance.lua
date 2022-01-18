@@ -43,8 +43,6 @@ local ast = parser:parse(tokens)
 local new_ast = analyzer:process(ctx, ast)
 local code = transpiler:process(ctx, new_ast)
 
-file.Write("foo.es.txt", code)
-
 ---@type Instance
 local Instance = include("expressive/instance.lua")
 local inst = Instance.from(ctx, code, {}, NULL, NULL)

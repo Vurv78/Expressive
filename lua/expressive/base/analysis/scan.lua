@@ -178,7 +178,6 @@ local Handlers = {
 			local scope = self:getScope()
 
 			for _, data in ipairs(args) do
-				print(data[1], data[2])
 				scope:setType( data[1], data[2] )
 			end
 
@@ -205,13 +204,13 @@ local Handlers = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Declare] = function(self, node)
+		assert(self.configs.AllowDeclare, "Declare statements are not allowed in regular code")
+
 		local type, var_name = node.data[1], node.data[2]
 		local handler = ExternHandlers[type]
 		if handler then
 			ExternHandlers[type](self, var_name, node.data)
 		end
-
-		assert(self.configs.AllowDeclare, "Declare statements are not allowed in regular code")
 	end
 }
 

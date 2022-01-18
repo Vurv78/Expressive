@@ -5,5 +5,5 @@
 declare type double;
 declare type string;
 declare type int;
-declare type bool;
+declare type boolean;
 declare type void;

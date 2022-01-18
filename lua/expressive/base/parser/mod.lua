@@ -13,13 +13,18 @@ local TOKEN_KINDS_INV = ELib.Tokenizer.KINDS_INV
 local Parser = class("Parser")
 ELib.Parser = Parser
 
+function Parser:reset()
+	self.tok_idx = 0
+	self.nodes = {}
+	self.node_idx = 0
+end
+
 ---@return Parser
 function Parser.new()
-	return setmetatable({
-		tok_idx = 0, -- Current token position
-		node_idx = 0, -- Current node position
-		nodes = {},
-	}, Parser)
+	---@type Parser
+	local self = setmetatable({}, Parser)
+	self:reset()
+	return self
 end
 
 ---@param name string # Name of the statement
@@ -152,6 +157,8 @@ end
 ---@return table<number, Node>
 function Parser:parse(tokens)
 	assert(istable(tokens), "bad argument #1 to 'Parser:parse' (table expected, got " .. type(tokens) .. ")")
+
+	self:reset()
 	self.tokens = tokens
 
 	local ok, res = pcall(self.root, self)
@@ -169,22 +176,11 @@ end
 function Parser:root()
 	local nodes = {}
 	self.nodes = nodes
-	local node = self:next()
 
-	while node do
+	repeat
+		local node = self:next()
 		nodes[#nodes + 1] = node
-		-- assert(node, "Expected ; after statement")
-
-		if node:isStatement() then
-			self:popToken(TOKEN_KINDS.Grammar, ";")
-		end
-
-		if self:popToken(TOKEN_KINDS.Grammar, "}") then
-			return nodes
-		end
-
-		node = self:next()
-	end
+	until not node
 
 	return nodes
 end
@@ -196,6 +192,7 @@ function Parser:next()
 	end
 
 	local tok = self:nextToken()
+	---@type Node?
 	local res = self:parseStatement(tok) or self:parseExpression(tok)
 
 	if res then
@@ -356,19 +353,16 @@ function Parser:acceptBlock()
 		return {}
 	end
 
-	local nodes = {}
-	local node = self:next()
-
-	while node do
-		nodes[#nodes + 1] = node
-		-- assert(node, "Expected ; after statement")
+	local nodes, node_idx = {}, 0
+	repeat
+		node_idx = node_idx + 1
+		local node = self:next()
+		nodes[node_idx] = node
 
 		if self:popToken(TOKEN_KINDS.Grammar, "}") then
 			return nodes
 		end
-
-		node = self:next()
-	end
+	until not node
 
 	error("Right curly bracket (}) missing, to close block")
 end

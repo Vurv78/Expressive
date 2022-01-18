@@ -12,6 +12,7 @@ local Var = ELib.Var
 ---@field variables table<string, Variable> # Runtime variables
 local Context = class("Context")
 
+---@return Context
 function Context.new()
 	return setmetatable({
 		funcs = {},

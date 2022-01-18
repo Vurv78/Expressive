@@ -19,14 +19,23 @@ local Var = ELib.Var
 ---@type Scope
 local Scope = include("scope.lua")
 
+function Analyzer:reset()
+	local global_scope = Scope.new()
+	self.scopes = { [0] = global_scope }
+	self.global_scope = global_scope
+	self.current_scope = global_scope
+
+	-- Note lack of resetting configs
+	self.ctx = nil
+	self.externs = {}
+end
+
 ---@return Analyzer
 function Analyzer.new()
-	local global_scope = Scope.new()
-	return setmetatable({
-		scopes = { [0] = global_scope },
-		global_scope = global_scope,
-		current_scope = global_scope
-	}, Analyzer)
+	---@type Analyzer
+	local self = setmetatable({}, Analyzer)
+	self:reset()
+	return self
 end
 
 --- Creates a new scope derived from the current scope
@@ -136,7 +145,6 @@ function Analyzer:loadContext(ctx)
 			end
 		end
 	end
-	print( ELib.Inspect(ctx.variables) )
 	addVars(ctx.variables, self.global_scope)
 end
 

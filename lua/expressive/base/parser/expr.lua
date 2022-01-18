@@ -150,7 +150,7 @@ Expressions = {
 				if self:popToken(TOKEN_KINDS.Grammar, ",") then
 					arg = Expressions[1](self, self:nextToken())
 				else
-					assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) or , after argument" )
+					assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) or , after argument in call expr" )
 					break
 				end
 			end

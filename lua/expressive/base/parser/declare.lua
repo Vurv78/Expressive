@@ -110,7 +110,7 @@ Declarations = {
 function Parser:acceptDeclare(tok)
 	if isToken(tok, TOKEN_KINDS.Keyword, "declare") then
 		local tok = self:nextToken()
-		for k, handler in ipairs(Declarations) do
+		for _, handler in ipairs(Declarations) do
 			local data = handler(self, tok)
 			if data then
 				return data

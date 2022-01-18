@@ -8,9 +8,9 @@
 	They are also untyped, so that you can interact with _G properly.
 */
 
-declare function print(): void;
-print(5, 6);
-
+declare function print(foo: string[]): void;
+declare function error(): void;
+error("Hello world!");
 // declare function print(...args: string[]);
 
 /*declare namespace my_namespace {

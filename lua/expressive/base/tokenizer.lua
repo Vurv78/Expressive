@@ -12,14 +12,19 @@ local Keywords = ELib.Keywords
 local Tokenizer = class("Tokenizer")
 ELib.Tokenizer = Tokenizer
 
+function Tokenizer:reset()
+	self.pos = 0
+	self.line = 1
+	self.startchar = 0
+	self.endchar = 0
+end
+
 ---@return Tokenizer
 function Tokenizer.new()
-	return setmetatable({
-		pos = 0,
-		line = 1,
-		startchar = 0,
-		endchar = 0
-	}, Tokenizer)
+	---@type Tokenizer
+	local self = setmetatable({}, Tokenizer)
+	self:reset()
+	return self
 end
 
 ---@class TokenKinds
@@ -86,13 +91,13 @@ local Matchers = {
 	---@param str string
 	---@param pos number
 	[KINDS.Comment] = function(self, str, pos)
-		local start, ed, _message = string.find(str, "^//([^\n\r]+)", pos)
+		local start, ed, message = string.find(str, "^//([^\n\r]+)", pos)
 		if start then
 			-- For now, don't return anything. In the future these could be used for intellisense / autocomplete / whatever.
 			self.line = self.line + 1
 			self.startchar = 0
 			self.endchar = 0
-			return start, ed -- , { message }
+			return start, ed
 		end
 	end,
 
@@ -105,7 +110,7 @@ local Matchers = {
 			self.line = self.line + ( (ed - start + 1)  - #string.gsub(message, '\n', '') )
 			self.startchar = 0
 			self.endchar = 0
-			return start, ed  -- , { message = message }
+			return start, ed --, { message = message }
 		end
 	end,
 
@@ -254,6 +259,12 @@ Tokenizer.Matchers = Matchers
 ---@return table<number, Token>
 function Tokenizer:parse(input)
 	assert(isstring(input), "bad argument #1 to 'Tokenizer:parse' (string expected, got " .. type(input) .. ")")
+
+	-- Reset so this tokenizer can be re-used
+	self.pos = 0
+	self.line = 1
+	self.startchar = 0
+	self.endchar = 0
 
 	self.input = input
 

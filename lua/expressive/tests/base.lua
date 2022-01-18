@@ -28,5 +28,3 @@ local code = transpiler:process(ctx, new_ast)
 
 print("Generated Lua code!")
 print(code)
-
-file.Write("foo.es.txt", code)

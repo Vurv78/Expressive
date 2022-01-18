@@ -17,7 +17,7 @@ ENT.Instructions    = ""
 
 ENT.Spawnable       = false
 
-ENT.States          = {
+ENT.States = {
 	Normal = 1,
 	Error = 2,
 	None = 3,
@@ -42,17 +42,17 @@ function ENT:Compile()
 		return
 	end
 
-	local Tok = ELib.Tokenizer.new()
-	local Parser = ELib.Parser.new()
-	local Transpiler = ELib.Transpiler.new()
 
 	local lua_modules = {}
 	local success, why = pcall(function()
 		for name, code in pairs(data.modules) do
-			local tokens = Tok:parse(code)
-			local ast = Parser:parse(tokens)
-
+			local Tokenizer = ELib.Tokenizer.new()
+			local Parser = ELib.Parser.new()
+			local Transpiler = ELib.Transpiler.new()
 			local Analyzer = ELib.Analyzer.new()
+
+			local tokens = Tokenizer:parse(code)
+			local ast = Parser:parse(tokens)
 			local new_ast = Analyzer:process(ELib.ExtensionCtx, ast)
 
 			local lua = Transpiler:process(ELib.ExtensionCtx, new_ast)
@@ -65,19 +65,7 @@ function ENT:Compile()
 	end
 
 	local instance = ELib.Instance.from(ELib.ExtensionCtx, data.main, lua_modules, self, self.owner)
-
-	--[[if instance.ppdata.scriptnames and instance.mainfile and instance.ppdata.scriptnames[instance.mainfile] then
-		self.name = string.sub(tostring(instance.ppdata.scriptnames[instance.mainfile]), 1, 64)
-	else]]
-		self.name = "Generic ( No-Name )"
-	--end
-
-	--[[if instance.ppdata.scriptauthors and instance.main and instance.ppdata.scriptauthors[instance.mainfile] then
-		self.author = string.sub(tostring(instance.ppdata.scriptauthors[instance.mainfile]), 1, 64)
-	else
-		self.author = nil
-	end]]
-
+	self.name = "Generic (None)"
 
 	self.instance = instance
 	function instance.runOnError(err)

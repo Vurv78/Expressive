@@ -199,7 +199,7 @@ local Statements = {
 		end
 
 		if isToken(token, TOKEN_KINDS.Keyword, "return") then
-			local expr = self:parseExpression( self:nextToken() )
+			local expr = assert( self:parseExpression( self:nextToken() ), "Expected expression after 'return'" )
 			return { "return", expr }
 		end
 	end,
@@ -215,10 +215,10 @@ local Statements = {
 ---@param tok Token
 ---@return Node? # Returned node if successfully parsed a statement.
 function Parser:parseStatement(tok)
-	for name, stmt in ipairs(Statements) do
+	for kind, stmt in ipairs(Statements) do
 		local data = stmt(self, tok)
 		if data then
-			return Node.new(name, data)
+			return Node.new(kind, data)
 		end
 	end
 end

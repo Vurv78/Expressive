@@ -20,7 +20,6 @@ function PANEL:Init()
 	self.err_color = Color(197, 72, 72)
 
 	local bg = self.style.gutter_background
-	PrintTable(bg)
 	self:SetBackgroundColor(Color(bg.r, bg.g, bg.b, bg.a))
 
 	self.lines = {}

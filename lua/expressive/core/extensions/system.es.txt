@@ -1,9 +1,7 @@
 /*
-	Base functions for Expressive Standard Library
-
-	These are grabbed from _G at compile time.
+	Base Functions for Expressive
 */
 
-declare function print(args: string): void;
-declare function assert(condition: bool, msg: string): void;
+declare function print(args: string[]): void;
 declare function error(msg: string): void;
+declare function CurTime(): number;

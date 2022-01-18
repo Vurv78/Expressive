@@ -1,9 +1,11 @@
 let foo = 55;
 const bar = "Hello World";
 
-function foo() {
-	let bar = 5;
-	return bar;
+
+{
+	let aa = 222;
+	return foo;
+	return 55;
 };
 
 "Foo bar";

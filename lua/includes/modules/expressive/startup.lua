@@ -34,11 +34,6 @@ local function reload()
 	---@type Context
 	local Context = include("expressive/core/context.lua")
 
-	local Tokenizer = Tokenizer.new()
-	local Parser = Parser.new()
-	local Analyzer = Analyzer.new()
-	local Transpiler = Transpiler.new()
-
 	local DefaultCtx = Context.new()
 	ELib.DefaultCtx = DefaultCtx
 
@@ -47,22 +42,23 @@ local function reload()
 
 	local extensions = {}
 
-	---@return table<number, string>
+	---@type table<number, string>
 	local files = file.Find("expressive/core/extensions/*.es.txt", "LUA")
 
 	print("<< Loading Expressive Extensions >>")
-	---@type string
 	for _, file_name in ipairs(files) do
 		local src = file.Read("expressive/core/extensions/" .. file_name, "LUA")
 
 		local ok, res = pcall(function()
-			local tokens = Tokenizer:parse(src)
-			local ast = Parser:parse(tokens)
-
+			local tokenizer = Tokenizer.new()
+			local parser = Parser.new()
 			local analyzer = Analyzer.new()
-			local new_ast = analyzer:process(ExtensionCtx, ast, ExtensionConfigs)
+			local transpiler = Transpiler.new()
+			local analyzer = Analyzer.new()
 
-			PrintTable(analyzer.externs)
+			local tokens = tokenizer:parse(src)
+			local ast = parser:parse(tokens)
+			local new_ast = analyzer:process(ExtensionCtx, ast, ExtensionConfigs)
 		end)
 
 		if not ok then
