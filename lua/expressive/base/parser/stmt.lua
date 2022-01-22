@@ -6,7 +6,6 @@ local Node = Parser.Node
 
 local isToken = Parser.isToken
 local isAnyOf = Parser.isAnyOf
-local isAnyOfKind = Parser.isAnyOfKind
 
 local TOKEN_KINDS = Tokenizer.KINDS
 local NODE_KINDS = Parser.KINDS
@@ -125,12 +124,8 @@ local Statements = {
 
 			-- Check that number precision is correct, if explicit type is given.
 			-- So you can't just do var foo: int = 5.2143;
-			if ty then
-				if expr.kind == NODE_KINDS.Literal then
-					if expr.data[1] == "number" then
-						assert(ty == expr.data[4], "Expected type " .. ty .. " for variable " .. vname .. ", got " .. expr.data[4])
-					end
-				end
+			if ty and expr.kind == NODE_KINDS.Literal and expr.data[1] == "number" then
+				assert(ty == expr.data[4], "Expected type " .. ty .. " for variable " .. vname .. ", got " .. expr.data[4])
 			end
 
 			return { assign_kw, vname, ty, expr }
@@ -199,7 +194,8 @@ local Statements = {
 		end
 
 		if isToken(token, TOKEN_KINDS.Keyword, "return") then
-			local expr = assert( self:parseExpression( self:nextToken() ), "Expected expression after 'return'" )
+			-- Optional return value
+			local expr = self:parseExpression( self:nextToken() )
 			return { "return", expr }
 		end
 	end,

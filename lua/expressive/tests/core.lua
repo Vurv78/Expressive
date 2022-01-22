@@ -4,7 +4,7 @@ local ELib = require("expressive/library")
 require("expressive/startup")
 
 ---@type Context
-local Context = include("expressive/core/context.lua")
+local _Context = include("expressive/core/context.lua")
 ---@type Tokenizer
 local Tokenizer = include("expressive/base/tokenizer.lua")
 ---@type Parser
@@ -15,7 +15,7 @@ local Analyzer = include("expressive/base/analysis/mod.lua")
 local Transpiler = include("expressive/base/transpiler/mod.lua")
 
 ---@type Ast
-local Ast = include("expressive/base/ast.lua")
+local _Ast = include("expressive/base/ast.lua")
 
 local tok = Tokenizer.new()
 local parser = Parser.new()

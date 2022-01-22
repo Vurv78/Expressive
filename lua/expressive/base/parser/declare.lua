@@ -1,14 +1,11 @@
 local ELib = require("expressive/library")
 
 local Parser = ELib.Parser
-local Node = Parser.Node
 
 local isToken = ELib.Parser.isToken
 local isAnyOf = ELib.Parser.isAnyOf
-local isAnyOfKind = ELib.Parser.isAnyOfKind
 
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
-local NODE_KINDS = ELib.Parser.KINDS
 
 local Declarations
 Declarations = {
@@ -23,7 +20,7 @@ Declarations = {
 			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected function after 'function'" )
 			local params = self:acceptTypedParameters("Expected typed parameters after function name")
 			assert(self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : to precede return type of declared function")
-			local ret_type = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected return type after :, got " .. self:peek().raw )
+			local ret_type = assert( self:acceptType(), "Expected return type after :, got " .. self:peek().raw )
 
 			return {"function", name.raw, params, ret_type}
 		end
@@ -41,7 +38,7 @@ Declarations = {
 		if kind then
 			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected variable name after 'var' in declare statement" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected ':' after variable name in declare statement" )
-			local ty = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected type after ':' in declare statement" )
+			local ty = assert( self:acceptType(), "Expected type after ':' in declare statement" )
 			return {"var", name.raw, kind, ty}
 		end
 	end,

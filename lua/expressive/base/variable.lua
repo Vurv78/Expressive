@@ -1,7 +1,8 @@
 local ELib = require("expressive/library")
 local class = require("voop")
 
----@alias TypeSig "int"|"double"|"string"|"boolean"|"null"|string
+--- "int", "double", "boolean", "void" etc.
+---@alias TypeSig string
 
 ---@class Variable : Object
 ---@field type TypeSig? Type of the variable if known. May be nil temporarily in between analyzing stages.

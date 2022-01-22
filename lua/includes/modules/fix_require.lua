@@ -36,13 +36,20 @@ _G.require = function(name, ...)
 		-- nil
 		return true
 	else
+		-- expressive/startup
 		local path = "includes/modules/" .. name .. ".lua"
 		if file.Exists(path, "LUA") then
 			local fn = CompileFile(path)
 			package.loading[name] = true
-			local rets = { fn(...) }
+
+			local rets = { pcall(fn, ...) }
+			local success = table.remove(rets, 1)
+
 			package.loading[name] = nil
 			package.required[name] = rets
+			if not success then
+				ErrorNoHalt("Error loading module " .. name .. ": " .. rets[1] .. "\n")
+			end
 			return unpack(rets)
 		else
 			ErrorNoHalt("Tried to require nonexistant module: " .. name)

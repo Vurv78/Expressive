@@ -306,6 +306,11 @@ local Transpilers = {
 		local kind, name = unpack(node.data)
 		return fmt("-- declare %s as %s", name, kind)
 	end,
+
+	[NODE_KINDS.Realm] = function(self, node)
+		local name, block = unpack(node.data)
+		return fmt("if %s then\n\t%s\nend", string.upper(name), self:transpileAst(block, true))
+	end,
 }
 
 function Transpiler:pushScope()

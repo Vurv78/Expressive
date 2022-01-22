@@ -11,7 +11,7 @@ local Editor = {
 }
 
 surface.CreateFont("Expressive.FontAwesome", {
-	font = "Font Awesome 5 Free Solid", --  Use the font-name which is shown to you by your operating system Font Viewer, not the file name
+	font = "Font Awesome 5 Free Solid",
 	extended = true,
 	size = 15,
 	antialias = true

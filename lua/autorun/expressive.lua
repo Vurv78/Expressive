@@ -16,9 +16,9 @@ if SERVER then
 	local function addLuaFiles(path, recursive)
 		local files, folders = file.Find(AddonRoot .. "/lua/" .. path .. "/*", "GAME")
 
-		for _, file in pairs(files) do
-			if string.match(file, "%.lua$") then
-				AddCSLuaFile(path .. '/' .. file)
+		for _, name in pairs(files) do
+			if string.match(name, "%.lua$") then
+				AddCSLuaFile(path .. '/' .. name)
 			end
 		end
 
@@ -32,8 +32,8 @@ if SERVER then
 	local function addResources(path, recursive)
 		local files, folders = file.Find(AddonRoot .. '/' .. path .. "/*", "GAME")
 
-		for _, file in pairs(files) do
-			resource.AddSingleFile(path .. '/' .. file)
+		for _, name in pairs(files) do
+			resource.AddSingleFile(path .. '/' .. name)
 		end
 
 		if recursive then
@@ -58,6 +58,9 @@ if SERVER then
 		-- Note the absence of the server extension folder.
 	]]
 end
+
+-- Make sure netstream loads before startup, which depends on it
+include("autorun/netstream.lua")
 
 -- Fix require() function to return values.
 -- Because this 5 year old issue will never be fixed. https://github.com/Facepunch/garrysmod-requests/issues/445

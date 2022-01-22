@@ -2,8 +2,7 @@ local ELib = require("expressive/library")
 local class = require("voop")
 
 -- Analysis
--- Type checking and whatnot for the output Expression4 AST.
-local NODE_KINDS = ELib.Parser.KINDS
+-- Type checking and whatnot for the output AST.
 
 ---@class Analyzer: Object
 ---@field scopes table<number, Scope>
@@ -18,9 +17,10 @@ ELib.Analyzer = Analyzer
 local Var = ELib.Var
 ---@type Scope
 local Scope = include("scope.lua")
+Analyzer.Scope = Scope
 
 function Analyzer:reset()
-	local global_scope = Scope.new()
+	local global_scope = Scope.new( Scope.KINDS.GLOBAL )
 	self.scopes = { [0] = global_scope }
 	self.global_scope = global_scope
 	self.current_scope = global_scope
@@ -33,15 +33,16 @@ end
 ---@return Analyzer
 function Analyzer.new()
 	---@type Analyzer
-	local self = setmetatable({}, Analyzer)
-	self:reset()
-	return self
+	local instance = setmetatable({}, Analyzer)
+	instance:reset()
+	return instance
 end
 
 --- Creates a new scope derived from the current scope
+---@param kind ScopeKind
 ---@return Scope
-function Analyzer:pushScope()
-	local scope = Scope.from(self.current_scope)
+function Analyzer:pushScope(kind)
+	local scope = Scope.from(self.current_scope, kind)
 	self.scopes[#self.scopes + 1] = scope
 	self.current_scope = scope
 	return scope
@@ -61,6 +62,10 @@ end
 ---@return Scope
 function Analyzer:getScope()
 	return self.current_scope
+end
+
+function Analyzer:setTop()
+	self.current_scope = self.global_scope
 end
 
 ---@class AnalyzerConfigs
@@ -99,7 +104,7 @@ local AnalyzerConfigs = {
 ---@param configs AnalyzerConfigs? # Optional configs for the analyzer, uses default values if passed nil.
 ---@return table<number, Node> new_ast # A processed and optimized AST.
 function Analyzer:process(ctx, ast, configs)
-	local configs = configs or AnalyzerConfigs
+	configs = configs or AnalyzerConfigs
 	self.configs = configs
 	self.externs = {}
 
@@ -109,9 +114,16 @@ function Analyzer:process(ctx, ast, configs)
 	assert(istable(configs), "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
 
 	self.ctx = ctx
-	self:loadContext(ctx)
+
 	-- Get initial types.
-	self:firstPass(ast)
+	self:externPass(ast)
+
+	-- Load variables retrieved from extern pass into global scope
+	self:loadContext(ctx)
+
+	self:inferPass(ast)
+	self:checkPass(ast)
+
 	-- Optimizing pass. This is where the ast is changed a bit.
 	local new_ast = self:optimize(ast)
 
@@ -140,6 +152,7 @@ function Analyzer:loadContext(ctx)
 				scope:set(name, var)
 			elseif istable(var) then
 				-- Namespace, TODO
+				-- Probably want a named scope system.
 			else
 				error("Invalid variable type: " .. type(var))
 			end
@@ -148,17 +161,29 @@ function Analyzer:loadContext(ctx)
 	addVars(ctx.variables, self.global_scope)
 end
 
-include("infer.lua")
-include("scan.lua")
-include("optimizer/mod.lua")
+include("util.lua")
+include("extern.lua") -- First pass, extern declarations
+include("infer.lua") -- Second pass
+include("check.lua") -- Third pass, sanity checks
+include("optimizer/mod.lua") -- Final pass, Optimizing
+
+---@type fun(self: Analyzer, ast: table<number, Node>)
+Analyzer.externPass = Analyzer.externPass
+
+---@type fun(self: Analyzer, ast: table<number, Node>)
+Analyzer.inferPass = Analyzer.inferPass
+
+---@type fun(self: Analyzer, ast: table<number, Node>)
+Analyzer.checkPass = Analyzer.checkPass
 
 ---@type fun(self: Analyzer, ast: table<number, Node>): table<number, Node>
 Analyzer.optimize = Analyzer.optimize
 
----@type fun(self: Analyzer, ast: table<number, Node>)
-Analyzer.firstPass = Analyzer.firstPass
-
----@type fun(self: Analyzer, expr: Node)
+---@type fun(self: Analyzer, expr: Node): string
 Analyzer.typeFromExpr = Analyzer.typeFromExpr
+
+--- Gets the return type from a block, searching for the first return statement.
+---@type fun(block: table<number, Node>): string
+Analyzer.getReturnType = Analyzer.getReturnType
 
 return Analyzer

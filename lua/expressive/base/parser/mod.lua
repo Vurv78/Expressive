@@ -22,9 +22,9 @@ end
 ---@return Parser
 function Parser.new()
 	---@type Parser
-	local self = setmetatable({}, Parser)
-	self:reset()
-	return self
+	local instance = setmetatable({}, Parser)
+	instance:reset()
+	return instance
 end
 
 ---@param name string # Name of the statement
@@ -369,16 +369,19 @@ end
 
 ---@return string
 function Parser:acceptType()
+	--- TODO: This needs to properly create a type struct, which stores whether it is variadic, array, etc.
 	local ty = self:popToken(TOKEN_KINDS.Identifier)
 	if ty then
 		if self:popToken(TOKEN_KINDS.Grammar, "[") then
 			assert( self:popToken(TOKEN_KINDS.Grammar, "]"), "Expected ] to complete array type (int[])" )
-			return ty
+			return ty.raw
 		end
-		return ty
+		return ty.raw
 	end
 end
 
+--- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
+---@return table<number, table<number, string>>
 function Parser:acceptTypedParameters(msg)
 	assert(self:popToken(TOKEN_KINDS.Grammar, "("), msg)
 	local args = {}
@@ -392,7 +395,7 @@ function Parser:acceptTypedParameters(msg)
 			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : after argument to begin type" )
 			ty = assert( self:acceptType(), "Expected type after : in function parameter" )
 
-			args[#args+1] = { arg.raw, ty }
+			args[#args + 1] = { arg.raw, ty }
 
 			if not self:popToken(TOKEN_KINDS.Grammar, ",") then
 				assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to end function parameters" )

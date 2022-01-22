@@ -1,127 +1,154 @@
 local ELib = require("expressive/library")
 
--- typeFromExpression(node)
+-- First pass of the analyzer.
+-- Just gather any data that can be gathered without any other variables in context.
 local Analyzer = ELib.Analyzer
+local makeSignature = ELib.Analyzer.makeSignature
 local NODE_KINDS = ELib.Parser.KINDS
 
-local function mergeExprs()
+local Var = ELib.Var
 
-end
-
-local Infer = {
+local Handlers = {
 	---@param self Analyzer
 	---@param node Node
-	[NODE_KINDS.Literal] = function(self, node)
-		-- Either "int", "string", "boolean" or "null"
-		local ty = node.data[1]
-		if ty == "number" then
-			return node.data[4] -- Specific number type -- either "int" or "double"
+	[NODE_KINDS.VarDeclare] = function(self, node)
+		-- kw is either "var", "let" or "const"
+		local kw, name, type, expr = unpack(node.data)
+
+		local scope = self:getScope()
+		if kw == "var" then
+			scope = self.global_scope
 		end
-		return ty
+
+		local expr_ty = self:typeFromExpr(expr)
+		if type and expr_ty then
+			assert(type == expr_ty, "Expected " .. type .. " in declaration of '" .. name .. ": " .. type .. "', but got " .. expr_ty)
+		end
+
+		local _, init = scope:lookupOrInit(name, Var.new(type or expr_ty, nil, kw ~= "const"))
+		assert(init, "Variable re-declaration is forbidden")
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.VarModify] = function(self, node)
+		local name, how, expr2 = unpack(node.data)
+
+		local scope = self:getScope()
+		local var =  assert(scope:lookup(name), "Variable " .. name .. " is not defined")
+		assert(var.mutable, "Cannot modify constant variable " .. name)
+
+		if how ~= "++" and how ~= "--" then
+			-- "+=", "-=", "/=", "*=", "%=", "="
+			local expr2_ty = self:typeFromExpr(expr2)
+			if var.type then
+				if expr2_ty ~= var.type then
+					error("Cannot assign " .. expr2_ty .. " to " .. var.type)
+				end
+			else
+				-- Assume they are the same type.
+				var.type = expr2_ty
+			end
+		end
 	end,
 
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Block] = function(self, node)
-		---@type Node
-		local last_node = node.data[1][#node.data[1]]
-		if last_node:isExpression() then
-			return self:typeFromExpr(last_node)
-		end
+		local body = unpack(node.data)
+		self:pushScope()
+			self:inferPass(body)
+		self:popScope()
 	end,
 
 	---@param self Analyzer
 	---@param node Node
-	[NODE_KINDS.ArithmeticOps] = function(self, node)
-		local op, lhs, rhs = unpack(node.data)
-		if lhs.kind == rhs.kind and rhs.kind == NODE_KINDS.Literal then
-			local lhs_ty = self:typeFromExpr(lhs)
-			local rhs_ty = self:typeFromExpr(rhs)
-			if lhs_ty == rhs_ty then
-				return lhs_ty
+	[NODE_KINDS.Realm] = function(self, node)
+		local _realm, body = unpack(node.data)
+
+		self:pushScope()
+			self:inferPass(body)
+		self:popScope()
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.If] = function(self, node)
+		local _cond, body = unpack(node.data)
+		self:pushScope()
+			self:inferPass(body)
+		self:popScope()
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Elseif] = function(self, node)
+		local _cond, body = unpack(node.data)
+		self:pushScope()
+			self:inferPass(body)
+		self:popScope()
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Else] = function(self, node)
+		local body = unpack(node.data)
+		self:pushScope()
+			self:inferPass(body)
+		self:popScope()
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.While] = function(self, node)
+		local _cond, body = unpack(node.data)
+		self:pushScope()
+			self:inferPass(body)
+		self:popScope()
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Function] = function(self, node)
+		local name, args, block = unpack(node.data)
+
+		---@type table<number, string>
+		local param_types = {}
+		for k, v in ipairs(args) do param_types[k] = v[2] end
+
+		-- Set function in the outer scope.
+		self:getScope():setType(name, makeSignature(param_types, self:getReturnType(block)))
+
+		self:pushScope()
+			local scope = self:getScope()
+
+			for _, data in ipairs(args) do
+				scope:setType( data[1], data[2] )
 			end
-		end
+
+			-- NOW handle the block
+			self:inferPass(block)
+		self:popScope()
 	end,
 
 	---@param self Analyzer
 	---@param node Node
-	[NODE_KINDS.Array] = function(self, node)
-		local nodes = unpack(node.data)
+	[NODE_KINDS.CallExpr] = function(self, node)
+		---@type table<number, Node>
+		local args = node.data[2]
 
-		local n_nodes = #nodes
-		if n_nodes == 0 then
-			-- Empty array. Can't guess type here.
-			return
-		end
-
-		local expected_ty = self:typeFromExpr(nodes[1])
-		for k = 2, n_nodes do
-			local node_ty = self:typeFromExpr(nodes[k])
-			assert(node_ty == expected_ty, "Array elements must be of the same type. Expected " .. expected_ty .. ", got " .. node_ty .. " at arg " .. k)
-		end
-		-- temp. Maybe it should be ty[] as in typescript.
-		return "array[" .. expected_ty .. "]"
-	end,
-
-	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Variable] = function(self, node)
-		local name = unpack(node.data)
-		local var = self:getScope():lookup(name)
-
-		if var then
-			return var.type
-		end
-	end,
-
-	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Lambda] = function(self, node)
-		-- TODO
-		return "function"
-	end,
-
-	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Ternary] = function(self, node)
-		local expr, iff, els = unpack(node.data)
-		if els ~= nil then
-			-- cond ? x : y
-
-			if iff.kind == els.kind and els.kind == NODE_KINDS.Literal then
-				local iff_ty = self:typeFromExpr(iff)
-				local els_ty = self:typeFromExpr(els)
-				if iff_ty == els_ty then
-					return iff_ty
-				end
-			end
-		else
-			-- x ?? y
-			if expr.kind == iff.kind and iff.kind == NODE_KINDS.Literal then
-				local iff_ty = self:typeFromExpr(expr)
-				local expr_ty = self:typeFromExpr(iff)
-				if expr_ty == expr_ty then
-					return iff_ty
-				end
-			end
-		end
-	end,
-
-	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.LogicalOps] = function(self, node)
-
+		self:inferPass(args)
 	end
 }
 
----@param node Node # Parsing node to get type from
----@return string?
-function Analyzer:typeFromExpr(node)
-	local handler = Infer[node.kind]
-	if handler then
-		local out = handler(self, node)
-		if out then
-			return out
+--- Runs first pass on the analyzer
+---@param ast table<number, Node>
+function Analyzer:inferPass(ast)
+	if not ast then return end -- Empty block
+	for _, node in ipairs(ast) do
+		local handler = Handlers[node.kind]
+		if handler then
+			handler(self, node)
 		end
 	end
 end

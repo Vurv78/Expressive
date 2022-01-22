@@ -1,10 +1,11 @@
-﻿local ELib = require("expressive/library")
+﻿local _ELib = require("expressive/library")
 
+-- TODO: This is left over from old E3 fork implementation.
 local function store_data(extensions)
-	print("ES - Editor Info Loaded!")
+	-- print("ES - Editor Info Loaded!")
 	local out_data = ExpressiveEditor.HelperData
 
-	for ext_name, data in pairs(extensions) do
+	--[[for ext_name, data in pairs(extensions) do
 		local enabled = data.enabled
 
 		if enabled then
@@ -41,17 +42,9 @@ local function store_data(extensions)
 				out_data.libraries_sig[extension][data.signature] = data
 			end
 		end
-	end
+	end]]
 
 	ExpressiveEditor.HelperData = out_data
 end
 
-local extensions = ELib.GetExtensions()
-
-if extensions then
-	store_data(extensions)
-else
-	hook.Add("Expression4.PostRegisterExtensions", "Expression4.EditorDB", function()
-		store_data(ELib.GetExtensions())
-	end)
-end
+hook.Add("Expressive.PostRegisterExtensions", "Expression4.EditorDB", store_data)

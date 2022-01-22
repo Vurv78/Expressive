@@ -3,28 +3,64 @@ local class = require("voop")
 
 local Var = ELib.Var
 
+---@alias ScopeKind "1|2|3|4|5"
+---@class ScopeKinds
+local KINDS = {
+	---```ts
+	--- 	function foo() {};
+	--- ```
+	FUNCTION = 1,
+	--- ```ts
+	--- 	function() {};
+	--- ```
+	LAMBDA = 2,
+	--- ```ts
+	---		{
+	---
+	---		};
+	--- ```
+	EXPR_BLOCK = 3,
+
+	--- Non-returning type of block
+	--- the type you'd see in if statements and whatever.
+	--- ```ts
+	--- if (true) { ... }
+	--- ```
+	STATEMENT = 4,
+
+	--- Global, Non-returning scope.
+	GLOBAL = 5,
+}
+
 ---@class Scope: Object
 ---@field priv table<string, Variable>
 ---@field parent Scope?
 ---@field index number
+---@field kind number
 local Scope = class("Scope")
+Scope.KINDS = KINDS
 
 local counter = 0
 
 --- Creates a new scope.
+---@see `Scope.KINDS`
+---@param kind ScopeKind 1 | 2 | 3 | 4 | 5
 ---@return Scope
-function Scope.new()
+function Scope.new(kind)
 	counter = counter + 1
 	return setmetatable({
 		priv = {},
+		kind = kind,
 		index = counter
 	}, Scope)
 end
 
 --- Derives a new scope from a previous one.
+---@param parent Scope
+---@param kind ScopeKind
 ---@return Scope
-function Scope.from(parent)
-	local scope = Scope.new()
+function Scope.from(parent, kind)
+	local scope = Scope.new(kind)
 	scope.parent = parent
 	scope.priv = setmetatable({}, {
 		__index = parent.priv
@@ -34,9 +70,9 @@ end
 
 function Scope:__tostring()
 	if self.parent then
-		return "Scope #" .. self.index .. " @(" .. tostring(self.parent) .. ")"
+		return "Scope k" .. self.kind .. " #" .. self.index .. " @(" .. tostring(self.parent) .. ")"
 	else
-		return "Scope #" .. self.index
+		return "Scope k" .. self.kind .. "#" .. self.index
 	end
 end
 
@@ -65,9 +101,14 @@ function Scope:lookupOrInit(name, init)
 end
 
 --- Sets the result of the scope, in case of expression blocks
----@param result TypeSig?
+---@param result string?
 function Scope:setResult(result)
 	self.result = result
+end
+
+---@return string?
+function Scope:getResult()
+	return self.result
 end
 
 ---@param name string

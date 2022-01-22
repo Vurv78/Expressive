@@ -38,38 +38,38 @@ local TimeBufferSize = CreateConVar("es_timebuffersize", 100, FCVAR_ARCHIVE, "Th
 ---@param owner GEntity|GPlayer|nil The entity that owns this instance. Usually a player.
 ---@return Instance
 function Instance.from(ctx, main, modules, chip, owner)
-	local self = setmetatable({}, Instance)
+	local instance = setmetatable({}, Instance)
 
-	self.ram = collectgarbage("count")
-	self.cpu_total = 0
-	self.cpu_average = 0
-	self.cpu_softquota = 1
-	-- self.start_time = -1
+	instance.ram = collectgarbage("count")
+	instance.cpu_total = 0
+	instance.cpu_average = 0
+	instance.cpu_softquota = 1
+	-- instance.start_time = -1
 
-	self.chip = chip
-	self.owner = owner
+	instance.chip = chip
+	instance.owner = owner
 
-	self.ctx =  ctx
-	self.env = ctx:getEnv()
+	instance.ctx =  ctx
+	instance.env = ctx:getEnv()
 
-	self.cpu_quota = TimeBuffer:GetFloat()
-	self.cpu_quota_ratio = 1 / TimeBufferSize:GetInt()
+	instance.cpu_quota = TimeBuffer:GetFloat()
+	instance.cpu_quota_ratio = 1 / TimeBufferSize:GetInt()
 
 	---@param name string
 	---@param code string
 	local function compile(name, code)
 		local fn = CompileString(code, "ES:" .. name, true)
 		if not isfunction(fn) then error(fn) end
-		return setfenv(fn, self.env )
+		return setfenv(fn, instance.env )
 	end
 
-	self.modules = {}
+	instance.modules = {}
 	for mod, code in pairs(modules) do
-		self.modules[mod] = compile(mod, code)
+		instance.modules[mod] = compile(mod, code)
 	end
-	self.main = self.modules[main]
+	instance.main = instance.modules[main]
 
-	return self
+	return instance
 end
 
 function Instance:checkCpu()
@@ -91,7 +91,8 @@ end
 function Instance:destroy()
 	-- Run extension destructors
 	for ext in pairs(self.ctx.extensions) do
-		ext:construct(self)
+		---@diagnostic disable-next-line: undefined-field
+		ext:destruct(self)
 	end
 	self.errored = true
 end
@@ -106,6 +107,7 @@ function Instance:init()
 
 	-- Run extension constructors
 	for ext in pairs(self.ctx.extensions) do
+		---@diagnostic disable-next-line: undefined-field
 		ext:construct(self)
 	end
 

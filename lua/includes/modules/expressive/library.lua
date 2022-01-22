@@ -280,7 +280,7 @@ end
 ---@field owner GEntity # Owner entity
 ---@field owner_id integer # Owner entity ID
 
-local DataStream = require("bitstream")
+local DataStream = require("datastream")
 
 ---@param from GPlayer?
 ---@param callback fun(ok: boolean, data: ProcessorData)
@@ -303,7 +303,6 @@ function Library.ReadProcessor(from, callback)
 	net.ReadStream(from, function(data)
 		if data then
 			data = util.Decompress(data)
-			--print(string.format("%q", data), string.format("%q", util.Decompress(data)))
 			local stream = DataStream.new(data)
 			local n_files = stream:readU(16)
 
@@ -332,7 +331,7 @@ function Library.WriteProcessor(data, callback)
 
 	net.WriteString(data.main)
 
-	local data = Library.CompressFiles(data.modules)
+	data = Library.CompressFiles(data.modules)
 	net.WriteStream(data, callback)
 end
 
