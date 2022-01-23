@@ -104,7 +104,6 @@ local Infer = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Lambda] = function(self, node)
-		-- TODO
 		local params, block = unpack(node.data)
 
 		-- Extract types from params
@@ -142,6 +141,14 @@ local Infer = {
 	---@param node Node
 	[NODE_KINDS.LogicalOps] = function(self, node)
 
+	end,
+
+	--- x.y or x[y]. This only applies to arrays right now, so can just return the type of the array.
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Index] = function(self, node)
+		--local _kind, tbl, _key = unpack(node)
+		--return self:typeFromExpr(tbl)
 	end
 }
 

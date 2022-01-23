@@ -53,7 +53,6 @@ ExternHandlers = {
 
 		-- Extract types from params
 		for k, v in ipairs(params) do params[k] = v[2] end
-		PrintTable(params)
 		local type_sig = makeSignature(params, ret)
 
 		-- Cannot modify externs

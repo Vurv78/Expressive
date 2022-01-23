@@ -244,7 +244,7 @@ local Transpilers = {
 
 		-- Array of { [1] = name, [2] = type_name }
 		---@type table<number, string>
-		local argnames = {}
+
 		for k, arg in ipairs(args) do
 			args[k] = arg[1]
 		end
@@ -254,7 +254,7 @@ local Transpilers = {
 	---@param self Transpiler
 	---@param node Node
 	[NODE_KINDS.For] = function(self, node)
-		local kw, varname, start, cond, step, block = unpack(node.data)
+		local _kw, varname, start, cond, step, block = unpack(node.data)
 		--[[
 			$kw $varname = $start
 			while $cond do
@@ -277,7 +277,7 @@ local Transpilers = {
 	end,
 
 	[NODE_KINDS.Try] = function(self, node)
-		local try_block, catch_var, catch_ty, catch_block = unpack(node.data)
+		local try_block, catch_var, _catch_ty, catch_block = unpack(node.data)
 		--[[
 			xpcall(function()
 				$try_block
