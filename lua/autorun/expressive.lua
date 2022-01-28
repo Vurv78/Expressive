@@ -43,7 +43,11 @@ if SERVER then
 		end
 	end
 
+	-- Exported but builtin syper modes and lexers.
+	addLuaFiles("syper", true)
+	-- The Expressive programming language
 	addLuaFiles("expressive", true)
+	-- Modules to be ``require``d
 	addLuaFiles("includes", true)
 
 	addResources("materials", true)
