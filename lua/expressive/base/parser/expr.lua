@@ -137,24 +137,10 @@ Expressions = {
 	---@param token Token
 	[8] = function(self, token)
 		local expr = Expressions[9](self, token)
-		if self:popToken(TOKEN_KINDS.Grammar, "(") then
-			local args = {}
-			local arg = Expressions[1](self, self:nextToken())
-			while arg do
-				table.insert(args, arg)
-
-				if self:popToken(TOKEN_KINDS.Grammar, ")") then
-					break
-				end
-
-				if self:popToken(TOKEN_KINDS.Grammar, ",") then
-					arg = Expressions[1](self, self:nextToken())
-				else
-					assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) or , after argument in call expr" )
-					break
-				end
-			end
-
+		local args = self:acceptArguments()
+		if args then
+			print("Accepted args for call expr.")
+			PrintTable(args)
 			return Node.new(NODE_KINDS.CallExpr, { expr, args })
 		end
 		return expr
@@ -248,10 +234,22 @@ Expressions = {
 		return Expressions[14](self, token)
 	end,
 
-	--- Literal
+	--- Constructor
 	---@param self Parser
 	---@param token Token
 	[14] = function(self, token)
+		if isToken(token, TOKEN_KINDS.Keyword, "new") then
+			local class_name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected class name after 'new' keyword")
+			local args = assert(self:acceptArguments(), "Expected arguments for class constructor")
+			return Node.new(NODE_KINDS.Constructor, { class_name.raw, args })
+		end
+		return Expressions[15](self, token)
+	end,
+
+	--- Literal
+	---@param self Parser
+	---@param token Token
+	[15] = function(self, token)
 		local num = isAnyOfKind(token, {TOKEN_KINDS.Decimal, TOKEN_KINDS.Hexadecimal, TOKEN_KINDS.Integer, TOKEN_KINDS.Octal})
 		if num then
 			return Node.new(NODE_KINDS.Literal, { "number", token.value, token.negative, NumFormats[num] })
@@ -263,13 +261,13 @@ Expressions = {
 			return Node.new(NODE_KINDS.Literal, { "null" })
 		end
 
-		return Expressions[15](self, token)
+		return Expressions[16](self, token)
 	end,
 
 	--- Identifier (Variable references)
 	---@param self Parser
 	---@param token Token
-	[15] = function(self, token)
+	[16] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Identifier) then
 			return Node.new(NODE_KINDS.Variable, { token.raw })
 		end

@@ -8,7 +8,7 @@ local Validator = class("Validator")
 
 --- Validates given code and returns true and transpiled code if successful
 ---@return boolean
----@return string?
+---@return string? # Lua code generated if successfully validated.
 function Validator:Validate(code, move_to, export_compiled)
 	if not code or code == "" then
 		self:Throw("No code submitted")
@@ -18,40 +18,44 @@ function Validator:Validate(code, move_to, export_compiled)
 	self.editor.validation_bar:SetBGColor(Color(100, 200, 100))
 	self.editor.validation_bar:SetText("Validating...")
 
-	local Tokenizer = ELib.Tokenizer.new()
-	local ok, tokens = pcall(Tokenizer.parse, Tokenizer, code)
-	if not ok then
-		return self:Throw(tokens, true)
+	local function xpcaller(msg)
+		print("xpcaller", msg)
+		return {msg, debug.traceback(msg)}
 	end
 
-	local Parser = ELib.Parser.new()
-	local ok, ast = pcall(Parser.parse, Parser, tokens)
-	if not ok then
-		return self:Throw(ast, true)
-	end
+	local ok, data = xpcall(function()
+		local Tokenizer = ELib.Tokenizer.new()
+		local tokens = Tokenizer:parse(code)
 
-	local Analyzer = ELib.Analyzer.new()
-	local ok, ast = pcall(Analyzer.process, Analyzer, ELib.ExtensionCtx, ast)
-	if not ok then
-		return self:Throw(ast, true)
-	end
+		local Parser = ELib.Parser.new()
+		local ast = Parser:parse(tokens)
 
-	local Transpiler = ELib.Transpiler.new()
-	local ok, code = pcall(Transpiler.process, Transpiler, ELib.ExtensionCtx, ast)
+		local Analyzer = ELib.Analyzer.new()
+		ast = Analyzer:process(ELib.ExtensionCtx, ast)
+
+		local Transpiler = ELib.Transpiler.new()
+		return Transpiler:process(ELib.ExtensionCtx, ast)
+	end, xpcaller)
+
 	if not ok then
-		return self:Throw(code, true)
+		local msg, traceback = data[1], data[2]
+		return self:Throw("Failed to compile: " .. msg, traceback, true)
 	end
 
 	self.editor.validation_bar:SetBGColor(Color(100, 200, 100))
 	self.editor.validation_bar:SetText("Validation Successful!")
 
-	return true, code
+	return true, data
 end
 
-function Validator:Throw(msg, move_to)
+--- Throws a validation error (puts traceback in console, error message on validation bar.)
+---@param msg string
+---@param traceback string
+---@param move_to boolean
+function Validator:Throw(msg, traceback, move_to)
 	self.editor.validation_bar:SetBGColor(Color(255, 100, 100))
 	self.editor.validation_bar:SetText(msg)
-	self.editor.console:ErrorLn(msg)
+	self.editor.console:ErrorLn(traceback or msg)
 end
 
 return function(editor)

@@ -1148,6 +1148,8 @@ function Editor:ValidationError(err, move_to)
 end
 
 --- Returns whether code validated successfully
+---@param code string
+---@param move_to boolean
 ---@return boolean
 function Editor:Validate(code, move_to)
 	self.console:Clear()
@@ -2964,12 +2966,12 @@ function Editor:AddValidateBar()
 				SetClipboardText( ExpressiveEditor.GetCode() or self:GetContentStr() )
 			end)
 
-			menu:AddOption("Run Generated Lua", function()
+			menu:AddOption("Copy Generated Lua", function()
 				local code = ExpressiveEditor.GetCode() or self:GetContentStr()
 				local success, lua = self:Validate(code)
 
 				if success then
-					RunString(lua, "Expressive:Run", true)
+					SetClipboardText(lua)
 				end
 			end)
 

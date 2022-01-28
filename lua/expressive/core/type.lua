@@ -10,13 +10,15 @@ local Type = class("Type")
 --- Creates a new type, to be registered in an extension
 ---@param name string
 ---@param extends Type? Optional type that this extends.
+---@param data ClassData? Optional data for the type.
 ---@return Type
-function Type.new(name, extends)
+function Type.new(name, extends, data)
 	-- TODO: This getmetatable method of checking may be bad for extending an already extended [Type].
 	if extends then assert( getmetatable(extends) == Type, "Extended type should be a Type object, not a " .. type(extends) ) end
 	return setmetatable({
 		name = name,
 		extends = extends,
+		data = data,
 		__metatable = Type,
 		__index = extends or Type
 	}, extends or Type)

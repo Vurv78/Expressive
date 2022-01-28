@@ -44,7 +44,7 @@ function ENT:Compile()
 
 
 	local lua_modules = {}
-	local success, why = pcall(function()
+	local success, why = xpcall(function()
 		for name, code in pairs(data.modules) do
 			local Tokenizer = ELib.Tokenizer.new()
 			local Parser = ELib.Parser.new()
@@ -58,7 +58,7 @@ function ENT:Compile()
 			local lua = Transpiler:process(ELib.ExtensionCtx, new_ast)
 			lua_modules[name] = lua
 		end
-	end)
+	end, debug.traceback)
 
 	if not success then
 		self:Error("Failed to compile: " .. why)

@@ -54,6 +54,8 @@ local VarModifications = {
 	end
 }
 
+local function NO_OUTPUT() return "" end
+
 local Transpilers = {
 	---@param self Transpiler
 	---@param node Node
@@ -112,11 +114,15 @@ local Transpilers = {
 	---@param node Node
 	[NODE_KINDS.CallExpr] = function(self, node)
 		local fn_expr, args = unpack(node.data)
-		local res = {}
 		for i, v in ipairs(args) do
-			res[i] = self:transpile(v)
+			args[i] = self:transpile(v)
 		end
-		return fmt("%s(%s)", self:transpile(fn_expr), table.concat(res, ", "))
+		return fmt("%s(%s)", self:transpile(fn_expr), table.concat(args, ", "))
+	end,
+
+	[NODE_KINDS.While] = function(self, node)
+		local cond, block = unpack(node.data)
+		return fmt("while %s do\n\t%s\nend", self:transpile(cond), self:transpileAst(block))
 	end,
 
 	---@param self Transpiler
@@ -175,10 +181,8 @@ local Transpilers = {
 		local cond, block = unpack(node.data)
 
 		local next = self:peek()
-		if next then
-			if next.kind == NODE_KINDS.Else or next.kind == NODE_KINDS.Elseif then
-				return fmt("if %s then %s", self:transpile(cond), self:transpileAst(block))
-			end
+		if next and next.kind == NODE_KINDS.Else or next.kind == NODE_KINDS.Elseif then
+			return fmt("if %s then %s", self:transpile(cond), self:transpileAst(block))
 		end
 
 		return fmt("if %s then %s end", self:transpile(cond), self:transpile(block))
@@ -189,10 +193,8 @@ local Transpilers = {
 	[NODE_KINDS.Elseif] = function(self, node)
 		local cond, block = unpack(node.data)
 		local next = self:peek()
-		if next then
-			if next.kind == NODE_KINDS.Else or next.kind == NODE_KINDS.Elseif then
-				return fmt("elseif %s then %s", self:transpile(cond), self:transpileAst(block))
-			end
+		if next and next.kind == NODE_KINDS.Else or next.kind == NODE_KINDS.Elseif then
+			return fmt("elseif %s then %s", self:transpile(cond), self:transpileAst(block))
 		end
 
 		return fmt("elseif %s then %s end", self:transpile(cond), self:transpileAst(block))
@@ -276,6 +278,8 @@ local Transpilers = {
 		)
 	end,
 
+	---@param self Transpiler
+	---@param node Node
 	[NODE_KINDS.Try] = function(self, node)
 		local try_block, catch_var, _catch_ty, catch_block = unpack(node.data)
 		--[[
@@ -301,16 +305,32 @@ local Transpilers = {
 		)
 	end,
 
+	---@param self Transpiler
+	---@param node Node
 	[NODE_KINDS.Declare] = function(self, node)
 		-- kind is "var", "function", "type" or "namespace"
 		local kind, name = unpack(node.data)
 		return fmt("-- declare %s as %s", name, kind)
 	end,
 
+	---@param self Transpiler
+	---@param node Node
 	[NODE_KINDS.Realm] = function(self, node)
 		local name, block = unpack(node.data)
 		return fmt("if %s then\n\t%s\nend", string.upper(name), self:transpileAst(block, true))
 	end,
+
+	[NODE_KINDS.Class] = NO_OUTPUT,
+
+	---@param self Transpiler
+	---@param node Node
+	[NODE_KINDS.Constructor] = function(self, node)
+		local name, args = unpack(node.data)
+		for i, v in ipairs(args) do
+			args[i] = self:transpile(v)
+		end
+		return fmt("%s(%s)", name, table.concat(args, ", "))
+	end
 }
 
 function Transpiler:pushScope()
@@ -333,7 +353,10 @@ function Transpiler:transpile(node)
 	if handler then
 		return handler(self, node)
 	end
-	ErrorNoHalt("ES: !!! Unimplemented Transpile target: ", Parser.KINDS_INV[node.kind], "\n")
+
+	debug.Trace()
+	print(node.kind)
+	ErrorNoHalt("ES: !!! Unimplemented Transpile target: ", Parser.KINDS_INV[node.kind] or node.kind, "\n")
 	return ""
 end
 

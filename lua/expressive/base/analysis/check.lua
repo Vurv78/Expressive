@@ -6,6 +6,8 @@ local Analyzer = ELib.Analyzer
 local NODE_KINDS = ELib.Parser.KINDS
 local SCOPE_KINDS = Analyzer.Scope.KINDS
 
+local makeSignature = ELib.Analyzer.makeSignature
+
 local Handlers = {
 	-- Scan for variable references
 	---@param self Analyzer
@@ -97,9 +99,16 @@ local Handlers = {
 		for k, arg in ipairs(args) do args[k] = self:typeFromExpr(arg) end
 
 		args = table.concat(args, ",")
-		local fn_args = string.match(ty, "^function:(.*):")
+		local fn_args = string.match(ty, "^function%((.*)%)")
 
 		assert(args == fn_args, "Function '" .. expr.data[1] .. "' expects arguments (" .. fn_args .. ") but got (" .. args .. ")")
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Constructor] = function(self, node)
+		local name, args = unpack(node.data)
+		local sig = makeSignature(args)
 	end
 }
 

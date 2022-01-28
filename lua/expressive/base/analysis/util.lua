@@ -11,13 +11,13 @@ local NODE_KINDS = ELib.Parser.KINDS
 --- ```
 --- ### OUT:
 --- ```text
----		function:number,number,int:number
+---		function(number,number,int):number
 --- ```
 ---@param params table<number, Node>
 ---@param ret string
 ---@return string
 local function makeSignature(params, ret)
-	return "function:" .. table.concat(params, ",") .. ":" .. ret
+	return "function(" .. table.concat(params, ",") .. "):" .. ret
 end
 
 Analyzer.makeSignature = makeSignature

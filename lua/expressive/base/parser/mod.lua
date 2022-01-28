@@ -70,6 +70,7 @@ end
 ---@field Array number
 ---@field Block number
 ---@field Lambda number
+---@field Constructor number
 ---@field Literal number
 ---@field Variable number
 local KINDS, KINDS_UDATA = ELib.MakeEnum {
@@ -104,6 +105,7 @@ local KINDS, KINDS_UDATA = ELib.MakeEnum {
 	Expr("Array", "array literal"), -- [1, 2, 3]
 	Expr("Block", "block"), -- { ... }
 	Expr("Lambda", "lambda / closure"), -- function(x...) { ... }
+	Expr("Constructor", "new expression"), -- new Foo()
 	Expr("Literal", "literal value"), -- 5, "foo", true, false, nil
 	Expr("Variable", "variable") -- foo
 }
@@ -406,17 +408,44 @@ function Parser:acceptTypedParameters(msg)
 	return args
 end
 
+function Parser:acceptArguments()
+	if self:popToken(TOKEN_KINDS.Grammar, "(") then
+		local args = {}
+		local arg = self:parseExpression(self:nextToken())
+		while arg do
+			table.insert(args, arg)
+
+			if self:popToken(TOKEN_KINDS.Grammar, ")") then
+				break
+			end
+
+			if self:popToken(TOKEN_KINDS.Grammar, ",") then
+				arg = self:parseExpression(self:nextToken())
+			else
+				assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) or , after argument in call expr" )
+				break
+			end
+		end
+
+		return args
+	end
+end
+
 include("stmt.lua")
 include("expr.lua")
 include("declare.lua")
+include("class.lua")
 
----@type fun(tok: Token): Node?
+---@type fun(self: Parser, tok: Token): Node?
 Parser.parseExpression = Parser.parseExpression
 
----@type fun(tok: Token): Node?
+---@type fun(self: Parser, tok: Token): Node?
 Parser.parseStatement = Parser.parseStatement
 
----@type fun(tok: Token): Node?
+---@type fun(self: Parser, tok: Token): Node?
 Parser.acceptDeclare = Parser.acceptDeclare
+
+---@type fun(self: Parser, tok: Token): Node?
+Parser.acceptClassBlock = Parser.acceptClassBlock
 
 return Parser

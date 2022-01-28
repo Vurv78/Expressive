@@ -160,7 +160,12 @@ local Statements = {
 	---@param self Parser
 	---@param token Token
 	[NODE_KINDS.Class] = function(self, token)
+		if isToken(token, TOKEN_KINDS.Keyword, "class") then
+			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected class name after class keyword" )
+			local data = assert( self:acceptClassBlock(), "Expected left curly bracket ({) to begin class definition" )
 
+			return { name.raw, data }
+		end
 	end,
 
 	---@param self Parser

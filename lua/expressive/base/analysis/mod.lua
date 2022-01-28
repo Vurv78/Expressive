@@ -8,6 +8,7 @@ local class = require("voop")
 ---@field scopes table<number, Scope>
 ---@field global_scope Scope
 ---@field current_scope Scope
+---@field types table<TypeSig, Type> # Registered types / classes. Inherits from context types with __index.
 ---@field configs AnalyzerConfigs
 ---@field ctx Context
 ---@field externs table<string, Type> # Extern values retrieved from extensions. Not to be confused with imports
@@ -27,6 +28,7 @@ function Analyzer:reset()
 
 	-- Note lack of resetting configs
 	self.ctx = nil
+	self.types = {}
 	self.externs = {}
 end
 
@@ -114,6 +116,9 @@ function Analyzer:process(ctx, ast, configs)
 	assert(istable(configs), "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
 
 	self.ctx = ctx
+	self.types = setmetatable({}, {
+		__index = self.ctx.types
+	})
 
 	-- Get initial types.
 	self:externPass(ast)
@@ -179,11 +184,15 @@ Analyzer.checkPass = Analyzer.checkPass
 ---@type fun(self: Analyzer, ast: table<number, Node>): table<number, Node>
 Analyzer.optimize = Analyzer.optimize
 
----@type fun(self: Analyzer, expr: Node): string
+---@type fun(self: Analyzer, expr: Node): TypeSig
 Analyzer.typeFromExpr = Analyzer.typeFromExpr
 
 --- Gets the return type from a block, searching for the first return statement.
 ---@type fun(block: table<number, Node>): string
 Analyzer.getReturnType = Analyzer.getReturnType
+
+--- Creates a function signature from type params and return type
+---@type fun(self: Analyzer, params: table<number, string>, ret: TypeSig)
+Analyzer.makeSignature = Analyzer.makeSignature
 
 return Analyzer

@@ -7,6 +7,7 @@ local makeSignature = ELib.Analyzer.makeSignature
 local NODE_KINDS = ELib.Parser.KINDS
 
 local Var = ELib.Var
+local Type = ELib.Type
 
 local Handlers = {
 	---@param self Analyzer
@@ -138,6 +139,14 @@ local Handlers = {
 		local args = node.data[2]
 
 		self:inferPass(args)
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Class] = function(self, node)
+		local name, data = unpack(node.data)
+		assert(not self.types[name], "Class " .. name .. " is already defined")
+		self.types[name] = Type.new(name, nil, data)
 	end
 }
 
