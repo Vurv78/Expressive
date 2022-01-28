@@ -139,8 +139,6 @@ Expressions = {
 		local expr = Expressions[9](self, token)
 		local args = self:acceptArguments()
 		if args then
-			print("Accepted args for call expr.")
-			PrintTable(args)
 			return Node.new(NODE_KINDS.CallExpr, { expr, args })
 		end
 		return expr

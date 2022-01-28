@@ -354,8 +354,6 @@ function Transpiler:transpile(node)
 		return handler(self, node)
 	end
 
-	debug.Trace()
-	print(node.kind)
 	ErrorNoHalt("ES: !!! Unimplemented Transpile target: ", Parser.KINDS_INV[node.kind] or node.kind, "\n")
 	return ""
 end
