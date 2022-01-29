@@ -106,6 +106,15 @@ local Handlers = {
 
 	---@param self Analyzer
 	---@param node Node
+	[NODE_KINDS.Lambda] = function(self, node)
+		local _args, body = unpack(node.data)
+		self:pushScope()
+			self:checkPass(body)
+		self:popScope()
+	end,
+
+	---@param self Analyzer
+	---@param node Node
 	[NODE_KINDS.Constructor] = function(self, node)
 		local name, args = unpack(node.data)
 		local sig = makeSignature(args)
