@@ -137,7 +137,6 @@ local Handlers = {
 	[NODE_KINDS.CallExpr] = function(self, node)
 		---@type table<number, Node>
 		local args = node.data[2]
-
 		self:inferPass(args)
 	end,
 

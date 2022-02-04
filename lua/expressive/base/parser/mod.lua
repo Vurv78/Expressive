@@ -427,12 +427,14 @@ function Parser:acceptTypedParameters(msg)
 	return args
 end
 
+--- Returns a table of arguments, like (bar, foo, baz, 55, "qux", 500.0 + 291.2 / 5.0)
 function Parser:acceptArguments()
 	if self:popToken(TOKEN_KINDS.Grammar, "(") then
-		local args = {}
+		local nargs, args = 1, {}
 		local arg = self:parseExpression(self:nextToken())
 		while arg do
-			table.insert(args, arg)
+			args[nargs] = arg
+			nargs = nargs + 1
 
 			if self:popToken(TOKEN_KINDS.Grammar, ")") then
 				break

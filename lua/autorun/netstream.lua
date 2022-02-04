@@ -17,7 +17,6 @@ net.Stream.ReadStream = {}
 function net.Stream.ReadStream:Request()
 	if self.downloads == net.Stream.MaxTries * self.numchunks then self:Remove() return end
 	self.downloads = self.downloads + 1
-	-- print("Requesting",self.identifier,false,false,#self.chunks)
 
 	net.Start("NetStreamRequest")
 	net.WriteUInt(self.identifier, 32)
@@ -267,7 +266,6 @@ function net.ReadStream(ply, callback)
 
 	local identifier = net.ReadUInt(32)
 	local compressed = net.ReadBool()
-	--print("Got info", numchunks, identifier, compressed)
 
 	for _, v in ipairs(queue) do
 		if v.identifier == identifier then

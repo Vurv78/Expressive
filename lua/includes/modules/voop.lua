@@ -61,14 +61,14 @@ function A.new()
 end
 
 function A:bar()
-	print("Bar")
+	Msg("Bar")
 end
 
 local B = class("bar", A)
 
 B.new():bar()
 
-print(A.new(), A, A.bar, A:instanceof(A.new()), A.new():bar())
+Msg(A.new(), A, A.bar, A:instanceof(A.new()), A.new():bar())
 ]]
 
 return class

@@ -24,7 +24,6 @@ function Validator:Validate(code, move_to, export_compiled)
 	self.editor.validation_bar:SetText("Validating...")
 
 	local function xpcaller(msg)
-		print("xpcaller", msg)
 		return {msg, debug.traceback(msg)}
 	end
 

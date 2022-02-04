@@ -18,12 +18,14 @@ ExternHandlers = {
 	["namespace"] = function(self, name, data)
 		---@type table<number, Node>
 		local nodes = data[3]
+
+		local out_nodes = {}
 		for k, node in ipairs(nodes) do
-			nodes[k] = ExternHandlers[node[1]](self, node.data)
+			out_nodes[k] = ExternHandlers[node[1]](self, node.data)
 		end
 		-- TODO
-		print("namespace nodes", ELib.Inspect(nodes))
-		self.externs[name] = nodes
+		print("namespace nodes", ELib.Inspect(out_nodes))
+		self.externs[name] = out_nodes
 	end,
 
 	--- Primitive type decl
@@ -52,8 +54,10 @@ ExternHandlers = {
 		local params, ret = data[3], data[4]
 
 		-- Extract types from params
-		for k, v in ipairs(params) do params[k] = v[2] end
-		local type_sig = makeSignature(params, ret)
+		---@type table<number, TypeSig>
+		local fn_params = {}
+		for k, v in ipairs(params) do fn_params[k] = v[2] end
+		local type_sig = makeSignature(fn_params, ret)
 
 		-- Cannot modify externs
 		local var = Var.new(type_sig, nil, false)

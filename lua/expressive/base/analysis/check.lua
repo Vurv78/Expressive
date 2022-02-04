@@ -96,12 +96,15 @@ local Handlers = {
 		-- end
 
 		self:checkPass(args)
-		for k, arg in ipairs(args) do args[k] = self:typeFromExpr(arg) end
+		local type_args = {}
+		for k, arg in ipairs(args) do
+			type_args[k] = self:typeFromExpr(arg)
+		end
 
-		args = table.concat(args, ",")
+		type_args = table.concat(type_args, ",")
 		local fn_args = string.match(ty, "^function%((.*)%)")
 
-		assert(args == fn_args, "Function '" .. expr.data[1] .. "' expects arguments (" .. fn_args .. ") but got (" .. args .. ")")
+		assert(type_args == fn_args, "Function '" .. expr.data[1] .. "' expects arguments (" .. fn_args .. ") but got (" .. type_args .. ")")
 	end,
 
 	---@param self Analyzer

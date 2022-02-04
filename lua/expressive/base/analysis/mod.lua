@@ -169,6 +169,8 @@ function Analyzer:loadContext(ctx)
 end
 
 local fmt = string.format
+---@param msg string # Message to warn with
+---@vararg any # Fmt args
 function Analyzer:warn(msg, ...)
 	-- TODO: Properly use current node position.
 	local err = fmt(msg, ...)
