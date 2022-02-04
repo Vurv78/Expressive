@@ -6,6 +6,7 @@ local isToken = ELib.Parser.isToken
 local isAnyOf = ELib.Parser.isAnyOf
 
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
+local NODE_KINDS_UDATA = ELib.Parser.KINDS_UDATA
 
 ---@class ClassData
 ---@field constructor { args: table<number, table<number, string>>, body: table<number, Node> } # Constructor of the class
@@ -113,7 +114,7 @@ function Parser:acceptClassBlock()
 					end
 				end
 				if matched then
-					assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ';' after statement")
+					assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after " .. matched:human())
 				else
 					error("Unexpected token '" .. tostring(token) .. "' in class block")
 				end

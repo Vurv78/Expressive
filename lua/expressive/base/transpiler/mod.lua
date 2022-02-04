@@ -330,7 +330,12 @@ local Transpilers = {
 			args[i] = self:transpile(v)
 		end
 		return fmt("%s(%s)", name, table.concat(args, ", "))
-	end
+	end,
+
+	[NODE_KINDS.Export] = function(self, node)
+		local inner = node.data[1]
+		return fmt("-- exported..\n%s", self:transpile(inner))
+	end,
 }
 
 function Transpiler:pushScope()
@@ -354,6 +359,9 @@ function Transpiler:transpile(node)
 		return handler(self, node)
 	end
 
+	if not node.kind then
+		debug.Trace()
+	end
 	ErrorNoHalt("ES: !!! Unimplemented Transpile target: ", Parser.KINDS_INV[node.kind] or node.kind, "\n")
 	return ""
 end
@@ -388,6 +396,9 @@ function Transpiler:process(ctx, ast)
 
 	self.ctx = ctx
 	self.ast = ast
+
+	print("===== AST =======")
+	PrintTable(ast)
 	return self:transpileAst(ast)
 end
 

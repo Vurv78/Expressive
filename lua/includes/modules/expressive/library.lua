@@ -91,6 +91,14 @@ Library.Keywords = {
 	["delegate"] = true,
 	["elseif"] = true, -- TODO: Remove and support else if instead.
 
+	-- Keywords in use, but don't have functionality.
+	["new"] = true,
+	["class"] = true,
+	["public"] = true,
+	["static"] = true,
+	["constructor"] = true,
+	["export"] = true,
+
 	-- ES6 Keywords (Reserved)
 	-- These have not been implemented into Expressive so that is why they are (Reserved)
 	-- https://github.com/Microsoft/TypeScript/issues/2536
@@ -100,7 +108,7 @@ Library.Keywords = {
 	-- * `❌` - Will probably not be implemented
 	["enum"] = true, -- 👍
 	["this"] = true, -- ✔️
-	["undefined"] = true, -- 🤷‍♂️
+	["undefined"] = true, -- ❌ (Lua has no concept of undefined anyway, and this would add overhead.)
 	["throw"] = true, -- 👍
 	["typeof"] = true, -- 👍
 	["delete"] = true, -- ❌
@@ -109,16 +117,12 @@ Library.Keywords = {
 	["type"] = true, -- 👍
 	["private"] = true, -- ❌
 	["protected"] = true, -- ❌
-	["public"] = true, -- 🤷‍♂️
-	["static"] = true, -- 🤷‍♂️
 	["yield"] = true, -- 🤷‍♂️
 	["await"] = true, -- 🤷‍♂️
 	["async"] = true, -- 🤷‍♂️
 	["abstract"] = true, -- 🤷‍♂️
 	["import"] = true, -- 👍
-	["export"] = true, -- 👍
 	["extends"] = true,
-	["class"] = true, -- ✔️
 	["interface"] = true, -- 👍
 	["implements"] = true, -- 👍
 	["instanceof"] = true, -- 👍
@@ -126,14 +130,12 @@ Library.Keywords = {
 	["null"] = true, -- 🤷‍♂️
 	["in"] = true, -- 🤷‍♂️
 	["as"] = true, -- 🤷‍♂️
-	["new"] = true, -- ✔️
 	["finally"] = true, -- 🤷‍♂️
 	["namespace"] = true, -- 👍
 	["symbol"] = true, -- ❌
 	["unique"] = true, -- ❌
 	["get"] = true, -- 🤷‍♂️
 	["set"] = true, -- 🤷‍♂️
-	["constructor"] = true, -- 👍
 }
 
 local function sort_values(a, b)

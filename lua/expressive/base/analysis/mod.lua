@@ -12,6 +12,7 @@ local class = require("voop")
 ---@field configs AnalyzerConfigs
 ---@field ctx Context
 ---@field externs table<string, Type> # Extern values retrieved from extensions. Not to be confused with imports
+---@field warnings table<number, {start: number, end: number, message: string}>
 local Analyzer = class("Analyzer")
 ELib.Analyzer = Analyzer
 
@@ -30,6 +31,7 @@ function Analyzer:reset()
 	self.ctx = nil
 	self.types = {}
 	self.externs = {}
+	self.warnings = {}
 end
 
 ---@return Analyzer
@@ -164,6 +166,13 @@ function Analyzer:loadContext(ctx)
 		end
 	end
 	addVars(ctx.variables, self.global_scope)
+end
+
+local fmt = string.format
+function Analyzer:warn(msg, ...)
+	-- TODO: Properly use current node position.
+	local err = fmt(msg, ...)
+	self.warnings[ #self.warnings + 1 ] = { 1, 1, err }
 end
 
 include("util.lua")

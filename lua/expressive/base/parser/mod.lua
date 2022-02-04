@@ -27,11 +27,20 @@ function Parser.new()
 	return instance
 end
 
+--- Creates a control flow statement e.g. if, while, for, etc.
 ---@param name string # Name of the statement
 ---@param desc string # Human description of the statement, for debugging.
 ---@return table
-local function Stmt(name, desc)
-	return { name = name, udata = { desc = desc, type = "stmt" } }
+local function Control(name, desc)
+	return { name = name, udata = { desc = desc, type = "stmt", decl = false } }
+end
+
+--- Creates a declaration statement e.g. "var x = 1"
+---@param name string # Name of the statement
+---@param desc string # Human description of the statement, for debugging.
+---@return table
+local function Declare(name, desc)
+	return { name = name, udata = { desc = desc, type = "stmt", decl = true } }
 end
 
 ---@param name string # Name of the statement
@@ -57,6 +66,7 @@ end
 ---@field Function number
 ---@field Escape number
 ---@field Declare number
+---@field Export number
 ---@field Ternary number
 ---@field LogicalOps number
 ---@field BitwiseOps number
@@ -75,21 +85,22 @@ end
 ---@field Variable number
 local KINDS, KINDS_UDATA = ELib.MakeEnum {
 	--- Statements
-	Stmt("If", "if statement"), -- if (true) {}
-	Stmt("Elseif", "elseif statement"), -- if (true) {} elseif (true) {}
-	Stmt("Else", "else statement"), -- if (true) {} else {}
-	Stmt("While", "while loop"), -- while (true) {}
-	Stmt("For", "for loop"), -- for(let foo = 5; foo < 5; foo++) {}
-	Stmt("Try", "try"), -- try {} catch (e: int) {}
-	Stmt("Realm", "realm block"), -- Set realm for block
-	Stmt("VarDeclare", "variable declaration"), -- var Foo = 5;
-	Stmt("VarModify", "variable modification"), -- Foo += 5;
-	Stmt("Delegate", "delegate"),
-	Stmt("Class", "class definition"), -- class Main {}
-	Stmt("Interface", "interface definition"), -- interface Main {}
-	Stmt("Function", "function definition"), -- function foo(): number {}
-	Stmt("Escape", "return, break or continue"), -- Either return Var?, break or continue.
-	Stmt("Declare", "extern declaration"), -- declare function foo(): number
+	Control("If", "if statement"), -- if (true) {}
+	Control("Elseif", "elseif statement"), -- if (true) {} elseif (true) {}
+	Control("Else", "else statement"), -- if (true) {} else {}
+	Control("While", "while loop"), -- while (true) {}
+	Control("For", "for loop"), -- for(let foo = 5; foo < 5; foo++) {}
+	Control("Try", "try"), -- try {} catch (e: int) {}
+	Control("Realm", "realm block"), -- Set realm for block
+	Declare("VarDeclare", "variable declaration"), -- var Foo = 5;
+	Declare("VarModify", "variable modification"), -- Foo += 5;
+	Declare("Delegate", "delegate"),
+	Declare("Class", "class definition"), -- class Main {}
+	Declare("Interface", "interface definition"), -- interface Main {}
+	Declare("Function", "function definition"), -- function foo(): number {}
+	Control("Escape", "return, break or continue"), -- Either return Var?, break or continue.
+	Declare("Declare", "extern declaration"), -- declare function foo(): number
+	Declare("Export", "export modifier"), -- export declare var foo: number
 
 	--- Expressions
 	Expr("Ternary", "ternary operation"), -- a ? b : c (a ?? b)
@@ -145,6 +156,11 @@ function Node:isStatement()
 	return KINDS_UDATA[self.kind].type == "stmt"
 end
 
+---@return boolean # Whether the node is a declaration. E.g. "var x = 1"
+function Node:isDeclaration()
+	return KINDS_UDATA[self.kind].decl
+end
+
 ---@param kind ParserKinds
 ---@param data table
 function Node.new(kind, data)
@@ -198,7 +214,10 @@ function Parser:next()
 	local res = self:parseStatement(tok) or self:parseExpression(tok)
 
 	if res then
-		assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after " .. res:human())
+		-- Expect ; after declaration statements.
+		if res:isExpression() or res:isDeclaration() then
+			assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after " .. res:human())
+		end
 		return res
 	else
 		error("Unexpected token " .. TOKEN_KINDS_INV[tok.kind] .. " '" .. tok.raw .. "'")

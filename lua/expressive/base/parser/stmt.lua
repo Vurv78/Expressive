@@ -11,7 +11,8 @@ local TOKEN_KINDS = Tokenizer.KINDS
 local NODE_KINDS = Parser.KINDS
 
 ---@type table<number, fun(self: Parser, token: Token)>
-local Statements = {
+local Statements
+Statements = {
 	---@param self Parser
 	---@param token Token
 	[NODE_KINDS.If] = function(self, token)
@@ -209,7 +210,21 @@ local Statements = {
 	---@param token Token
 	[NODE_KINDS.Declare] = function(self, token)
 		return self:acceptDeclare(token)
-	end
+	end,
+
+	---@param self Parser
+	---@param token Token
+	[NODE_KINDS.Export] = function(self, token)
+		if isToken(token, TOKEN_KINDS.Keyword, "export") then
+			-- TODO: A function that auto calls Node.new etc for you when calling other stmts in a statement.
+			local data = Statements[NODE_KINDS.VarDeclare](self, self:nextToken())
+
+			if data then
+				-- Only accepts export var foo = 5; for now.
+				return { Node.new(NODE_KINDS.VarDeclare, data) }
+			end
+		end
+	end,
 }
 
 --- Tries to parse a statement. This will error if it finds a malformed statement, so pcall!
