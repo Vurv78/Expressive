@@ -7,7 +7,7 @@ require("expressive/startup")
 local Validator = class("Validator")
 
 local rgb = Color
-local C_WARN = rgb(200, 200, 50)
+local C_WARN = rgb(200, 200, 100)
 local C_ERROR = rgb(255, 100, 100)
 local C_SUCCESS = rgb(100, 200, 100)
 
@@ -42,12 +42,13 @@ function Validator:Validate(code, move_to, export_compiled)
 	end, xpcaller)
 
 	if ok then
-		if #warnings > 0 then
-			for i = 1, #warnings do
+		local nwarnings = #warnings
+		if nwarnings > 0 then
+			for i = 1, nwarnings do
 				self:Warn( warnings[i][3] )
 			end
 			self.editor.validation_bar:SetBGColor(C_WARN)
-			self.editor.validation_bar:SetText("Successfully validated with %u warnings")
+			self.editor.validation_bar:SetText("Successfully validated with " .. nwarnings .. " warning(s)")
 		else
 			-- Validated, no warnings.
 			self.editor.validation_bar:SetBGColor(C_SUCCESS)

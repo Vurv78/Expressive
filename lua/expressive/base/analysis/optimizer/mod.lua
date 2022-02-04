@@ -18,6 +18,7 @@ local Optimizations = {
 			local literal_kind = cond.data[1]
 			if literal_kind == "boolean" and cond.data[2] then
 				if cond.data[2] then
+					self:warn("Redundant if(true). Optimized into block.")
 					return Node.new(NODE_KINDS.Block, block)
 				end
 				-- Return nothing, this is if(false)
