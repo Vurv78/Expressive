@@ -109,7 +109,7 @@ local KINDS, KINDS_UDATA = ELib.MakeEnum {
 	Expr("ComparisonOps", "comparison"), -- == != > >= < <=
 	Expr("BitShiftOps", "bit shift operation"), -- << >>
 	Expr("ArithmeticOps", "arithmetic"), -- + - / * %
-	Expr("UnaryOps", "unary operation"), -- ! # ~ $
+	Expr("UnaryOps", "unary operation"), -- ! ~ $
 	Expr("CallExpr", "call"), -- foo()
 	Expr("GroupedExpr", "grouped expression"), -- (x + y)
 	Expr("Index", "index"), -- x.y or x[y]

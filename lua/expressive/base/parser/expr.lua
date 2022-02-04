@@ -121,10 +121,8 @@ Expressions = {
 	---@param token Token
 	[7] = function(self, token)
 		-- Todo: Think of a name of something for popAnyOf that uses a given or the current token.
-		local raw = isAnyOf(token, TOKEN_KINDS.Operator, {"!", "#", "$", "~"})
+		local raw = isAnyOf(token, TOKEN_KINDS.Operator, {"!", "$", "~"})
 		if raw then
-			self:nextToken()
-
 			local expr = assert( Expressions[8](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.UnaryOps, { raw, expr })
 		end

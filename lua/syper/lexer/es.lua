@@ -2,7 +2,7 @@
 
 local TOKEN = Syper.TOKEN
 -- Const data
-local CLASSES = {"int", "double", "string", "bool", "void"} -- Base types for now
+local CLASSES = {"int", "double", "string", "boolean", "void"} -- Base types for now
 local LIBRARIES
 local OPERATORS
 local KEYWORDS

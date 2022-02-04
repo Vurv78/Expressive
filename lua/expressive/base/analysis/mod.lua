@@ -195,6 +195,9 @@ Analyzer.checkPass = Analyzer.checkPass
 ---@type fun(self: Analyzer, ast: table<number, Node>): table<number, Node>
 Analyzer.optimize = Analyzer.optimize
 
+---@type fun(self: Analyzer, node: Node): Node?
+Analyzer.optimizeNode = Analyzer.optimizeNode
+
 ---@type fun(self: Analyzer, expr: Node): TypeSig
 Analyzer.typeFromExpr = Analyzer.typeFromExpr
 

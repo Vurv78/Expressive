@@ -60,7 +60,7 @@ local Transpilers = {
 	---@param self Transpiler
 	---@param node Node
 	[NODE_KINDS.Block] = function(self, node)
-		local block = unpack(node.data)
+		local block = node.data[1]
 		self:pushScope()
 		local res = self:transpileAst(block, true)
 		self:popScope()
@@ -70,7 +70,7 @@ local Transpilers = {
 	---@param self Transpiler
 	---@param node Node
 	[NODE_KINDS.VarDeclare] = function(self, node)
-		local kw, name, type, expr = unpack(node.data)
+		local kw, name, expr = node.data[1], node.data[2], node.data[4]
 		if kw == "var" then
 			return fmt("%s = %s", name, self:transpile(expr))
 		else
@@ -90,6 +90,18 @@ local Transpilers = {
 	[NODE_KINDS.Variable] = function(self, node)
 		local name = unpack(node.data)
 		return name
+	end,
+
+	---@param self Transpiler
+	---@param node Node
+	[NODE_KINDS.UnaryOps] = function(self, node)
+		local op, expr = node.data[1], node.data[2]
+		if op == "!" then
+			return fmt("not %s", self:transpile(expr))
+		else
+			-- TODO: ~ and $ operators?
+			return "error(\"unsupported\")"
+		end
 	end,
 
 	---@param self Transpiler
