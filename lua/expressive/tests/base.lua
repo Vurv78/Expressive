@@ -26,5 +26,5 @@ local ast = parser:parse(tokens)
 local new_ast = analyzer:process(ctx, ast)
 local code = transpiler:process(ctx, new_ast)
 
-print("Generated Lua code!")
-print(code)
+MsgN("Generated Lua code!")
+MsgN(code)

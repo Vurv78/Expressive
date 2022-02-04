@@ -27,5 +27,5 @@ local ast = parser:parse(tokens)
 local new_ast = analyzer:process(ELib.ExtensionCtx, ast)
 local code = transpiler:process(ELib.ExtensionCtx, new_ast)
 
-print("Generated Lua code!")
-print(code)
+MsgN("Generated Lua code!")
+MsgN(code)

@@ -115,7 +115,6 @@ local Transpilers = {
 	[NODE_KINDS.CallExpr] = function(self, node)
 		local fn_expr, args = node.data[1], node.data[2]
 		for i, v in ipairs(args) do
-			print("callexpr", i, ELib.Parser.Node:instanceof(v), getmetatable(v))
 			args[i] = self:transpile(v)
 		end
 		return fmt("%s(%s)", self:transpile(fn_expr), table.concat(args, ", "))

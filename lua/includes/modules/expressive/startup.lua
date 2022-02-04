@@ -45,7 +45,7 @@ local function loadExtensions(extensions)
 	ELib.ExtensionCtx = ExtensionCtx
 
 	---@type table<number, string>
-	print("<< Loading Expressive Extensions >>")
+	MsgN("<< Loading Expressive Extensions >>")
 	for name, src in pairs(extensions) do
 		local ok, traceback = xpcall(function()
 			local tokenizer = Tokenizer.new()
@@ -60,7 +60,7 @@ local function loadExtensions(extensions)
 		end, debug.traceback)
 
 		if ok then
-			print("Loaded extension " .. name)
+			MsgN("Loaded extension " .. name)
 		else
 			local trace = string.gsub(traceback, "\n", "\n\t>>>")
 			local msg = string.format("Failed to load extension %s {\n\t>>> %s\n}\n", name, trace)
@@ -101,7 +101,7 @@ if SERVER then
 	local buf = stream:getBuffer()
 
 	local function callback(ply)
-		print("Sending Expressive extensions to ", ply:Nick())
+		MsgN("Sending Expressive extensions to " .. ply:Nick())
 	end
 
 	-- Broadcast for the first time. This is for hot reloading.

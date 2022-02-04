@@ -30,7 +30,7 @@ require("expressive/startup")
 
 function ENT:Compile()
 	if self.instance then
-		print("no instance")
+		ErrorNoHalt("Expressive processor already has an instance?\n")
 		self:Destroy()
 	end
 
@@ -38,7 +38,7 @@ function ENT:Compile()
 
 	local data = self.chip_data
 	if not (data and data.modules and data.modules[data.main]) then
-		print("no main")
+		ErrorNoHalt("Compiled Expressive chip didn't have a main module?\n")
 		return
 	end
 

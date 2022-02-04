@@ -1,3 +1,6 @@
+--- Credit to https://github.com/thegrb93/StarfallEx for a good chunk of this code.
+--- Didn't want to deal with the networking :/
+
 ---@type ExpressiveProcessor
 local ENT = _G.ENT
 
@@ -158,9 +161,6 @@ ELib.ReceiveNet("Processor.Errored", function(len, ply)
 	local chip = net.ReadEntity()
 	if chip:IsValid() and chip.owner:IsValid() and chip.ErroredPlayers and not chip.ErroredPlayers[ply] and chip.owner ~= ply then
 		chip.ErroredPlayers[ply] = true
-
-		--SF.AddNotify(chip.owner, "Starfall: (".. chip.chip_data.main ..") errored for player: (".. ply:GetName() ..")", "ERROR", 7, "SILENT")
-		--SF.Print(chip.owner, string.sub(net.ReadString(), 1, 2048))
 	end
 end)
 

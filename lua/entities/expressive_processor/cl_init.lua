@@ -85,7 +85,7 @@ ELib.ReceiveNet("Processor.Download", function(_len)
 			local chip = data.chip
 			chip:SetupFiles(data)
 		else
-			print("Failed to read processor data")
+			ErrorNoHalt("Failed to read processor data\n")
 		end
 	end)
 end)

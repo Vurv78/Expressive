@@ -2515,7 +2515,6 @@ function Editor:HandleAutocomplete()
 
 		for k, _ in pairs(tbl) do
 			if string.lower(string.sub(k, 1, len)) == stack then
-				-- print(k)
 				list[#list + 1] = k
 			end
 		end
@@ -2744,7 +2743,7 @@ function Editor:RemoveStrAt(x, y, length, do_history)
 		i = i + 1
 
 		if i == 4096 then
-			print("!!! Syper: Editor:RemoveStrAt")
+			MsgN("!!! Syper: Editor:RemoveStrAt")
 			break
 		end
 	end

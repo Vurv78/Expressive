@@ -467,8 +467,6 @@ else
 				modules = { [entrypoint] = code },
 				main = entrypoint
 			})
-
-			print("upload received on client")
 		else
 			notification.AddLegacy("You must have an active tab to upload code.", NOTIFY_ERROR, 5)
 		end
@@ -498,7 +496,7 @@ end
 
 if CLIENT then
 	Library.ReceiveNet("PrintTo", function(len, ply)
-		print( net.ReadString() )
+		MsgN( net.ReadString() )
 	end)
 
 	Library.ReceiveNet("Notify", function(len, ply)
@@ -512,6 +510,6 @@ _G.ExpressiveLoaded = true
 
 Library.Extension = require("expressive/extension")
 
-print("ExpressiveLib Loaded!")
+MsgN("ExpressiveLib Loaded!")
 
 return Library
