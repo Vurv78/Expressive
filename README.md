@@ -1,7 +1,7 @@
-# Expressive
-> Expression, but it's Typescript and C#
+# Expressive [![Release Shield](https://img.shields.io/github/v/release/Vurv78/Expressive?include_prereleases)](https://github.com/Vurv78/Expressive/releases/latest) [![License](https://img.shields.io/github/license/Vurv78/Expressive?color=red&include_prereleases)](https://github.com/Vurv78/Expressive/blob/master/LICENSE) [![Expressive Discord](https://img.shields.io/discord/936811504706134036?label=Discord&logo=discord&logoColor=ffffff&labelColor=7289DA&color=2c2f33)](https://discord.gg/u6eQPcZv4y) [![Website](https://img.shields.io/website?down_message=Offline&label=Try%20Me%21&up_color=Blue&up_message=Online&url=https%3A%2F%2Fvurv78.github.io%2FExpressive%2Fweb%2Findex.html)](https://vurv78.github.io/Expressive/web/index.html)
+> Expression, but it's Typescript with extras
 
-Expressive is the hopeful final solution to the Expression programming languages. It was originally a fork of Expression3, but has become a full rewrite. It is modeled after [Typescript](https://www.typescriptlang.org) and [C#](https://github.com/dotnet/csharplang).
+Expressive is the hopeful final solution to the Expression programming languages. It was originally a fork of Expression3, but has become a full rewrite. It is modeled after [Typescript](https://www.typescriptlang.org).
 
 ## Note
 This is a work in progress. Adding this to the server may be dangerous.
