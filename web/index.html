@@ -34,8 +34,24 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/editor/editor.main.js"></script>
 
 	<script>
+		const typescript = monaco.languages.typescript;
+		typescript.typescriptDefaults.setCompilerOptions({
+			noLib: true,
+			target: typescript.ScriptTarget.ES6,
+			allowNonTsExtensions: true,
+		});
+
+		var xmlhttp = new XMLHttpRequest();
+		xmlhttp.open("GET", "web.d.ts", false);
+		xmlhttp.send();
+		if (xmlhttp.status == 200) {
+			typescript.typescriptDefaults.addExtraLib(xmlhttp.responseText, "web.d.ts")
+		} else {
+			console.error("Failed to load standard library for web")
+		}
+
 		const editor = monaco.editor.create(document.getElementById("editor"), {
-			value: `print("Hello!")`,
+			value: `print("Hello world!")`,
 			language: 'typescript',
 			theme: 'vs-dark',
 		});
