@@ -6,7 +6,8 @@ local Node = Parser.Node
 
 local NODE_KINDS = Parser.KINDS
 
-local Optimizations = {
+local Optimizations
+Optimizations = {
 	--- Optimizes away cases of if(true), if(!0), if("Foo"), etc.
 	---@param self Analyzer
 	---@param data table<number, any>
@@ -39,7 +40,7 @@ local Optimizations = {
 		local expr = data[4]
 		local opt = self:optimizeNode(expr)
 		if opt then
-			return Node.new(NODE_KINDS.VarDeclare, { data[1], data[2], data[3], expr })
+			return Node.new(NODE_KINDS.VarDeclare, { data[1], data[2], data[3], opt })
 		end
 	end,
 
@@ -73,31 +74,49 @@ local Optimizations = {
 	---@param data table<number, any>
 	[NODE_KINDS.ArithmeticOps] = function(self, data)
 		---@type Node
-		local op, left, right = data[1], data[2], data[3]
+		local op, left, right, ptr = data[1], data[2], data[3], data[4]
 
+		local ret
 		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
 			local left_kind, right_kind = left.data[1], right.data[1]
 
-			if left_kind == "number" and right_kind == "number" then
-				local left_value, right_value = left.data[2], right.data[2]
-				if op == "+" then
-					local val = left_value + right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
-				elseif op == "-" then
-					local val = left_value - right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
-				elseif op == "*" then
-					local val = left_value * right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
-				elseif op == "/" then
-					local val = left_value / right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
-				elseif op == "%" then
-					local val = left_value % right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+			if left_kind == right_kind then
+				if left_kind == "number" then
+					-- Optimize basic number arithmetic at compile time.
+					-- TODO: Maybe restrict this to integer literals to avoid precision loss
+					local left_value, right_value = left.data[2], right.data[2]
+					if op == "+" then
+						local val = left_value + right_value
+						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+					elseif op == "-" then
+						local val = left_value - right_value
+						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+					elseif op == "*" then
+						local val = left_value * right_value
+						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+					elseif op == "/" then
+						local val = left_value / right_value
+						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+					elseif op == "%" then
+						local val = left_value % right_value
+						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+					end
+				elseif left_kind == "string" and op == "+" then
+					-- Raw string literal concat
+					-- TODO: Maybe string rep with "foo" * 5 being optimized into "foofoofoofoofoo" ? (Don't know if that exists in Typescript.)
+
+					local left_value, right_value = left.data[2], right.data[2]
+					local new = left_value .. right_value
+					ret = Node.new(NODE_KINDS.Literal, {"string", new})
 				end
 			end
 		end
+
+		if ret and ptr then
+			ptr.data[2] = ret
+			return Optimizations[NODE_KINDS.ArithmeticOps](self, ptr.data)
+		end
+		return ret
 	end
 }
 
@@ -106,7 +125,10 @@ local Optimizations = {
 function Analyzer:optimizeNode(node)
 	local handler = Optimizations[node.kind]
 	if handler then
-		return handler(self, node.data, node)
+		local out = handler(self, node.data)
+		if out then
+			return out
+		end
 	end
 end
 
@@ -118,8 +140,9 @@ function Analyzer:optimize(ast)
 	if not ast then return new end -- Empty block
 	for i, node in ipairs(ast) do
 		local opt = self:optimizeNode(node)
-		if opt then print("Optimized", node:human(), "to", opt:human()) end
+		--if opt then print("Optimized", node:human(), "to", opt:human()) end
 		new[i] = opt or node
 	end
+
 	return new
 end

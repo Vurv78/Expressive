@@ -109,10 +109,21 @@ Expressions = {
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"+", "-", "*", "%", "/"})
 		if raw then
 			local right = assert( Expressions[7](self, self:nextToken()), "Expected expression after " .. raw )
+			local first = Node.new(NODE_KINDS.ArithmeticOps, { raw, left, right })
+			local last = first
 
-			return Node.new(NODE_KINDS.ArithmeticOps, { raw, left, right })
+			while true do
+				raw = self:popAnyOf(TOKEN_KINDS.Operator, {"+", "-", "*", "%", "/"})
+				if not raw then break end
+				right = assert( Expressions[7](self, self:nextToken()), "Expected expression after " .. raw )
+
+				-- Arithmetic ops will have 4th data slot for a reference to the next arith op.
+				local current = Node.new(NODE_KINDS.ArithmeticOps, { raw, last, right })
+				last.data[4] = current
+				last = current
+			end
+			return first
 		end
-
 		return left
 	end,
 
