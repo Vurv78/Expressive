@@ -41,22 +41,21 @@ end
 ---@param owner GEntity|GPlayer|nil The entity that owns this instance. Usually a player.
 ---@return Instance
 function Instance.from(ctx, main, modules, chip, owner)
-	local instance = setmetatable({}, Instance)
+	local instance = setmetatable({
+		ram = collectgarbage("count"),
+		cpu_total = 0,
+		cpu_average = 0,
+		cpu_softquota = 1,
+		-- start_time = -1,
 
-	instance.ram = collectgarbage("count")
-	instance.cpu_total = 0
-	instance.cpu_average = 0
-	instance.cpu_softquota = 1
-	-- instance.start_time = -1
-
-	instance.chip = chip
-	instance.owner = owner
-
-	instance.ctx =  ctx
-	instance.env = ctx:getEnv()
-
-	instance.cpu_quota = TimeBuffer:GetFloat()
-	instance.cpu_quota_ratio = 1 / TimeBufferSize:GetInt()
+		stack_level = 0,
+		chip = chip,
+		owner = owner,
+		ctx = ctx,
+		env = ctx:getEnv(),
+		cpu_quota = TimeBuffer:GetFloat(),
+		cpu_quota_ratio = 1 / TimeBufferSize:GetInt(),
+	}, Instance)
 
 	---@param name string
 	---@param code string
@@ -78,6 +77,7 @@ end
 function Instance:checkCpu()
 	self.cpu_total = SysTime() - self.start_time
 	local used_ratio = self:movingCPUAverage() / self.cpu_quota
+
 	if used_ratio > 1 then
 		self:error("CPU Quota exceeded.")
 	elseif used_ratio > self.cpu_softquota then
@@ -87,8 +87,9 @@ end
 
 --- Runs an event for a chip.
 ---@param name string # Name of the event to run
-function Instance:runEvent(name)
-	-- todo
+---@param ... any # Any arguments to pass to the event
+function Instance:runEvent(name, ...)
+	-- todo, when an events/hook library is added.
 end
 
 function Instance:destroy()
@@ -117,7 +118,8 @@ function Instance:init()
 	local ok, args = self:runFunction(self.main)
 
 	if not ok then
-		self:error(args)
+		print(args)
+		self:error(args or "Internal error")
 		return false, args
 	end
 
@@ -132,6 +134,7 @@ end
 ---@param err RuntimeError|string
 function Instance:error(err)
 	if self.errored then return end
+	print("inst error", err)
 	if self.runOnError then -- We have a custom error function, use that instead
 		self.runOnError(err)
 	else
@@ -141,6 +144,8 @@ function Instance:error(err)
 end
 
 --- Returns a table of returns, with the first element being 'success' / 'ok' status
+---@param fn function
+---@param ... any # Args to pass to the function
 ---@return boolean # Ran successfully?
 ---@return table|string # Return values, or error message if failed
 function Instance:runFunction(fn, ...)
@@ -149,8 +154,6 @@ function Instance:runFunction(fn, ...)
 	elseif self.stack_level == 128 then
 		return false, "Stack Overflow"
 	end
-
-	local old_hook, old_mask, old_count = debug.gethook()
 
 	local function checkCpu()
 		self.cpu_total = SysTime() - self.start_time
@@ -166,18 +169,23 @@ function Instance:runFunction(fn, ...)
 		return err
 	end
 
+	local old_hook, old_mask, old_count = debug.gethook()
 	debug.sethook(checkCpu, "", 2000)
+		self.stack_level = self.stack_level + 1
 		jit.on(fn, true)  -- Turn JIT compilation on just for the chip.
 		local rets = { xpcall(fn, xpcall_callback, ...) }
+		self.stack_level = self.stack_level - 1
 	debug.sethook(old_hook, old_mask, old_count)
 
 	local ok = table.remove(rets, 1)
 
-	if not ok then
+	if ok then
 		-- Just in case
-		self:checkCpu()
-
-		return false, table.remove(rets, 1)
+		self.cpu_total = SysTime() - self.start_time
+		local usedRatio = self:movingCPUAverage() / self.cpu_quota
+		if usedRatio > 1 then
+			return false, "CPU Quota exceeded"
+		end
 	end
 
 	return ok, rets

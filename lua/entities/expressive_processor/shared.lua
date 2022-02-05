@@ -146,10 +146,10 @@ end
 local TimeBuffer = GetConVar("es_timebuffer_cl")
 
 function ENT:Error(err)
+	if istable(err) then err = err[1] or err.message end
 	self.error = err
 
 	if SERVER then
-		print("Error?", err)
 		self:SetNWInt("State", self.States.Error)
 		self:SetColor(Color(255, 0, 0, 255))
 		self:SetDTString(0, err)

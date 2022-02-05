@@ -151,7 +151,7 @@ ELib.ReceiveNet("Processor.ClientReady", function(len, ply)
 	if ply:IsValid() and proc:IsValid() then
 		local instance = proc.instance
 		if instance then
-			instance:runEvent("clientinitialized", instance.Types.Player.Wrap(ply))
+			instance:runEvent("ClientReady", ply)
 		end
 	end
 end)
