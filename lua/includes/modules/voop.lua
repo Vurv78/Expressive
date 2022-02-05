@@ -28,7 +28,7 @@ end
 ---@param self T
 ---@return boolean
 function Object:instanceof(x)
-	return istable(x) and getmetatable(x).__name__ == self.__name__
+	return (type(x) == "table") and getmetatable(x).__name__ == self.__name__
 end
 
 ---@generic T

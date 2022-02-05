@@ -1114,7 +1114,7 @@ function Editor:ValidationError(err, move_to)
 	local line, char, message, location = 0, 0, "", ""
 	local file, func
 
-	if istable(err) then
+	if type(err) == "table" then
 		message = err.msg
 
 		if string.sub(message, -1) == "." then

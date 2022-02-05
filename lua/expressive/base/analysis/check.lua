@@ -21,7 +21,7 @@ local Handlers = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Block] = function(self, node)
-		local body = unpack(node.data)
+		local body = node.data[1]
 		self:pushScope(SCOPE_KINDS.EXPR_BLOCK)
 			self:checkPass(body)
 		self:popScope()
@@ -30,7 +30,7 @@ local Handlers = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Realm] = function(self, node)
-		local _realm, body = unpack(node.data)
+		local _realm, body = node.data[1], node.data[2]
 
 		self:pushScope(SCOPE_KINDS.STATEMENT)
 			self:checkPass(body)
@@ -40,7 +40,7 @@ local Handlers = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.If] = function(self, node)
-		local _cond, body = unpack(node.data)
+		local _cond, body = node.data[1], node.data[2]
 		self:pushScope(SCOPE_KINDS.STATEMENT)
 			self:checkPass(body)
 		self:popScope()
@@ -49,7 +49,7 @@ local Handlers = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Elseif] = function(self, node)
-		local _cond, body = unpack(node.data)
+		local _cond, body = node.data[1], node.data[2]
 		self:pushScope()
 			self:checkPass(body)
 		self:popScope()

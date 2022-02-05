@@ -174,7 +174,7 @@ end
 ---@param tokens table<number, Token> # Tokens retrieved from the [Tokenizer]
 ---@return table<number, Node>
 function Parser:parse(tokens)
-	assert(istable(tokens), "bad argument #1 to 'Parser:parse' (table expected, got " .. type(tokens) .. ")")
+	assert(type(tokens) == "table", "bad argument #1 to 'Parser:parse' (table expected, got " .. type(tokens) .. ")")
 
 	self:reset()
 	self.tokens = tokens
@@ -452,6 +452,7 @@ function Parser:acceptArguments()
 	end
 end
 
+-- Cannot be relative for fengari / native lua
 include("stmt.lua")
 include("expr.lua")
 include("declare.lua")

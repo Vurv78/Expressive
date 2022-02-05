@@ -1,3 +1,6 @@
+-- Fengari polyfill
+local MsgN = print
+
 -- Sequel to the E2Lib.
 ---@class ELib
 ---@field Version string
@@ -17,7 +20,6 @@ local Library = {
 	Version = "0.1.0",
 	Version_NUM = 100 -- 1.0.0 -> 100, 1.0.1 -> 101, 0.2.0 -> 020, etc.
 }
-
 
 Library.Operators = {
 	["+"] = true,

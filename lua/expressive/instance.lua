@@ -28,8 +28,11 @@ function Instance:movingCPUAverage()
 	return self.cpu_average + (self.cpu_total - self.cpu_average) * self.cpu_quota_ratio
 end
 
-local TimeBuffer = CreateConVar("es_timebuffer", 0.005, FCVAR_ARCHIVE, "The max average the CPU time can reach.")
-local TimeBufferSize = CreateConVar("es_timebuffersize", 100, FCVAR_ARCHIVE, "The window width of the CPU time quota moving average.")
+local TimeBuffer, TimeBufferSize = { GetFloat = function() return 0.005 end }, { GetInt = function() return 100 end }
+if SERVER or CLIENT then -- Not fengari
+	TimeBuffer = CreateConVar("es_timebuffer", 0.005, FCVAR_ARCHIVE, "The max average the CPU time can reach.")
+	TimeBufferSize = CreateConVar("es_timebuffersize", 100, FCVAR_ARCHIVE, "The window width of the CPU time quota moving average.")
+end
 
 ---@param ctx Context
 ---@param main string Name of entrypoint module to call first

@@ -114,8 +114,8 @@ function Analyzer:process(ctx, ast, configs)
 
 	--- Throws a C like lua param error if ``ast`` param is not a table.
 	assert(ELib.Context:instanceof(ctx), "bad argument #1 to 'Analyzer:process' (Context expected, got " .. type(ctx) .. ")")
-	assert(istable(ast), "bad argument #2 to 'Analyzer:process' (table expected, got " .. type(ast) .. ")")
-	assert(istable(configs), "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
+	assert(type(ast) == "table", "bad argument #2 to 'Analyzer:process' (table expected, got " .. type(ast) .. ")")
+	assert(type(configs) == "table", "bad argument #3 to 'Analyzer:process' (table expected, got " .. type(configs) .. ")")
 
 	self.ctx = ctx
 	self.types = setmetatable({}, {
@@ -157,7 +157,7 @@ function Analyzer:loadContext(ctx)
 		for name, var in pairs(vars) do
 			if Var:instanceof(var) then
 				scope:set(name, var)
-			elseif istable(var) then
+			elseif type(var) == "table" then
 				-- Namespace, TODO
 				-- Probably want a named scope system.
 			else
@@ -206,7 +206,7 @@ Analyzer.typeFromExpr = Analyzer.typeFromExpr
 Analyzer.getReturnType = Analyzer.getReturnType
 
 --- Creates a function signature from type params and return type
----@type fun(self: Analyzer, params: table<number, string>, ret: TypeSig)
+---@type fun(params: table<number, string>, ret: TypeSig)
 Analyzer.makeSignature = Analyzer.makeSignature
 
 return Analyzer

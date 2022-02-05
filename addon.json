@@ -12,6 +12,7 @@
 		".git*",
 		"*.pdf",
 		"definitions",
+		"web",
 		"LICENSE"
 	]
 }

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+	<title>Expressive Playground</title>
+	<meta content="Expressive" property="og:title" />
+	<meta content="Expressive Playground" property="og:description" />
+	<meta content="https://vurv78.github.io/Expressive" property="og:url" />
+	<meta content="https://avatars.githubusercontent.com/u/56230599" property="og:image" />
+	<meta content="#764e86" data-react-helmet="true" name="theme-color" />
+
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/editor/editor.main.min.css">
+</head>
+<body>
+	<div class="header">Expressive Playground</div>
+	<div id="editor" style="height:65%;border:1px solid black;"></div>
+	<textarea id="output" rows="50" readonly></textarea>
+
+	<div class="footer">
+		<button id="transpile">Transpile</button>
+	</div>
+
+	<!-- Fengari -->
+	<script src="https://unpkg.com/fengari-web@0.1.4/dist/fengari-web.js"></script>
+
+	<!-- Monaco -->
+	<script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs' } }</script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/loader.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/editor/editor.main.nls.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/editor/editor.main.js"></script>
+
+	<script>
+		const editor = monaco.editor.create(document.getElementById("editor"), {
+			value: `print("Hello!")`,
+			language: 'typescript',
+			theme: 'vs-dark',
+		});
+	</script>
+
+	<script>
+		const lua = fengari.lua;
+		const L = fengari.L;
+
+		lua.lua_atnativeerror(L, function (l) {
+			lua.lua_pushstring(l, fengari.to_luastring('' + lua.lua_touserdata(l, -1)));
+		});
+
+		const output = document.getElementById("output");
+
+		document.getElementById("transpile").addEventListener("click", function() {
+			lua.lua_getglobal(L, "transpile");
+			lua.lua_pushstring(L, editor.getValue());
+			lua.lua_pushcfunction(L, function(L) {
+				const success = lua.lua_toboolean(L, 1);
+				const code_or_err = lua.lua_tostring(L, 2);
+
+				if (success) {
+					output.value = code_or_err;
+				} else {
+					output.value = code_or_err;
+					console.log("Error: " + code_or_err);
+				}
+
+				return 0;
+			});
+
+			const val = lua.lua_pcall(L, 2, 1, 0);
+			if (val != lua.LUA_OK) {
+				const msg = "Error when transpiling: " + fengari.to_jsstring( lua.lua_tostring(L, -1) );
+
+				output.value = msg;
+				console.log(msg);
+
+				lua.lua_pop(L, 1);
+			} else {
+				const code = fengari.to_jsstring( lua.lua_tostring(L, -1) );
+				output.value = code;
+			}
+		});
+	</script>
+
+	<!-- Startup Lua -->
+	<script src="web.lua" type="application/lua" referrerpolicy="origin" async></script>
+</body>
+</html>

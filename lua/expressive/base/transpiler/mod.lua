@@ -404,7 +404,7 @@ end
 ---@return string
 function Transpiler:process(ctx, ast)
 	assert(ELib.Context:instanceof(ctx), "bad argument #1 to 'Transpiler:process' (Context expected, got " .. type(ctx) .. ")")
-	assert(istable(ast), "bad argument #2 to 'Transpiler:process' (table expected, got " .. type(ast) .. ")")
+	assert(type(ast) == "table", "bad argument #2 to 'Transpiler:process' (table expected, got " .. type(ast) .. ")")
 
 	self.ctx = ctx
 	self.ast = ast

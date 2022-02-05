@@ -258,7 +258,7 @@ Tokenizer.Matchers = Matchers
 ---@param input string # Expressive source code to tokenize
 ---@return table<number, Token>
 function Tokenizer:parse(input)
-	assert(isstring(input), "bad argument #1 to 'Tokenizer:parse' (string expected, got " .. type(input) .. ")")
+	assert(type(input) == "string", "bad argument #1 to 'Tokenizer:parse' (string expected, got " .. type(input) .. ")")
 
 	-- Reset so this tokenizer can be re-used
 	self.pos = 0

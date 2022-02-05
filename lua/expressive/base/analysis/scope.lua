@@ -128,4 +128,5 @@ function Scope:setType(name, ty)
 end
 
 ELib.Analyzer.Scope = Scope
+
 return Scope

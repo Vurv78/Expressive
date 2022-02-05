@@ -42,10 +42,10 @@ end
 ---@param name string
 ---@param type Type # Type of the constant, note this is NOT the signature. Get the type from ctx:getType(name)
 ---@param value any # Value of the constant. MUST be of the same type as the given type.
-function Context:registerConstant(name, type, value)
-	assert( isstring(name), "name must be a string" )
-	assert( type and ELib.Type == getmetatable(type), "Tried to register a constant '" .. name .. "' with an invalid type object." )
-	assert( type:isReady(), "Tried to register a constant with an invalid type object. Missing functions: TODO" )
+function Context:registerConstant(name, ty, value)
+	assert( type(name) == "string", "name must be a string" )
+	assert( ty and ELib.Type == getmetatable(ty), "Tried to register a constant '" .. name .. "' with an invalid type object." )
+	assert( ty:isReady(), "Tried to register a constant with an invalid type object. Missing functions: TODO" )
 
 	self.constants[name] = {
 		["value"] = value,
@@ -77,7 +77,7 @@ function Context:getEnv()
 		for name, var in pairs(v) do
 			if Var:instanceof(var) then
 				env[name] = _G[name]
-			elseif istable(var) then
+			elseif type(var) == "table" then
 				-- Namespace.
 				addVars(var)
 			else
