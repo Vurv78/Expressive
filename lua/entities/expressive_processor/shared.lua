@@ -84,11 +84,11 @@ function ENT:Compile()
 		self:SetColor(Color(255, 255, 255, clr.a))
 		self:SetNWInt("State", self.States.Normal)
 
-		if self.Inputs then
+		--[[if self.Inputs then
 			for k, v in pairs(self.Inputs) do
 				self:TriggerInput(k, v.Value)
 			end
-		end
+		end]]
 	else
 		ELib.StartNet("Processor.ClientReady")
 			net.WriteEntity(self)
@@ -143,10 +143,13 @@ function ENT:GetGateName()
 	return self.name
 end
 
+local TimeBuffer = GetConVar("es_timebuffer_cl")
+
 function ENT:Error(err)
 	self.error = err
 
 	if SERVER then
+		print("Error?", err)
 		self:SetNWInt("State", self.States.Error)
 		self:SetColor(Color(255, 0, 0, 255))
 		self:SetDTString(0, err)
@@ -161,12 +164,10 @@ function ENT:Error(err)
 		self.instance = nil
 	end
 
-	if CLIENT then
-		if self.owner ~= LocalPlayer() and self.owner:IsValid() and GetConVarNumber("es_timebuffer_cl")>0 then
-			ELib.StartNet("Processor.Errored")
-				net.WriteEntity(self)
-				net.WriteString(err)
-			net.SendToServer()
-		end
+	if CLIENT and self.owner ~= LocalPlayer() and self.owner:IsValid() and TimeBuffer:GetFloat() > 0 then
+		ELib.StartNet("Processor.Errored")
+			net.WriteEntity(self)
+			net.WriteString(err)
+		net.SendToServer()
 	end
 end

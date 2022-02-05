@@ -109,10 +109,10 @@ function Instance:init()
 	self.start_time = SysTime()
 
 	-- Run extension constructors
-	for ext in pairs(self.ctx.extensions) do
+	--[[for ext in pairs(self.ctx.extensions) do
 		---@diagnostic disable-next-line: undefined-field
 		ext:construct(self)
-	end
+	end]]
 
 	local ok, args = self:runFunction(self.main)
 
@@ -120,6 +120,8 @@ function Instance:init()
 		self:error(args)
 		return false, args
 	end
+
+	return true, args
 end
 
 ---@class RuntimeError
