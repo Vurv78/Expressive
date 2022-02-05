@@ -152,6 +152,20 @@ local Handlers = {
 		local name, class_data = data[1], data[2]
 		assert(not self.types[name], "Class " .. name .. " is already defined")
 		self.types[name] = Type.new(name, nil, class_data)
+	end,
+
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.Lambda] = function(self, data)
+		local params, block = data[1], data[2]
+
+		self:pushScope()
+			local scope = self:getScope()
+			for k, v in ipairs(params) do
+				scope:setType(v[1], v[2])
+			end
+			self:inferPass(block)
+		self:popScope()
 	end
 }
 

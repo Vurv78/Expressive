@@ -260,10 +260,11 @@ local Transpilers = {
 		-- Array of { [1] = name, [2] = type_name }
 		---@type table<number, string>
 
+		local argnames = {}
 		for k, arg in ipairs(args) do
-			args[k] = arg[1]
+			argnames[k] = arg[1]
 		end
-		return fmt("function(%s)\n\t%s\nend", table.concat(args, ", "), self:transpileAst(block, true))
+		return fmt("function(%s)\n\t%s\nend", table.concat(argnames, ", "), self:transpileAst(block, true))
 	end,
 
 	---@param self Transpiler

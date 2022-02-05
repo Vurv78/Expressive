@@ -107,8 +107,11 @@ local Infer = {
 		local params, block = data[1], data[2]
 
 		-- Extract types from params
-		for k, v in ipairs(params) do params[k] = v[2] end
-		return makeSignature(params, assert(self:getReturnType(block), "Couldn't determine return type of lambda"))
+		local ptypes = {}
+		for k, v in ipairs(params) do
+			ptypes[k] = v[2]
+		end
+		return makeSignature(ptypes, assert(self:getReturnType(block), "Couldn't determine return type of lambda"))
 	end,
 
 	---@param self Analyzer
