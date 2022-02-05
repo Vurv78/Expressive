@@ -11,10 +11,10 @@ local Type = ELib.Type
 
 local Handlers = {
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.VarDeclare] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.VarDeclare] = function(self, data)
 		-- kw is either "var", "let" or "const"
-		local kw, name, type, expr = unpack(node.data)
+		local kw, name, type, expr = data[1], data[2], data[3], data[4]
 
 		local scope = self:getScope()
 		if kw == "var" then
@@ -31,9 +31,9 @@ local Handlers = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.VarModify] = function(self, node)
-		local name, how, expr2 = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.VarModify] = function(self, data)
+		local name, how, expr2 = data[1], data[2], data[3]
 
 		local scope = self:getScope()
 		local var =  assert(scope:lookup(name), "Variable " .. name .. " is not defined")
@@ -54,18 +54,18 @@ local Handlers = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Block] = function(self, node)
-		local body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Block] = function(self, data)
+		local body = data[1]
 		self:pushScope()
 			self:inferPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Realm] = function(self, node)
-		local _realm, body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Realm] = function(self, data)
+		local body = data[2]
 
 		self:pushScope()
 			self:inferPass(body)
@@ -73,45 +73,51 @@ local Handlers = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.If] = function(self, node)
-		local _cond, body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.If] = function(self, data)
+		local body = data[2]
 		self:pushScope()
 			self:inferPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Elseif] = function(self, node)
-		local _cond, body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Elseif] = function(self, data)
+		local body = data[2]
 		self:pushScope()
 			self:inferPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Else] = function(self, node)
-		local body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Else] = function(self, data)
+		local body = data[1]
 		self:pushScope()
 			self:inferPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.While] = function(self, node)
-		local _cond, body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.While] = function(self, data)
+		local body = data[2]
 		self:pushScope()
 			self:inferPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Function] = function(self, node)
-		local name, args, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Function] = function(self, data)
+		local name, args, block = data[1], data[2], data[3]
+
+		local scope = self:getScope()
+		local v = scope:lookup(name)
+		if v then
+			error("Cannot overwrite variable " .. name .. ":" .. v.type .. " with function")
+		end
 
 		---@type table<number, string>
 		local param_types = {}
@@ -123,8 +129,8 @@ local Handlers = {
 		self:pushScope()
 			local scope = self:getScope()
 
-			for _, data in ipairs(args) do
-				scope:setType( data[1], data[2] )
+			for _, dat in ipairs(args) do
+				scope:setType( dat[1], dat[2] )
 			end
 
 			-- NOW handle the block
@@ -133,19 +139,19 @@ local Handlers = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.CallExpr] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.CallExpr] = function(self, data)
 		---@type table<number, Node>
-		local args = node.data[2]
+		local args = data[2]
 		self:inferPass(args)
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Class] = function(self, node)
-		local name, data = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Class] = function(self, data)
+		local name, class_data = data[1], data[2]
 		assert(not self.types[name], "Class " .. name .. " is already defined")
-		self.types[name] = Type.new(name, nil, data)
+		self.types[name] = Type.new(name, nil, class_data)
 	end
 }
 
@@ -156,7 +162,7 @@ function Analyzer:inferPass(ast)
 	for _, node in ipairs(ast) do
 		local handler = Handlers[node.kind]
 		if handler then
-			handler(self, node)
+			handler(self, node.data)
 		end
 	end
 end

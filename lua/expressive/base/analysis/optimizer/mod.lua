@@ -9,10 +9,10 @@ local NODE_KINDS = Parser.KINDS
 local Optimizations = {
 	--- Optimizes away cases of if(true), if(!0), if("Foo"), etc.
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.If] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.If] = function(self, data)
 		---@type Node
-		local cond, block = unpack(node.data)
+		local cond, block = data[1], data[2]
 		if cond.kind == NODE_KINDS.Literal then
 			---@type string
 			local literal_kind = cond.data[1]
@@ -31,30 +31,29 @@ local Optimizations = {
 				end
 			end
 		end
-		return node
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.VarDeclare] = function(self, node)
-		local expr = node.data[4]
+	---@param data table<number, any>
+	[NODE_KINDS.VarDeclare] = function(self, data)
+		local expr = data[4]
 		local opt = self:optimizeNode(expr)
 		if opt then
-			return Node.new(NODE_KINDS.VarDeclare, { node.data[1], node.data[2], node.data[3], expr })
+			return Node.new(NODE_KINDS.VarDeclare, { data[1], data[2], data[3], expr })
 		end
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.GroupedExpr] = function(self, node)
-		return self:optimizeNode(node.data[1])
+	---@param data table<number, any>
+	[NODE_KINDS.GroupedExpr] = function(self, data)
+		return self:optimizeNode(data[1])
 	end,
 
 	-- Optimize not operator on bools
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.UnaryOps] = function(self, node)
-		local op, expr = node.data[1], node.data[2]
+	---@param data table<number, any>
+	[NODE_KINDS.UnaryOps] = function(self, data)
+		local op, expr = data[1], data[2]
 
 		---@type Node
 		local exp = self:optimizeNode(expr) or expr
@@ -71,10 +70,10 @@ local Optimizations = {
 
 	--- Optimizes away cases of simple arithmetic like (5 + 5) or "Hello" + "World"
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.ArithmeticOps] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.ArithmeticOps] = function(self, data)
 		---@type Node
-		local op, left, right = node.data[1], node.data[2], node.data[3]
+		local op, left, right = data[1], data[2], data[3]
 
 		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
 			local left_kind, right_kind = left.data[1], right.data[1]
@@ -83,23 +82,22 @@ local Optimizations = {
 				local left_value, right_value = left.data[2], right.data[2]
 				if op == "+" then
 					local val = left_value + right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, node.data[4]})
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 				elseif op == "-" then
 					local val = left_value - right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, node.data[4]})
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 				elseif op == "*" then
 					local val = left_value * right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, node.data[4]})
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 				elseif op == "/" then
 					local val = left_value / right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, node.data[4]})
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 				elseif op == "%" then
 					local val = left_value % right_value
-					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, node.data[4]})
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 				end
 			end
 		end
-		return node
 	end
 }
 
@@ -108,7 +106,7 @@ local Optimizations = {
 function Analyzer:optimizeNode(node)
 	local handler = Optimizations[node.kind]
 	if handler then
-		return handler(self, node)
+		return handler(self, node.data, node)
 	end
 end
 
@@ -121,7 +119,7 @@ function Analyzer:optimize(ast)
 	for i, node in ipairs(ast) do
 		local opt = self:optimizeNode(node)
 		if opt then print("Optimized", node:human(), "to", opt:human()) end
-		new[#new + 1] = opt or node
+		new[i] = opt or node
 	end
 	return new
 end

@@ -37,30 +37,30 @@ end
 
 local Infer = {
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Literal] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Literal] = function(self, data)
 		-- Either "int", "string", "boolean" or "null"
-		local ty = node.data[1]
+		local ty = data[1]
 		if ty == "number" then
-			return node.data[4] -- Specific number type -- either "int" or "double"
+			return data[4] -- Specific number type -- either "int" or "double"
 		end
 		return ty
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Block] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Block] = function(self, data)
 		---@type Node
-		local last_node = node.data[1][#node.data[1]]
+		local last_node = data[1][#data[1]]
 		if last_node:isExpression() then
 			return self:typeFromExpr(last_node)
 		end
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.ArithmeticOps] = function(self, node)
-		local _op, lhs, rhs = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.ArithmeticOps] = function(self, data)
+		local lhs, rhs = data[2], data[3]
 		if lhs.kind == rhs.kind and rhs.kind == NODE_KINDS.Literal then
 			local lhs_ty = self:typeFromExpr(lhs)
 			local rhs_ty = self:typeFromExpr(rhs)
@@ -71,9 +71,9 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Array] = function(self, node)
-		local nodes = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Array] = function(self, data)
+		local nodes = data[1]
 
 		local n_nodes = #nodes
 		if n_nodes == 0 then
@@ -91,9 +91,9 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Variable] = function(self, node)
-		local name = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Variable] = function(self, data)
+		local name = data[1]
 		local var = self:getScope():lookup(name)
 
 		if var then
@@ -102,9 +102,9 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Lambda] = function(self, node)
-		local params, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Lambda] = function(self, data)
+		local params, block = data[1], data[2]
 
 		-- Extract types from params
 		for k, v in ipairs(params) do params[k] = v[2] end
@@ -112,9 +112,9 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Ternary] = function(self, node)
-		local expr, iff, els = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Ternary] = function(self, data)
+		local expr, iff, els = data[1], data[2], data[3]
 		if els ~= nil then
 			-- cond ? x : y
 
@@ -138,17 +138,18 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.LogicalOps] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.LogicalOps] = function(self, data)
 
 	end,
 
 	--- x.y or x[y]. This only applies to arrays right now, so can just return the type of the array.
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Index] = function(self, node)
-		--local _kind, tbl, _key = unpack(node)
-		--return self:typeFromExpr(tbl)
+	---@param data table<number, any>
+	[NODE_KINDS.Index] = function(self, data)
+		-- kind, tbl, key
+		local tbl = data[2]
+		return self:typeFromExpr(tbl)
 	end
 }
 
@@ -157,7 +158,7 @@ local Infer = {
 function ELib.Analyzer:typeFromExpr(node)
 	local handler = Infer[node.kind]
 	if handler then
-		local out = handler(self, node)
+		local out = handler(self, node.data)
 		if out then
 			return out
 		end

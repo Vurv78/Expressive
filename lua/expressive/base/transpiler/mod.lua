@@ -58,9 +58,9 @@ local function NO_OUTPUT() return "" end
 
 local Transpilers = {
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Block] = function(self, node)
-		local block = node.data[1]
+	---@param data table<number, any>
+	[NODE_KINDS.Block] = function(self, data)
+		local block = data[1]
 		self:pushScope()
 		local res = self:transpileAst(block, true)
 		self:popScope()
@@ -68,9 +68,9 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.VarDeclare] = function(self, node)
-		local kw, name, expr = node.data[1], node.data[2], node.data[4]
+	---@param data table<number, any>
+	[NODE_KINDS.VarDeclare] = function(self, data)
+		local kw, name, expr = data[1], data[2], data[4]
 		if kw == "var" then
 			return fmt("%s = %s", name, self:transpile(expr))
 		else
@@ -79,23 +79,22 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.VarModify] = function(self, node)
-		local name, how, expr2 = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.VarModify] = function(self, data)
+		local name, how, expr2 = data[1], data[2], data[3]
 		return VarModifications[how](self, name, expr2)
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Variable] = function(self, node)
-		local name = unpack(node.data)
-		return name
+	---@param data table<number, any>
+	[NODE_KINDS.Variable] = function(self, data)
+		return data[1]
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.UnaryOps] = function(self, node)
-		local op, expr = node.data[1], node.data[2]
+	---@param data table<number, any>
+	[NODE_KINDS.UnaryOps] = function(self, data)
+		local op, expr = data[1], data[2]
 		if op == "!" then
 			return fmt("not %s", self:transpile(expr))
 		else
@@ -105,16 +104,16 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.ArithmeticOps] = function(self, node)
-		local op, expr1, expr2 = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.ArithmeticOps] = function(self, data)
+		local op, expr1, expr2 = data[1], data[2], data[3]
 		return fmt("%s %s %s", self:transpile(expr1), op, self:transpile(expr2))
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Array] = function(self, node)
-		local args = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Array] = function(self, data)
+		local args = data[1]
 		local res = {}
 		for i, v in ipairs(args) do
 			res[i] = self:transpile(v)
@@ -123,29 +122,31 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.CallExpr] = function(self, node)
-		local fn_expr, args = node.data[1], node.data[2]
+	---@param data table<number, any>
+	[NODE_KINDS.CallExpr] = function(self, data)
+		local fn_expr, args = data[1], data[2]
 		for i, v in ipairs(args) do
 			args[i] = self:transpile(v)
 		end
 		return fmt("%s(%s)", self:transpile(fn_expr), table.concat(args, ", "))
 	end,
 
-	[NODE_KINDS.While] = function(self, node)
-		local cond, block = unpack(node.data)
+	---@param self Transpiler
+	---@param data table<number, any>
+	[NODE_KINDS.While] = function(self, data)
+		local cond, block = data[1], data[2]
 		return fmt("while %s do\n\t%s\nend", self:transpile(cond), self:transpileAst(block))
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Index] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Index] = function(self, data)
 		---@type string
-		local method = node.data[1]
+		local method = data[1]
 		---@type Node
-		local tbl = node.data[2]
+		local tbl = data[2]
 		---@type Token|Node
-		local key  = node.data[3] -- A token if it's a literal (x.0 or x.y), a node if it's a variable (x[y])
+		local key  = data[3] -- A token if it's a literal (x.0 or x.y), a node if it's a variable (x[y])
 
 		if method == "[]" then
 			-- Runtime indices
@@ -161,24 +162,24 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.ComparisonOps] = function(self, node)
-		local op, expr1, expr2 = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.ComparisonOps] = function(self, data)
+		local op, expr1, expr2 = data[1], data[2], data[3]
 		if op == "!=" then op = "~=" end
 		return fmt("%s %s %s", self:transpile(expr1), op, self:transpile(expr2))
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.GroupedExpr] = function(self, node)
-		local expr = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.GroupedExpr] = function(self, data)
+		local expr = data[1]
 		return fmt("(%s)", self:transpile(expr))
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Escape] = function(self, node)
-		local method, ret = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Escape] = function(self, data)
+		local method, ret = data[1], data[2]
 		if method == "return" then
 			return fmt("return %s", self:transpile(ret))
 		else
@@ -188,9 +189,9 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.If] = function(self, node)
-		local cond, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.If] = function(self, data)
+		local cond, block = data[1], data[2]
 
 		local next = self:peek()
 		if next and next.kind == NODE_KINDS.Else or next.kind == NODE_KINDS.Elseif then
@@ -201,9 +202,9 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Elseif] = function(self, node)
-		local cond, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Elseif] = function(self, data)
+		local cond, block = data[1], data[2]
 		local next = self:peek()
 		if next and next.kind == NODE_KINDS.Else or next.kind == NODE_KINDS.Elseif then
 			return fmt("elseif %s then %s", self:transpile(cond), self:transpileAst(block))
@@ -213,34 +214,34 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Else] = function(self, node)
-		local block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Else] = function(self, data)
+		local block = data[1]
 		return fmt("else %s end", self:transpileAst(block))
 	end,
 
 	---@param self Tokenizer
-	---@param node Node
-	[NODE_KINDS.Literal] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Literal] = function(self, data)
 		---@type "number"|"string"|"boolean"|"null"
-		local type = node.data[1]
+		local type = data[1]
 
 		if type == "number" then
-			return tostring(node.data[2])
+			return tostring(data[2])
 		elseif type == "string" then
-			return fmt("%q", node.data[2])
+			return fmt("%q", data[2])
 		elseif type == "boolean" then
-			return node.data[2] and "true" or "false"
+			return data[2] and "true" or "false"
 		elseif type == "null" then
 			return "nil"
 		end
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Function] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Function] = function(self, data)
 		-- TODO: 'name' here will be an expr in the future for lambdas.
-		local name, args, block = unpack(node.data)
+		local name, args, block = data[1], data[2], data[3]
 
 		-- Array of { [1] = name, [2] = type_name }
 		---@type table<number, string>
@@ -252,9 +253,9 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Lambda] = function(self, node)
-		local args, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Lambda] = function(self, data)
+		local args, block = data[1], data[2]
 
 		-- Array of { [1] = name, [2] = type_name }
 		---@type table<number, string>
@@ -266,9 +267,9 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.For] = function(self, node)
-		local _kw, varname, start, cond, step, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.For] = function(self, data)
+		local varname, start, cond, step, block = data[2], data[3], data[4], data[5], data[6]
 		--[[
 			$kw $varname = $start
 			while $cond do
@@ -291,9 +292,9 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Try] = function(self, node)
-		local try_block, catch_var, _catch_ty, catch_block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Try] = function(self, data)
+		local try_block, catch_var, catch_block = data[1], data[2], data[4]
 		--[[
 			xpcall(function()
 				$try_block
@@ -318,34 +319,36 @@ local Transpilers = {
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Declare] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Declare] = function(self, data)
 		-- kind is "var", "function", "type" or "namespace"
-		local kind, name = unpack(node.data)
+		local kind, name = data[1], data[2]
 		return fmt("-- declare %s as %s", name, kind)
 	end,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Realm] = function(self, node)
-		local name, block = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Realm] = function(self, data)
+		local name, block = data[1], data[2]
 		return fmt("if %s then\n\t%s\nend", string.upper(name), self:transpileAst(block, true))
 	end,
 
 	[NODE_KINDS.Class] = NO_OUTPUT,
 
 	---@param self Transpiler
-	---@param node Node
-	[NODE_KINDS.Constructor] = function(self, node)
-		local name, args = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Constructor] = function(self, data)
+		local name, args = data[1], data[2]
 		for i, v in ipairs(args) do
 			args[i] = self:transpile(v)
 		end
 		return fmt("%s(%s)", name, table.concat(args, ", "))
 	end,
 
-	[NODE_KINDS.Export] = function(self, node)
-		local inner = node.data[1]
+	---@param self Transpiler
+	---@param data table<number, any>
+	[NODE_KINDS.Export] = function(self, data)
+		local inner = data[1]
 		return fmt("-- exported..\n%s", self:transpile(inner))
 	end,
 }
@@ -368,7 +371,7 @@ end
 function Transpiler:transpile(node)
 	local handler = Transpilers[node.kind]
 	if handler then
-		return handler(self, node)
+		return handler(self, node.data)
 	end
 
 	if not node.kind then

@@ -11,26 +11,27 @@ local makeSignature = ELib.Analyzer.makeSignature
 local Handlers = {
 	-- Scan for variable references
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Variable] = function(self, node)
-		local name = node.data[1]
+	---@param data table<number, any>
+	[NODE_KINDS.Variable] = function(self, data)
+		local name = data[1]
 		assert( self:getScope():lookup(name), "Variable " .. name .. " is not defined")
 	end,
 
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Block] = function(self, node)
-		local body = node.data[1]
+	---@param data table<number, any>
+	[NODE_KINDS.Block] = function(self, data)
+		local body = data[1]
 		self:pushScope(SCOPE_KINDS.EXPR_BLOCK)
 			self:checkPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Realm] = function(self, node)
-		local _realm, body = node.data[1], node.data[2]
+	---@param data table<number, any>
+	[NODE_KINDS.Realm] = function(self, data)
+		-- TODO: Use a different scope for server/client.
+		local body = data[2]
 
 		self:pushScope(SCOPE_KINDS.STATEMENT)
 			self:checkPass(body)
@@ -38,56 +39,56 @@ local Handlers = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.If] = function(self, node)
-		local _cond, body = node.data[1], node.data[2]
+	---@param data table<number, any>
+	[NODE_KINDS.If] = function(self, data)
+		local _cond, body = data[1], data[2]
 		self:pushScope(SCOPE_KINDS.STATEMENT)
 			self:checkPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Elseif] = function(self, node)
-		local _cond, body = node.data[1], node.data[2]
+	---@param data table<number, any>
+	[NODE_KINDS.Elseif] = function(self, data)
+		local _cond, body = data[1], data[2]
 		self:pushScope()
 			self:checkPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Else] = function(self, node)
-		local body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Else] = function(self, data)
+		local body = data[1]
 		self:pushScope()
 			self:checkPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.While] = function(self, node)
-		local _cond, body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.While] = function(self, data)
+		local body = data[2]
 		self:pushScope()
 			self:checkPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Function] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.Function] = function(self, data)
 		self:pushScope()
-			self:checkPass( node.data[3] )
+			self:checkPass( data[3] )
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.CallExpr] = function(self, node)
+	---@param data table<number, any>
+	[NODE_KINDS.CallExpr] = function(self, data)
 		---@type Node
-		local expr = node.data[1]
+		local expr = data[1]
 		---@type table<number, Node>
-		local args = node.data[2]
+		local args = data[2]
 
 		-- if not self.configs.UndefinedVariables then
 			local ty = self:typeFromExpr(expr)
@@ -108,19 +109,22 @@ local Handlers = {
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Lambda] = function(self, node)
-		local _args, body = unpack(node.data)
+	---@param data table<number, any>
+	[NODE_KINDS.Lambda] = function(self, data)
+		-- Todo: Define the lambda arguments in the scope so they can be used
+		local args, body = data[1], data[2]
 		self:pushScope()
 			self:checkPass(body)
 		self:popScope()
 	end,
 
 	---@param self Analyzer
-	---@param node Node
-	[NODE_KINDS.Constructor] = function(self, node)
-		local name, args = unpack(node.data)
-		local sig = makeSignature(args)
+	---@param data table<number, any>
+	[NODE_KINDS.Constructor] = function(self, data)
+		local name, args, body = data[1], data[2], data[3]
+		local sig = makeSignature(args, self:getReturnType(body))
+
+		-- TODO: Define in scope
 	end
 }
 
@@ -131,7 +135,7 @@ function Analyzer:checkPass(ast)
 	for _, node in ipairs(ast) do
 		local handler = Handlers[node.kind]
 		if handler then
-			handler(self, node)
+			handler(self, node.data)
 		end
 	end
 end

@@ -16,8 +16,6 @@ function include(path)
 	local p = string.match(path, "^(.*)%.lua$")
 	return require(p)
 end
-unpack = table.unpack
-
 require("expressive/library")
 
 local Var = require("expressive/base/variable")
