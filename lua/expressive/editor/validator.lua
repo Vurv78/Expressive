@@ -27,7 +27,7 @@ function Validator:Validate(code, move_to, export_compiled)
 		return {msg, debug.traceback(msg)}
 	end
 
-	local ok, data, warnings = xpcall(function()
+	local ok, data, warnings, ast, tokens = xpcall(function()
 		local Tokenizer = ELib.Tokenizer.new()
 		local tokens = Tokenizer:parse(code)
 
@@ -38,7 +38,8 @@ function Validator:Validate(code, move_to, export_compiled)
 		ast = Analyzer:process(ELib.ExtensionCtx, ast)
 
 		local Transpiler = ELib.Transpiler.new()
-		return Transpiler:process(ELib.ExtensionCtx, ast), Analyzer.warnings
+
+		return Transpiler:process(ELib.ExtensionCtx, ast), Analyzer.warnings, ast, tokens
 	end, xpcaller)
 
 	if ok then
@@ -59,7 +60,7 @@ function Validator:Validate(code, move_to, export_compiled)
 		return self:Throw("Failed to compile: " .. msg, traceback, true)
 	end
 
-	return true, data
+	return true, data, ast, tokens
 end
 
 --- Throws a validation error (puts traceback in console, error message on validation bar.)

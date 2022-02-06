@@ -12,6 +12,7 @@ local MsgN = print
 ---@field Type Type
 ---@field Instance Instance
 ---@field Context Context
+---@field Namespace Namespace
 ---@field Transpiler Transpiler
 ---@field Var Variable
 ---@field ExtensionCtx Context
@@ -100,6 +101,7 @@ Library.Keywords = {
 	["static"] = true,
 	["constructor"] = true,
 	["export"] = true,
+	["namespace"] = true, -- Only works with declarations for now
 
 	-- ES6 Keywords (Reserved)
 	-- These have not been implemented into Expressive so that is why they are (Reserved)
@@ -133,7 +135,6 @@ Library.Keywords = {
 	["in"] = true, -- 🤷‍♂️
 	["as"] = true, -- 🤷‍♂️
 	["finally"] = true, -- 🤷‍♂️
-	["namespace"] = true, -- 👍
 	["symbol"] = true, -- ❌
 	["unique"] = true, -- ❌
 	["get"] = true, -- 🤷‍♂️

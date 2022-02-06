@@ -189,6 +189,9 @@ Analyzer.externPass = Analyzer.externPass
 ---@type fun(self: Analyzer, ast: table<number, Node>)
 Analyzer.inferPass = Analyzer.inferPass
 
+---@type fun(self: Analyzer, node: Node)
+Analyzer.check = Analyzer.check
+
 ---@type fun(self: Analyzer, ast: table<number, Node>)
 Analyzer.checkPass = Analyzer.checkPass
 

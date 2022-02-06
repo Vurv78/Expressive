@@ -27,7 +27,6 @@ Declarations = {
 	end,
 
 	--- ### Variable declaration
-	--- TODO: Support ``declare const ...``
 	--- ```ts
 	--- declare var foo: number;
 	--- ```
@@ -72,27 +71,23 @@ Declarations = {
 		if isToken(token, TOKEN_KINDS.Keyword, "namespace") then
 			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected namespace name after 'namespace'" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, "{"), "Expected '{' after namespace name" )
-
 			local nodes = {}
 			-- Use :peek as to not harm the current tokens for error handling if an improper node is given in the namespace body
-			local node = Declarations[1]( self, self:peek() )
+
+			local node = self:acceptDeclare( self:nextToken(), true )
 
 			while node do
 				-- Discard, it was a declaration node.
-				self:nextToken()
+				--self:nextToken()
 
 				nodes[#nodes + 1] = node
 				assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ';' after declare statement")
 
 				if self:popToken(TOKEN_KINDS.Grammar, "}") then
-					return nodes
+					break
 				end
 
-				node = Declarations[1]( self, self:peek() )
-			end
-
-			if self:hasTokens() then
-				error("Expected statement to declare function, instead got " .. self:next():human())
+				node = self:acceptDeclare( self:nextToken(), true )
 			end
 
 			return { "namespace", name.raw, nodes }
@@ -103,10 +98,19 @@ Declarations = {
 --- Parses a declare statement from the given token, assuming it is a "declare" keyword.
 --- This is to be used internally with [Parser:parseStatement], which is why this returns the data, instead of a [Node].
 ---@param tok Token
+---@param ignore_kw boolean # Whether to skip needing a 'declare' keyword at the start of this.
 ---@return table # Custom arguments for each different kind of declaration
-function Parser:acceptDeclare(tok)
-	if isToken(tok, TOKEN_KINDS.Keyword, "declare") then
-		local tok = self:nextToken()
+function Parser:acceptDeclare(tok, ignore_kw)
+	if ignore_kw then
+		for _, handler in ipairs(Declarations) do
+			local data = handler(self, tok)
+			if data then
+				return data
+			end
+		end
+		error("Invalid declare statement, expected [var, const, function, type, namespace] but got " .. tok.raw)
+	elseif isToken(tok, TOKEN_KINDS.Keyword, "declare") then
+		tok = self:nextToken()
 		for _, handler in ipairs(Declarations) do
 			local data = handler(self, tok)
 			if data then

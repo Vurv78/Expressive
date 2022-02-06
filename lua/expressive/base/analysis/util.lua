@@ -150,9 +150,32 @@ local Infer = {
 	---@param self Analyzer
 	---@param data table<number, any>
 	[NODE_KINDS.Index] = function(self, data)
-		-- kind, tbl, key
-		local tbl = data[2]
-		return self:typeFromExpr(tbl)
+		local kind, tbl, field = data[1], data[2], data[3]
+
+		if kind == "." then
+			-- First 'tbl' is parsed as a variable.
+			local lib, var_name = tbl.data[1], field.raw
+			local namespace = self.ctx.namespaces[lib]
+
+			---@type Variable
+			if namespace then
+				local var = assert(namespace.variables[var_name], "Cannot find field " .. var_name .. " in namespace " .. lib)
+				return var.type
+			else
+				local v = self:getScope():lookup(lib)
+				assert( v, "Cannot find array " .. lib)
+				return v.type
+			end
+		end
+	end,
+
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.CallExpr] = function(self, data)
+		-- TODO: Overloads
+		local expr, args = data[1]
+		local ty = self:typeFromExpr(expr)
+		return string.match(ty, "^[^:]+:(.+)")
 	end
 }
 

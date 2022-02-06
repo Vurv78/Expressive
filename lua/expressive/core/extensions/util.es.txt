@@ -1,0 +1,3 @@
+declare namespace util {
+	function CRC(xyz: string): string;
+};

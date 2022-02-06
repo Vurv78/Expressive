@@ -209,7 +209,7 @@ Statements = {
 	---@param self Parser
 	---@param token Token
 	[NODE_KINDS.Declare] = function(self, token)
-		return self:acceptDeclare(token)
+		return self:acceptDeclare(token, false)
 	end,
 
 	---@param self Parser

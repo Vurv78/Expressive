@@ -5,10 +5,16 @@ if CLIENT then
 	include("expressive/editor/database.lua")
 end
 
+---@type Namespace
+local _Namespace = include("expressive/core/namespace.lua")
+
 ---@type Variable
 local _Var = include("expressive/base/variable.lua")
 ---@type Type
 local _Type = include("expressive/core/type.lua")
+
+---@type Context
+local Context = include("expressive/core/context.lua")
 
 ---@type Tokenizer
 local Tokenizer = include("expressive/base/tokenizer.lua")
@@ -21,9 +27,6 @@ local Transpiler = include("expressive/base/transpiler/mod.lua")
 
 include("expressive/base/ast.lua")
 include("expressive/instance.lua")
-
----@type Context
-local Context = include("expressive/core/context.lua")
 
 ---@param extensions table<string, string> # File Name -> Content
 local function loadExtensions(extensions)
@@ -154,5 +157,6 @@ end
 -- TODO: Make it reload all currently placed chips
 concommand.Add("expressive_reload" .. (CLIENT and "_cl" or ""), function()
 	-- Include self
-	include("includes/modules/expressive/startup.lua")
+	package.required["expressive/startup"] = nil
+	require("expressive/startup")
 end)

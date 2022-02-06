@@ -17,6 +17,13 @@ local Handlers = {
 		assert( self:getScope():lookup(name), "Variable " .. name .. " is not defined")
 	end,
 
+	-- Scan for function calls
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.VarDeclare] = function(self, data)
+		local expr = data[4]
+		self:check(expr)
+	end,
 
 	---@param self Analyzer
 	---@param data table<number, any>
@@ -90,8 +97,11 @@ local Handlers = {
 		---@type table<number, Node>
 		local args = data[2]
 
+		self:check(expr)
+
 		-- if not self.configs.UndefinedVariables then
 			local ty = self:typeFromExpr(expr)
+
 			assert(ty, "Calling nonexistant value '" .. expr.data[1] .. "'")
 			assert(string.sub(ty, 1, 8) == "function", "Cannot call non-function '" .. expr.data[1] .. "'")
 		-- end
@@ -128,14 +138,20 @@ local Handlers = {
 	end
 }
 
+--- Like Analyzer:checkPass, but for a single node.
+---@param node Node
+function Analyzer:check(node)
+	local handler = Handlers[node.kind]
+	if handler then
+		handler(self, node.data)
+	end
+end
+
 --- Runs first pass on the analyzer
 ---@param ast table<number, Node>
 function Analyzer:checkPass(ast)
 	if not ast then return end -- Empty block
 	for _, node in ipairs(ast) do
-		local handler = Handlers[node.kind]
-		if handler then
-			handler(self, node.data)
-		end
+		self:check(node)
 	end
 end

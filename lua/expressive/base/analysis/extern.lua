@@ -9,49 +9,59 @@ local NODE_KINDS = ELib.Parser.KINDS
 
 local Var = ELib.Var
 local Type = ELib.Type
+local Namespace = ELib.Namespace
 
 local ExternHandlers
 ExternHandlers = {
 	---@param self Analyzer
 	---@param name string
 	---@param data table
-	["namespace"] = function(self, name, data)
+	---@param namespace Namespace
+	["namespace"] = function(self, name, data, namespace)
 		---@type table<number, Node>
 		local nodes = data[3]
+		local mod = Namespace.new(name, namespace)
 
-		local out_nodes = {}
-		for k, node in ipairs(nodes) do
-			out_nodes[k] = ExternHandlers[node[1]](self, node.data)
+		for _, node in ipairs(nodes) do
+			ExternHandlers[node[1]](self, node[2], node, mod)
 		end
+
+		print("Registered namespace", name)
+
+		namespace.namespaces[name] = mod
+
 		-- TODO
-		print("namespace nodes", ELib.Inspect(out_nodes))
-		self.externs[name] = out_nodes
 	end,
 
 	--- Primitive type decl
 	---@param self Analyzer
 	---@param name string
 	---@param data table
-	["type"] = function(self, name, data)
-		self.ctx:registerType(name, Type.new(name))
+	---@param namespace Namespace
+	["type"] = function(self, name, data, namespace)
+		namespace:registerType(name, Type.new(name))
 	end,
 
 	---@param self Analyzer
 	---@param name string
 	---@param data table
-	["var"] = function(self, name, data)
+	---@param namespace Namespace
+	["var"] = function(self, name, data, namespace)
 		local mutability = data[3] -- "var" or "const"
 		local type = data[4]
-		self.ctx:registerVar(name, Var.new(type, nil, mutability))
+		namespace:registerVar(name, Var.new(type, nil, mutability))
 		-- self.externs[name] = Var.new(type, mutability == "const")
 	end,
 
 	---@param self Analyzer
 	---@param name string
 	---@param data table
-	["function"] = function(self, name, data)
+	---@param namespace Namespace
+	["function"] = function(self, name, data, namespace)
 		-- Should create a proper function signature with this in the future.
 		local params, ret = data[3], data[4]
+
+		if not params then debug.Trace() end
 
 		-- Extract types from params
 		---@type table<number, TypeSig>
@@ -61,7 +71,7 @@ ExternHandlers = {
 
 		-- Cannot modify externs
 		local var = Var.new(type_sig, nil, false)
-		self.ctx:registerVar(name, var)
+		namespace:registerVar(name, var)
 	end,
 }
 
@@ -74,7 +84,7 @@ local Handlers = {
 		local type, var_name = node.data[1], node.data[2]
 		local handler = ExternHandlers[type]
 		if handler then
-			ExternHandlers[type](self, var_name, node.data)
+			ExternHandlers[type](self, var_name, node.data, self.ctx)
 		end
 	end
 }

@@ -1,4 +1,6 @@
-﻿local Lexer = ExpressiveEditor.Lexer
+﻿local ELib = require("expressive/library")
+
+local Lexer = ExpressiveEditor.Lexer
 local Mode = ExpressiveEditor.Mode
 local Settings = ExpressiveEditor.Settings
 local TOKEN = ExpressiveEditor.TOKEN
@@ -2971,6 +2973,24 @@ function Editor:AddValidateBar()
 
 				if success then
 					SetClipboardText(lua)
+				end
+			end)
+
+			menu:AddOption("Copy AST", function()
+				local code = ExpressiveEditor.GetCode() or self:GetContentStr()
+				local success, _, ast = self:Validate(code, true)
+
+				if success then
+					SetClipboardText( ELib.Inspect(ast) )
+				end
+			end)
+
+			menu:AddOption("Copy Tokens", function()
+				local code = ExpressiveEditor.GetCode() or self:GetContentStr()
+				local success, _, _, tokens = self:Validate(code, true)
+
+				if success then
+					SetClipboardText( ELib.Inspect(tokens) )
 				end
 			end)
 
