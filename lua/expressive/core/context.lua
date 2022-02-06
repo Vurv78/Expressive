@@ -68,12 +68,10 @@ function Context:getEnv()
 		-- TODO: Support for beyond just one namespace
 		for name, var in pairs(v) do
 			if Var:instanceof(var) then
-				print("Setting ", name, var.type, from[name])
 				namespace[name] = from[name]
 			elseif type(var) == "table" then
 				-- Namespace.
 				namespace[name] = {}
-				print("Set namespace ", name)
 				addVars(var, namespace[name])
 			else
 				error("Invalid variable type: " .. type(var))

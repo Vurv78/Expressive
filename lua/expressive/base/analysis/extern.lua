@@ -26,11 +26,7 @@ ExternHandlers = {
 			ExternHandlers[node[1]](self, node[2], node, mod)
 		end
 
-		print("Registered namespace", name)
-
 		namespace.namespaces[name] = mod
-
-		-- TODO
 	end,
 
 	--- Primitive type decl
