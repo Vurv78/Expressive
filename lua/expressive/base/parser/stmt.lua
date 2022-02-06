@@ -182,7 +182,7 @@ Statements = {
 		local name = self:popToken(TOKEN_KINDS.Identifier)
 		if isToken(token, TOKEN_KINDS.Keyword, "function") and name then
 			name = name.raw
-			local params = self:acceptTypedParameters("Expected function parameters after function declaration")
+			local params = assert(self:acceptTypedParameters(), "Expected function parameters after function declaration")
 			local block = self:acceptBlock()
 
 			return {name, params, block}

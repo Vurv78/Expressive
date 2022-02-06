@@ -1,0 +1,3 @@
+declare namespace timer {
+	function Simple(delay: int, func: ()): void;
+};

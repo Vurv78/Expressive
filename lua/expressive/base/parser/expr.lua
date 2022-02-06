@@ -233,7 +233,7 @@ Expressions = {
 	---@param token Token
 	[13] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "function") then
-			local params = self:acceptTypedParameters("Expected parameters (foo: int) after lambda definition")
+			local params = assert(self:acceptTypedParameters(), "Expected parameters (foo: int) after lambda definition")
 			local block = self:acceptBlock()
 
 			return Node.new(NODE_KINDS.Lambda, { params, block })

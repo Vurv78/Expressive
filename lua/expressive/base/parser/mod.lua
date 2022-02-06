@@ -232,6 +232,12 @@ function Parser:nextToken()
 	return self.tokens[ self.tok_idx ]
 end
 
+--- Inverse of [Parser:nextToken()].
+function Parser:prevToken()
+	self.tok_idx = self.tok_idx - 1
+	return self.tokens[ self.tok_idx ]
+end
+
 ---@return Token?
 function Parser:peek()
 	return self.tokens[ self.tok_idx + 1 ]
@@ -398,13 +404,45 @@ function Parser:acceptType()
 			return ty.raw
 		end
 		return ty.raw
+	else
+		-- Function signature (no arrow yet, so these all return void.)
+		local params = self:acceptTypes()
+		if params then
+			return "function(" .. table.concat(params, ",") .. "):void"
+		end
+
 	end
 end
 
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
----@return table<number, table<number, string>>
-function Parser:acceptTypedParameters(msg)
-	assert(self:popToken(TOKEN_KINDS.Grammar, "("), msg)
+---@return table<number, table<number, string>>?
+function Parser:acceptTypes()
+	if not self:popToken(TOKEN_KINDS.Grammar, "(") then return end
+
+	local args = {}
+
+	if not self:popToken(TOKEN_KINDS.Grammar, ")") then
+		local arg, ty
+		while self:hasTokens() do
+			arg = self:acceptType()
+			if not arg then break end
+
+			args[#args + 1] = ty
+
+			if not self:popToken(TOKEN_KINDS.Grammar, ",") then
+				assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
+				break
+			end
+		end
+	end
+	return args
+end
+
+--- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
+---@return table<number, table<number, string>>?
+function Parser:acceptTypedParameters()
+	if not self:popToken(TOKEN_KINDS.Grammar, "(") then return end
+
 	local args = {}
 
 	if not self:popToken(TOKEN_KINDS.Grammar, ")") then

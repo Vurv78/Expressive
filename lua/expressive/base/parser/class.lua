@@ -19,7 +19,7 @@ local Handlers = {
 	---@param token Token
 	["constructor"] = function(self, data, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "constructor") then
-			local args = self:acceptTypedParameters()
+			local args = assert(self:acceptTypedParameters(), "Expected typed parameters for constructor")
 			local body = self:acceptBlock()
 
 			self.constructor = { args = args, body = body }

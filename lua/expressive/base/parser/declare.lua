@@ -18,7 +18,7 @@ Declarations = {
 	function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "function") then
 			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected function after 'function'" )
-			local params = self:acceptTypedParameters("Expected typed parameters after function name")
+			local params = assert(self:acceptTypedParameters(), "Expected typed parameters after function name")
 			assert(self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : to precede return type of declared function")
 			local ret_type = assert( self:acceptType(), "Expected return type after :, got " .. self:peek().raw )
 
