@@ -104,8 +104,6 @@ function Context:getEnv()
 		env[name] = fn
 	end
 
-	PrintTable(env)
-
 	return env
 end
 
