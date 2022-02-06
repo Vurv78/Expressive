@@ -109,7 +109,7 @@ local KINDS, KINDS_UDATA = ELib.MakeEnum {
 	Expr("ComparisonOps", "comparison"), -- == != > >= < <=
 	Expr("BitShiftOps", "bit shift operation"), -- << >>
 	Expr("ArithmeticOps", "arithmetic"), -- + - / * %
-	Expr("UnaryOps", "unary operation"), -- ! ~ $
+	Expr("UnaryOps", "unary operation"), -- ! -
 	Expr("CallExpr", "call"), -- foo()
 	Expr("GroupedExpr", "grouped expression"), -- (x + y)
 	Expr("Index", "index"), -- x.y or x[y]
@@ -405,12 +405,13 @@ function Parser:acceptType()
 		end
 		return ty.raw
 	else
-		-- Function signature (no arrow yet, so these all return void.)
 		local params = self:acceptTypes()
 		if params then
-			return "function(" .. table.concat(params, ",") .. "):void"
-		end
+			assert( self:popToken(TOKEN_KINDS.Operator, "=>"), "Expected => to complete function signature" )
+			local ret = assert( self:acceptType(), "Expected type to follow function signature arrow" )
 
+			return "function(" .. table.concat(params, ",") .. ":" .. ret
+		end
 	end
 end
 

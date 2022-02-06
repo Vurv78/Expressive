@@ -96,9 +96,10 @@ local Transpilers = {
 		local op, expr = data[1], data[2]
 		if op == "!" then
 			return fmt("not %s", self:transpile(expr))
+		elseif op == "-" then
+			return fmt("-%s", self:transpile(expr))
 		else
-			-- TODO: ~ and $ operators?
-			return "error(\"unsupported\")"
+			error("Unsupported unary operator: " .. op)
 		end
 	end,
 
@@ -351,6 +352,47 @@ local Transpilers = {
 		local inner = data[1]
 		return fmt("-- exported..\n%s", self:transpile(inner))
 	end,
+
+	-- TODO: These could all be lookup tables, but not sure if it's worth it.
+
+	---@param self Transpiler
+	---@param data table<number, any>
+	[NODE_KINDS.BitwiseOps] = function(self, data)
+		local op, expr1, expr2 = data[1], data[2], data[3]
+		if op == "&" then
+			return fmt("bit.band(%s, %s)", self:transpile(expr1), self:transpile(expr2))
+		elseif op == "|" then
+			return fmt("bit.bor(%s, %s)", self:transpile(expr1), self:transpile(expr2))
+		else
+			error("Unsupported bitwise op: " .. op)
+		end
+	end,
+
+	---@param self Transpiler
+	---@param data table<number, any>
+	[NODE_KINDS.BitShiftOps] = function(self, data)
+		local op, expr1, expr2 = data[1], data[2], data[3]
+		if op == "<<" then
+			return fmt("bit.lshift(%s, %s)", self:transpile(expr1), self:transpile(expr2))
+		elseif op == ">>" then
+			return fmt("bit.rshift(%s, %s)", self:transpile(expr1), self:transpile(expr2))
+		else
+			error("Unsupported bit shift op: " .. op)
+		end
+	end,
+
+	---@param self Transpiler
+	---@param data table<number, any>
+	[NODE_KINDS.LogicalOps] = function(self, data)
+		local op, expr1, expr2 = data[1], data[2], data[3]
+		if op == "&&" then
+			return fmt("%s and %s", self:transpile(expr1), self:transpile(expr2))
+		elseif op == "||" then
+			return fmt("%s or %s", self:transpile(expr1), self:transpile(expr2))
+		else
+			error("Unsupported logical op: " .. op)
+		end
+	end
 }
 
 function Transpiler:pushScope()

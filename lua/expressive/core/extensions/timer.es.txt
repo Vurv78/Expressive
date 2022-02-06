@@ -1,12 +1,12 @@
 declare namespace timer {
-	function Adjust(identifier: string, delay: double, repetitions: double, func: ()): boolean;
-	function Create(identifier: string, delay: double, repetitions: double, func: ()): void;
+	function Adjust(identifier: string, delay: double, repetitions: double, func: () => void): boolean;
+	function Create(identifier: string, delay: double, repetitions: double, func: () => void): void;
 	function Destroy(identifier: string): void;
 	function Exists(identifier: string): boolean;
 	function Pause(identifier: string): boolean;
 	function Remove(identifier: string): void;
 	function RepsLeft(identifier: string): double;
-	function Simple(delay: int, func: ()): void;
+	function Simple(delay: int, func: () => void): void;
 	function Start(identifier: string): boolean;
 	function Stop(identifier: string): boolean;
 	function TimeLeft(identifier: string): double;

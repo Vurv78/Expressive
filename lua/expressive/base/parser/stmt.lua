@@ -187,7 +187,6 @@ Statements = {
 
 			return {name, params, block}
 		end
-		-- Could be a lambda.
 	end,
 
 	--- Either break, return or continue

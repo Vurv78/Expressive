@@ -131,8 +131,7 @@ Expressions = {
 	---@param self Parser
 	---@param token Token
 	[7] = function(self, token)
-		-- TODO: Think of a name of something for popAnyOf that uses a given or the current token.
-		local raw = isAnyOf(token, TOKEN_KINDS.Operator, {"!", "$", "~"})
+		local raw = isAnyOf(token, TOKEN_KINDS.Operator, {"!", "-"})
 		if raw then
 			local expr = assert( Expressions[8](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.UnaryOps, { raw, expr })
@@ -237,6 +236,13 @@ Expressions = {
 			local block = self:acceptBlock()
 
 			return Node.new(NODE_KINDS.Lambda, { params, block })
+		else
+			local params = self:acceptTypedParameters()
+			if params then
+				assert( self:popToken(TOKEN_KINDS.Operator, "=>"), "Expected fat arrow to follow lambda parameters" )
+				local block = self:acceptBlock()
+				return Node.new(NODE_KINDS.Lambda, { params, block })
+			end
 		end
 		return Expressions[14](self, token)
 	end,

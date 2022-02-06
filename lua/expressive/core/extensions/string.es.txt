@@ -2,7 +2,8 @@ declare namespace string {
 	// TODO: gsub, find
 	function byte(string: string, startPos: int, endPos: int): any[];
 	function char(bytes: any[]): string;
-	function dump(func: (), stripDebugInfo: boolean): string;
+	// TODO: Needs a 'function' type to accept all functions
+	function dump(func: () => void, stripDebugInfo: boolean): string;
 	function format(format: string, formatParameters: any[]): string;
 	function gmatch(data: string, pattern: string): Function;
 	function len(str: string): int;
