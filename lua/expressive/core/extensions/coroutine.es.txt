@@ -1,0 +1,11 @@
+declare type thread;
+
+declare namespace coroutine {
+	function create(func: ()): thread;
+	function resume(coroutine: thread): any[];
+	function running(): thread;
+	function status(coroutine: thread): string;
+	function wait(duration: double): void;
+	function wrap(coroutine: ()): ();
+	//function yield(returnValue: any[]): any[];
+};

@@ -1,0 +1,40 @@
+declare namespace string {
+	// TODO: gsub, find
+	function byte(string: string, startPos: int, endPos: int): any[];
+	function char(bytes: any[]): string;
+	function dump(func: (), stripDebugInfo: boolean): string;
+	function format(format: string, formatParameters: any[]): string;
+	function gmatch(data: string, pattern: string): Function;
+	function len(str: string): int;
+	function lower(str: string): string;
+	function match(string: string, pattern: string, startPosition: int): any[];
+	function rep(str: string, repetitions: int, separator: string): string;
+	function reverse(str: string): string;
+	function sub(string: string, StartPos: int, EndPos: int): string;
+	function upper(str: string): string;
+
+	// GMod specific
+	function Comma(number: double): string;
+	function EndsWith(str: string, end: string): boolean;
+	function Explode(separator: string, str: string, use_patterns: boolean): any;
+	function FormattedTime(float: double, format: string): string;
+	function FromColor(color: any): string;
+	function GetExtensionFromFilename(file: string): string;
+	function GetFileFromFilename(pathString: string): string;
+	function GetPathFromFilename(Inputstring: string): string;
+	function JavascriptSafe(str: string): string;
+	function NiceSize(bytes: int): string;
+	function NiceTime(num: double): string;
+	function PatternSafe(str: string): string;
+	function Replace(str: string, find: string, replace: string): string;
+	function Right(str: string, num: double): string;
+	function SetChar(InputString: string, Index: int, ReplacementChar: string): string;
+	function Split(Inputstring: string, Separator: string): any;
+	function StartWith(inputStr: string, start: string): boolean;
+	function StripExtension(Inputstring: string): string;
+	function ToMinutesSeconds(time: double): string;
+	function ToMinutesSecondsMilliseconds(time: double): string;
+	function Trim(Inputstring: string, Char: string): string;
+	function TrimLeft(str: string, char: string): string;
+	function TrimRight(str: string, char: string): string;
+};
