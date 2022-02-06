@@ -17,9 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
 
-    - name: Download GluaFixer 1.19.1
+    - name: Download GluaFixer 1.18.2
       run: |
-        curl -o glualint.zip -L https://github.com/FPtje/GLuaFixer/releases/download/1.19.1/glualint-1.19.1-linux.zip
+        curl -o glualint.zip -L https://github.com/FPtje/GLuaFixer/releases/download/1.18.2/glualint-1.18.2-linux.zip
         unzip glualint.zip
 
     # Don't need to remove extensions, because they have different file extensions, unlike E2 ones.
