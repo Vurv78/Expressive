@@ -1,0 +1,51 @@
+declare namespace math {
+	function abs(x: double): double;
+	function acos(cos: double): double;
+	function asin(normal: double): double;
+	function atan(normal: double): double;
+	function atan2(y: double, x: double): double;
+	function ceil(double: double): double;
+	function cos(double: double): double;
+	function cosh(double: double): double;
+	function deg(radians: double): double;
+	function exp(exponent: double): double;
+	function floor(double: double): double;
+	function fmod(base: double, modulator: double): double;
+	function ldexp(normalizedFraction: double, exponent: double): double;
+	function log(x: double, base: double): double;
+	function log10(x: double): double;
+	function max(x: double, y: double): double; // TODO: Should be variadic
+	function min(x: double, y: double): double; // TODO: Should be variadic
+	function mod(base: double, modulator: double): double;
+	function pow(x: double, y: double): double;
+	function rad(degrees: double): double;
+	function Rand(min: double, max: double): double;
+	function random(m: double, n: double): double;
+	// function randomseed(seed: double): void;
+	function sin(double: double): double;
+	function sinh(double: double): double;
+	function sqrt(value: double): double;
+	function tan(value: double): double;
+	function tanh(double: double): double;
+
+	// GMod specific
+	function BinToInt(string: string): double;
+	function Clamp(input: double, min: double, max: double): double;
+	function IntToBin(int: double): string;
+	function AngleDifference(a: double, b: double): double;
+	function Approach(current: double, target: double, change: double): double;
+	function ApproachAngle(currentAngle: double, targetAngle: double, rate: double): double;
+	function calcBSplineN(i: double, k: double, t: double, tinc: double): double;
+	function Distance(x1: double, y1: double, x2: double, y2: double): double;
+	function DistanceSqr(x1: double, y1: double, x2: double, y2: double): double;
+	function EaseInOut(progress: double, easeIn: double, easeOut: double): double;
+	function NormalizeAngle(angle: double): double;
+	function Round(value: double, decimals: double): double;
+	function TimeFraction(start: double, end: double, current: double): double;
+	function Truncate(num: double, digits: double): double;
+	function Remap(value: double, inMin: double, inMax: double, outMin: double, outMax: double): double;
+	function NormalizeAngle(angle: double): double;
+
+	var pi: double;
+	var huge: double;
+};

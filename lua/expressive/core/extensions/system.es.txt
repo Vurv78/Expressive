@@ -5,3 +5,6 @@
 declare function print(args: string[]): void;
 declare function error(msg: string): void;
 declare function CurTime(): number;
+
+// TODO Need 'any' type.
+declare function tostring(num: double): string;
