@@ -358,7 +358,7 @@ local Handlers = {
 	["cstr"] = function(self) return self:readString() end,
 
 	["f32"] = function(self) return self:readF32() end,
-	["f64"] = function(self) error("Not implemented") end
+	["f64"] = function(_self) error("Not implemented") end
 }
 
 local WriteHandlers = {
@@ -370,7 +370,7 @@ local WriteHandlers = {
 	["u32"] = function(self, value) self:writeU32(value) end,
 	["cstr"] = function(self, value) self:writeString(value) end,
 	["f32"] = function(self, value) self:writeF32(value) end,
-	["f64"] = function(self, value) error("Not implemented") end
+	["f64"] = function(_self, _value) error("Not implemented") end
 }
 
 ---@param definition string
@@ -401,11 +401,11 @@ local function parse(definition)
 
 				assert( not string.find(line, "[", 1, true), "Malformed array block. Use [u8; 55] or [i32; $len]" )
 			else
-				local n = tonumber(count)
-				if not n then
+				local len = tonumber(count)
+				if not len then
 					assert(struct[count], "Array length field $" .. count .. " not found in DataStruct builder")
 				else
-					count = n
+					count = len
 				end
 			end
 
@@ -435,7 +435,7 @@ end
 ---@return DataStream writer # Writing stream, use :getBuffer() to get the bytes.
 function DataStruct:encode(data)
 	local out, writer = {}, DataStream.new()
-	for k, v in pairs(self.fields) do
+	for _, v in pairs(self.fields) do
 		local idx = v[1]
 		assert(data[idx], "Missing field [" .. idx .. "] in DataStruct:encode")
 	end
@@ -462,7 +462,7 @@ function DataStruct:encode(data)
 			end
 		elseif count then
 			-- Variable length
-			local count = assert(data[count], "Missing variable reference [" .. count .. "] in DataStruct:encode")
+			count = assert(data[count], "Missing variable reference [" .. count .. "] in DataStruct:encode")
 			for i = 1, count do
 				WriteHandlers[ty](writer, v[i])
 			end
@@ -480,7 +480,7 @@ end
 function DataStruct:decode(stream)
 	local reader = DataStream.new(stream)
 	local out = {}
-	for nidx, v in ipairs(self.fields) do
+	for _nidx, v in ipairs(self.fields) do
 		local idx, ty, count = v[1], v[3], v[4]
 		if type(count) == "number" then
 			local t = {}
@@ -490,9 +490,9 @@ function DataStruct:decode(stream)
 			out[idx] = t
 		elseif count then
 			-- Variable length
-			local v = self.fields[count][1]
+			v = self.fields[count][1]
 			assert(out[v], "Variable length field [" .. count .. "] not found at runtime")
-			local count = out[v]
+			count = out[v]
 			assert(type(count) == "number", "Variable length field [" .. count .. "] is not a number")
 
 			local t = {}

@@ -9,7 +9,7 @@ Lib.Ast = Ast
 ---@param ast table<number, Node>
 ---@param callback fun(node: Node)
 function Ast.walk(ast, callback)
-	for k, v in ipairs(ast) do
+	for _, v in ipairs(ast) do
 		if getmetatable(v) == Lib.Parser.Node then
 			---@type Node
 			callback(v)

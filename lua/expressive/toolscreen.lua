@@ -9,18 +9,18 @@ local HexSize = Vector(50, 50) * ResScale
 
 local HexMesh = Mesh()
 HexMesh:BuildFromTriangles({
-	{pos=Vector(1,1/4),u=1,v=1/4}, -- right up
-	{pos=Vector(1,3/4),u=1,v=3/4}, -- right down
-	{pos=Vector(0,3/4),u=0,v=3/4}, -- left down
-	{pos=Vector(0,3/4),u=0,v=3/4}, -- left down
-	{pos=Vector(0,1/4),u=0,v=1/4}, -- left up
-	{pos=Vector(1,1/4),u=1,v=1/4}, -- right up
-	{pos=Vector(0,1/4),u=0,v=1/4}, -- left up
-	{pos=Vector(0.5,0),u=0.5,v=0}, -- top middle
-	{pos=Vector(1,1/4),u=1,v=1/4}, -- right up
-	{pos=Vector(0,3/4),u=0,v=3/4}, -- left down
-	{pos=Vector(1,3/4),u=1,v=3/4}, -- right down
-	{pos=Vector(0.5,1),u=0.5,v=1}, -- bottom middle
+	{pos = Vector(1,1 / 4), u = 1, v = 1 / 4}, -- right up
+	{pos = Vector(1,3 / 4), u = 1, v = 3 / 4}, -- right down
+	{pos = Vector(0,3 / 4), u = 0, v = 3 / 4}, -- left down
+	{pos = Vector(0,3 / 4), u = 0, v = 3 / 4}, -- left down
+	{pos = Vector(0,1 / 4), u = 0, v = 1 / 4}, -- left up
+	{pos = Vector(1,1 / 4), u = 1, v = 1 / 4}, -- right up
+	{pos = Vector(0,1 / 4), u = 0, v = 1 / 4}, -- left up
+	{pos = Vector(0.5, 0), u = 0.5, v = 0}, -- top middle
+	{pos = Vector(1,1 / 4), u = 1, v = 1 / 4}, -- right up
+	{pos = Vector(0,3 / 4), u = 0, v = 3 / 4}, -- left down
+	{pos = Vector(1,3 / 4), u = 1, v = 3 / 4}, -- right down
+	{pos = Vector(0.5,1), u = 0.5, v = 1}, -- bottom middle
 })
 
 --- Hexagon object on the toolgun
@@ -54,7 +54,7 @@ function Hex.new(pos, velocity, color, ang, angvel)
 		matrix = matrix,
 		pos = pos,
 		velocity = velocity or Vector(rngfactor * 5, rngfactor * 5),
-		color = Vector(1, 0, 0), --color or Vector( CurTime() % 25 * 1/25 + 0.15 , 0, 0),
+		color = color or Vector( CurTime() % 25 * 1 / 25 + 0.15 , 0, 0),
 		alpha = 0.5,
 
 		ang = ang,
@@ -173,11 +173,11 @@ function ToolgunScreen.render(width, height)
 	end
 
 	surface.SetFont("Expression4_ToolgunTitle")
-	draw.SimpleText("Expression4", "Expression4_ToolgunTitle", Offset[1] + Res[1] / 10 + Res[1] * 3/4 * 1/2, Offset[2] + Res[2] / 3 + 10 * ResScale[1], Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	draw.SimpleText("Expression4", "Expression4_ToolgunTitle", Offset[1] + Res[1] / 10 + Res[1] * 3 / 4 * 1 / 2, Offset[2] + Res[2] / 3 + 10 * ResScale[1], Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 
 
 	surface.SetFont("Expression4_ToolgunSubtitle")
-	draw.SimpleText("generic.txt", "Expression4_ToolgunSubtitle", Offset[1] + Res[1] / 10 + Res[1] * 3/4 * 1/2, Offset[2] + Res[2] / 3 + 10 * ResScale[1] + 30 * ResScale[1] + 10 * ResScale[1], Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
+	draw.SimpleText("generic.txt", "Expression4_ToolgunSubtitle", Offset[1] + Res[1] / 10 + Res[1] * 3 / 4 * 1 / 2, Offset[2] + Res[2] / 3 + 10 * ResScale[1] + 30 * ResScale[1] + 10 * ResScale[1], Color(255, 255, 255, 255), TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER)
 end
 
 function ToolgunScreen.think()
@@ -185,7 +185,7 @@ function ToolgunScreen.think()
 		local ok = hex:think()
 		if not ok then
 			local vel = Vector(math.Rand(-1, 1), math.Rand(-1, 1))
-			local origin = Offset + Res/2
+			local origin = Offset + Res / 2
 			Hexagons[k] = Hex.new( origin + vel * Res, -vel * 10 )
 		end
 	end

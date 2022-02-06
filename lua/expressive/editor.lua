@@ -40,7 +40,7 @@ function Editor.Create()
 	Editor.Settings.loadSession(ide)
 	local has_es_folder = false
 
-	for i, node in ipairs(ide.filetree.folders) do
+	for _, node in ipairs(ide.filetree.folders) do
 		if node.path == "expressive/" and node.root_path == "DATA" then
 			has_es_folder = true
 			break
@@ -86,7 +86,7 @@ function Editor.GetCode()
 	end
 end
 
--- Todo
+-- TODO: Getting directives from editor
 function Editor.GetDirective()
 end
 
@@ -110,7 +110,7 @@ ELib.ReceiveNet("OpenEditor", function()
 		local editor = ide:Add("E4SyperEditor")
 		editor:SetSyntax("es")
 		editor:SetName("Expressive Editor")
-		editor:SetPath(path)
+		-- editor:SetPath(path)
 		editor:ReloadFile()
 		ide:AddTab(entity:GetScriptName() or "generic", editor)
 	end

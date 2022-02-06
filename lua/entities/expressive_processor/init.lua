@@ -106,13 +106,14 @@ end
 
 local function dupefinished(TimedPasteData, TimedPasteDataCurrent)
 	local entList = TimedPasteData[TimedPasteDataCurrent].CreatedEntities
-	local starfalls = {}
-	for k, v in pairs(entList) do
+	local chips = {}
+	-- FIXME: This might be a sequential table
+	for _, v in pairs(entList) do
 		if IsValid(v) and v:GetClass() == "expressive_processor" and v.chip_data then
-			starfalls[#starfalls+1] = v
+			chips[#chips + 1] = v
 		end
 	end
-	for k, v in pairs(starfalls) do
+	for _, v in pairs(chips) do
 		v:SetupFiles(v.chip_data)
 		local instance = v.instance
 		if instance then
@@ -124,7 +125,7 @@ end
 hook.Add("AdvDupe_FinishPasting", "EX_DupeFinished", dupefinished)
 
 -- Request code from the chip. If the chip doesn't have code yet add player to list to send when there is code.
-ELib.ReceiveNet("Processor.Download", function(len, ply)
+ELib.ReceiveNet("Processor.Download", function(_len, ply)
 	---@type ExpressiveProcessor
 	local proc = net.ReadEntity()
 
@@ -133,7 +134,7 @@ ELib.ReceiveNet("Processor.Download", function(len, ply)
 	end
 end)
 
-ELib.ReceiveNet("Processor.Kill", function(len, ply)
+ELib.ReceiveNet("Processor.Kill", function(_len, ply)
 	---@type ExpressiveProcessor
 	local target = net.ReadEntity()
 
@@ -146,7 +147,7 @@ ELib.ReceiveNet("Processor.Kill", function(len, ply)
 	end
 end)
 
-ELib.ReceiveNet("Processor.ClientReady", function(len, ply)
+ELib.ReceiveNet("Processor.ClientReady", function(_len, ply)
 	local proc = net.ReadEntity()
 	if ply:IsValid() and proc:IsValid() then
 		local instance = proc.instance
@@ -156,7 +157,7 @@ ELib.ReceiveNet("Processor.ClientReady", function(len, ply)
 	end
 end)
 
-ELib.ReceiveNet("Processor.Errored", function(len, ply)
+ELib.ReceiveNet("Processor.Errored", function(_len, ply)
 	---@type ExpressiveProcessor
 	local chip = net.ReadEntity()
 	if chip:IsValid() and chip.owner:IsValid() and chip.ErroredPlayers and not chip.ErroredPlayers[ply] and chip.owner ~= ply then
@@ -165,7 +166,7 @@ ELib.ReceiveNet("Processor.Errored", function(len, ply)
 end)
 
 hook.Add("PlayerInitialSpawn", "Expressive_PlayerInitialSpawn", function(ply)
-	for k, v in ipairs(ents.FindByClass("expressive_processor")) do
+	for _, v in ipairs(ents.FindByClass("expressive_processor")) do
 		v:SendCode(ply)
 	end
 end)

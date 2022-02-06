@@ -121,13 +121,13 @@ local Handlers = {
 
 		---@type table<number, string>
 		local param_types = {}
-		for k, v in ipairs(args) do param_types[k] = v[2] end
+		for k, paramdata in ipairs(args) do param_types[k] = paramdata[2] end
 
 		-- Set function in the outer scope.
 		self:getScope():setType(name, makeSignature(param_types, self:getReturnType(block)))
 
 		self:pushScope()
-			local scope = self:getScope()
+			scope = self:getScope()
 
 			for _, dat in ipairs(args) do
 				scope:setType( dat[1], dat[2] )
@@ -161,7 +161,7 @@ local Handlers = {
 
 		self:pushScope()
 			local scope = self:getScope()
-			for k, v in ipairs(params) do
+			for _, v in ipairs(params) do
 				scope:setType(v[1], v[2])
 			end
 			self:inferPass(block)

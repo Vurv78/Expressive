@@ -1,7 +1,7 @@
 ﻿local _ELib = require("expressive/library")
 
 -- TODO: This is left over from old E3 fork implementation.
-local function store_data(extensions)
+local function store_data(_extensions)
 	local out_data = ExpressiveEditor.HelperData
 
 	--[[for ext_name, data in pairs(extensions) do

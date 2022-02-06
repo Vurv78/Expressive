@@ -14,7 +14,7 @@ local C_SUCCESS = rgb(100, 200, 100)
 --- Validates given code and returns true and transpiled code if successful
 ---@return boolean
 ---@return string? # Lua code generated if successfully validated.
-function Validator:Validate(code, move_to, export_compiled)
+function Validator:Validate(code, _move_to, _export_compiled)
 	if not code or code == "" then
 		self:Throw("No code submitted")
 		return false
@@ -67,7 +67,7 @@ end
 ---@param msg string
 ---@param traceback string
 ---@param move_to boolean
-function Validator:Throw(msg, traceback, move_to)
+function Validator:Throw(msg, traceback, _move_to)
 	self.editor.validation_bar:SetBGColor(C_ERROR)
 	self.editor.validation_bar:SetText(msg)
 	self.editor.console:ErrorLn(traceback or msg)

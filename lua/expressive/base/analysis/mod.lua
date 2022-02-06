@@ -158,8 +158,9 @@ function Analyzer:loadContext(ctx)
 			if Var:instanceof(var) then
 				scope:set(name, var)
 			elseif type(var) == "table" then
-				-- Namespace, TODO
+				-- TODO: Namespace
 				-- Probably want a named scope system.
+				print("TODO: Namespace")
 			else
 				error("Invalid variable type: " .. type(var))
 			end

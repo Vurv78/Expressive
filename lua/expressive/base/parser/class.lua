@@ -6,7 +6,6 @@ local isToken = ELib.Parser.isToken
 local isAnyOf = ELib.Parser.isAnyOf
 
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
-local NODE_KINDS_UDATA = ELib.Parser.KINDS_UDATA
 
 ---@class ClassData
 ---@field constructor { args: table<number, table<number, string>>, body: table<number, Node> } # Constructor of the class
@@ -17,7 +16,7 @@ local Handlers = {
 	---@param self Parser
 	---@param data ClassData
 	---@param token Token
-	["constructor"] = function(self, data, token)
+	["constructor"] = function(self, _data, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "constructor") then
 			local args = assert(self:acceptTypedParameters(), "Expected typed parameters for constructor")
 			local body = self:acceptBlock()
@@ -30,17 +29,17 @@ local Handlers = {
 	---@param self Parser
 	---@param data ClassData
 	---@param token Token
-	["static_block"] = function(self, data, token)
+	["static_block"] = function(self, _data, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "static") then
 			assert(not self:popToken(TOKEN_KINDS.Grammar, "{"), "Static blocks are not supported")
 		end
 	end,
 
-	["get"] = function(self, data, token)
+	["get"] = function(_self, _data, token)
 		assert( not isToken(token, TOKEN_KINDS.Keyword, "get"), "Getters are not implemented")
 	end,
 
-	["set"] = function(self, data, token)
+	["set"] = function(_self, _data, token)
 		assert( not isToken(token, TOKEN_KINDS.Keyword, "set"), "Setters are not implemented")
 	end,
 

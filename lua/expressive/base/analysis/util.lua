@@ -38,7 +38,7 @@ end
 local Infer = {
 	---@param self Analyzer
 	---@param data table<number, any>
-	[NODE_KINDS.Literal] = function(self, data)
+	[NODE_KINDS.Literal] = function(_self, data)
 		-- Either "int", "string", "boolean" or "null"
 		local ty = data[1]
 		if ty == "number" then
@@ -142,8 +142,8 @@ local Infer = {
 
 	---@param self Analyzer
 	---@param data table<number, any>
-	[NODE_KINDS.LogicalOps] = function(self, data)
-
+	[NODE_KINDS.LogicalOps] = function(_self, _data)
+		-- TODO: Logical Ops
 	end,
 
 	--- x.y or x[y]. This only applies to arrays right now, so can just return the type of the array.
@@ -173,7 +173,7 @@ local Infer = {
 	---@param data table<number, any>
 	[NODE_KINDS.CallExpr] = function(self, data)
 		-- TODO: Overloads
-		local expr, args = data[1]
+		local expr = data[1]
 		local ty = self:typeFromExpr(expr)
 		return string.match(ty, "^[^:]+:(.+)")
 	end

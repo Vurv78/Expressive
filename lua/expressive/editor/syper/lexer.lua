@@ -48,7 +48,7 @@ if CLIENT then
 		end
 
 		if #finds == 0 then return end
-		local s, cur = math.huge
+		local s, cur = math.huge, nil
 
 		for _, v in ipairs(finds) do
 			if v.s < s then

@@ -168,7 +168,7 @@ function Library.Inspect(object, depth, dumped)
 
 		do
 			local idx = 1
-			for key, v in pairs(object) do
+			for key, _ in pairs(object) do
 				keys[idx] = key
 				idx = idx + 1
 			end
@@ -230,20 +230,6 @@ end
 function Library.GetIDE()
 	return ExpressiveEditor.Get()
 end
-
----@class Validator
-local Validator = {}
-Validator.__index = Validator
-
-function Validator.new(script, files, callback)
-	return setmetatable({}, Validator)
-end
-
---- TODO
-function Validator:start() end
-function Validator:stop() end
-
-Library.Validator = Validator
 
 ---@param name string
 function Library.AddNetworkString(name)
@@ -311,7 +297,7 @@ function Library.ReadProcessor(from, callback)
 			local stream = DataStream.new(data)
 			local n_files = stream:readU(16)
 
-			for i = 1, n_files do
+			for _ = 1, n_files do
 				-- Module name
 				local name = stream:readString()
 
@@ -379,7 +365,7 @@ function Library.DecompressFiles(files_str)
 	local stream = DataStream.new(files_str)
 	local files = {}
 
-	for i = 1, stream:readU(16) do
+	for _ = 1, stream:readU(16) do
 		local name, len = stream:readString(), stream:readU(32)
 		files[name] = stream:read( len )
 	end
@@ -424,7 +410,7 @@ if SERVER then
 	end
 
 
-	Library.ReceiveNet("Processor.Upload", function(len, ply)
+	Library.ReceiveNet("Processor.Upload", function(_len, ply)
 		local updata = upload_data[ply]
 		if not updata or updata.reading then
 			ErrorNoHalt("ES: Player " .. ply:GetName() .. " tried to upload code without being requested.\n")
@@ -484,25 +470,25 @@ function Library.PrintTo(ply, msg)
 end
 
 ---@param ply GPlayer
----@param type "NOTIFY_GENERIC|NOTIFY_ERROR|NOTIFY_UNDO|NOTIFY_HINT|NOTIFY_CLEANUP" # Notify enum. From 0 - 4.
+---@param kind "NOTIFY_GENERIC|NOTIFY_ERROR|NOTIFY_UNDO|NOTIFY_HINT|NOTIFY_CLEANUP" # Notify enum. From 0 - 4.
 ---@param msg string
-function Library.Notify(ply, type, msg)
+function Library.Notify(ply, kind, msg)
 	if SERVER then
 		Library.StartNet("Notify")
-			net.WriteUInt(type, 3)
+			net.WriteUInt(kind, 3)
 			net.WriteString(msg)
 		net.Send(ply)
 	elseif ply == LocalPlayer() then
-		notification.AddLegacy(msg, type, 5)
+		notification.AddLegacy(msg, kind, 5)
 	end
 end
 
 if CLIENT then
-	Library.ReceiveNet("PrintTo", function(len, ply)
+	Library.ReceiveNet("PrintTo", function(_len, _ply)
 		MsgN( net.ReadString() )
 	end)
 
-	Library.ReceiveNet("Notify", function(len, ply)
+	Library.ReceiveNet("Notify", function(_len, _ply)
 		local ty, msg = net.ReadUInt(3), net.ReadString()
 		Library.Notify(ty, msg)
 	end)

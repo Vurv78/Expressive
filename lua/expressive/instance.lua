@@ -88,8 +88,8 @@ end
 --- Runs an event for a chip.
 ---@param name string # Name of the event to run
 ---@param ... any # Any arguments to pass to the event
-function Instance:runEvent(name, ...)
-	-- todo, when an events/hook library is added.
+function Instance:runEvent(_name, ...)
+	-- TODO: Event/Hook system
 end
 
 function Instance:destroy()

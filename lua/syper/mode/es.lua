@@ -74,8 +74,8 @@ return {
 	},
 	comment = "// ",
 	env = env,
-	env_populator = function(str) end,
-	-- TODO -- Most of this is taken from the lua mode. sevii is very cool
+	env_populator = function(_str) end,
+	-- TODO: Most of this is taken from the lua mode. sevii is very cool
 	autocomplete_stack = function(str)
 		local e = #str
 		local stack = {}

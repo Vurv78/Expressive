@@ -25,7 +25,7 @@ function net.Stream.ReadStream:Request()
 	net.WriteUInt(#self.chunks, 32)
 	if CLIENT then net.SendToServer() else net.Send(self.player) end
 
-	timer.Create("NetStreamReadTimeout" .. self.identifier, net.Stream.Timeout/2, 1, function() self:Request() end)
+	timer.Create("NetStreamReadTimeout" .. self.identifier, net.Stream.Timeout / 2, 1, function() self:Request() end)
 
 end
 
@@ -56,7 +56,7 @@ end
 
 --Gets the download progress
 function net.Stream.ReadStream:GetProgress()
-	return #self.chunks/self.numchunks
+	return #self.chunks / self.numchunks
 end
 
 --Pop the queue and start the next task
@@ -99,7 +99,7 @@ net.Stream.WriteStream = {}
 
 -- The player wants some data
 function net.Stream.WriteStream:Write(ply)
-	local progress = net.ReadUInt(32)+1
+	local progress = net.ReadUInt(32) + 1
 	local chunk = self.chunks[progress]
 	if chunk then
 		self.clients[ply].progress = progress
@@ -132,7 +132,7 @@ function net.Stream.WriteStream:Remove()
 	for ply, client in pairs(self.clients) do
 		if not client.finished then
 			client.finished = true
-			if ply:IsValid() then sendTo[#sendTo+1] = ply end
+			if ply:IsValid() then sendTo[#sendTo + 1] = ply end
 		end
 	end
 
@@ -171,20 +171,20 @@ function net.WriteStream(data, callback, dontcompress)
 
 	local numchunks = math.ceil(#data / net.Stream.SendSize)
 	if CLIENT and numchunks > net.Stream.MaxServerChunks then
-		ErrorNoHalt("net.WriteStream request is too large! ", #data/1048576, "MiB")
+		ErrorNoHalt("net.WriteStream request is too large! ", #data / 1048576, "MiB")
 		net.WriteUInt(0, 32)
 		return
 	end
 
 	local chunks = {}
-	for i=1, numchunks do
+	for i = 1, numchunks do
 		local datachunk = string.sub(data, (i - 1) * net.Stream.SendSize + 1, i * net.Stream.SendSize)
 		chunks[i] = {
 			data = datachunk,
 			crc = util.CRC(datachunk),
 		}
 	end
-	
+
 	local startid = identifier
 	while net.Stream.WriteStreams[identifier] do
 		identifier = identifier % 1024 + 1
@@ -207,7 +207,7 @@ function net.WriteStream(data, callback, dontcompress)
 				downloads = 0,
 				keepalives = 0,
 				progress = 0,
-			} t[k]=r return r
+			} t[k] = r return r
 		end})
 	}
 	setmetatable(stream, net.Stream.WriteStream)
@@ -264,7 +264,7 @@ function net.ReadStream(ply, callback)
 		return
 	end
 
-	local identifier = net.ReadUInt(32)
+	identifier = net.ReadUInt(32)
 	local compressed = net.ReadBool()
 
 	for _, v in ipairs(queue) do
@@ -309,9 +309,8 @@ if SERVER then
 end
 
 --Stream data is requested
-net.Receive("NetStreamRequest", function(len, ply)
-
-	local identifier = net.ReadUInt(32)
+net.Receive("NetStreamRequest", function(_len, ply)
+	identifier = net.ReadUInt(32)
 	local stream = net.Stream.WriteStreams[identifier]
 
 	if stream then
@@ -345,7 +344,7 @@ net.Receive("NetStreamRequest", function(len, ply)
 end)
 
 --Download the stream data
-net.Receive("NetStreamDownload", function(len, ply)
+net.Receive("NetStreamDownload", function(_len, ply)
 
 	ply = ply or NULL
 	local queue = net.Stream.ReadStreamQueues[ply]
@@ -355,7 +354,7 @@ net.Receive("NetStreamDownload", function(len, ply)
 			queue[1]:Read(size)
 		else
 			local id = net.ReadUInt(32)
-			for k, v in ipairs(queue) do
+			for _, v in ipairs(queue) do
 				if v.identifier == id then
 					v:Remove()
 					break

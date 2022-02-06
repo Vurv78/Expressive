@@ -87,12 +87,12 @@ function Context:getEnv()
 		nm[space.name] = {}
 		addVars(space.variables, nm[space.name], _G[space.name])
 
-		for name, sp in pairs(space.namespaces) do
+		for _name, sp in pairs(space.namespaces) do
 			addNamespace(sp)
 		end
 	end
 
-	for name, mod in pairs(self.namespaces) do
+	for _name, mod in pairs(self.namespaces) do
 		addNamespace(env, mod)
 	end
 

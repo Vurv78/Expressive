@@ -34,7 +34,7 @@ ExternHandlers = {
 	---@param name string
 	---@param data table
 	---@param namespace Namespace
-	["type"] = function(self, name, data, namespace)
+	["type"] = function(_self, name, _data, namespace)
 		namespace:registerType(name, Type.new(name))
 	end,
 
@@ -42,7 +42,7 @@ ExternHandlers = {
 	---@param name string
 	---@param data table
 	---@param namespace Namespace
-	["var"] = function(self, name, data, namespace)
+	["var"] = function(_self, name, data, namespace)
 		local mutability = data[3] -- "var" or "const"
 		local type = data[4]
 		namespace:registerVar(name, Var.new(type, nil, mutability))
@@ -53,7 +53,7 @@ ExternHandlers = {
 	---@param name string
 	---@param data table
 	---@param namespace Namespace
-	["function"] = function(self, name, data, namespace)
+	["function"] = function(_self, name, data, namespace)
 		-- Should create a proper function signature with this in the future.
 		local params, ret = data[3], data[4]
 

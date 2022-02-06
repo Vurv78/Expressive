@@ -22,9 +22,9 @@ end
 ---@return Tokenizer
 function Tokenizer.new()
 	---@type Tokenizer
-	local self = setmetatable({}, Tokenizer)
-	self:reset()
-	return self
+	local instance = setmetatable({}, Tokenizer)
+	instance:reset()
+	return instance
 end
 
 ---@class TokenKinds
@@ -82,7 +82,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Whitespace] = function(self, str, pos)
+	[KINDS.Whitespace] = function(_self, str, pos)
 		local start, ed = string.find(str, "^[ \t\r]+", pos)
 		return start, ed
 	end,
@@ -91,7 +91,7 @@ local Matchers = {
 	---@param str string
 	---@param pos number
 	[KINDS.Comment] = function(self, str, pos)
-		local start, ed, message = string.find(str, "^//([^\n\r]+)", pos)
+		local start, ed, _message = string.find(str, "^//([^\n\r]+)", pos)
 		if start then
 			-- For now, don't return anything. In the future these could be used for intellisense / autocomplete / whatever.
 			self.line = self.line + 1
@@ -139,7 +139,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Decimal] = function(self, str, pos)
+	[KINDS.Decimal] = function(_self, str, pos)
 		local start, ed, full, sign = string.find(str, "^(([-+]?)([0-9]+%.[0-9]+))", pos)
 		if start then
 			return start, ed, { value = tonumber(full), negative = sign == '-' }
@@ -149,7 +149,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Integer] = function(self, str, pos)
+	[KINDS.Integer] = function(_self, str, pos)
 		local start, ed, full, sign = string.find(str, "^(([-+]?)[0-9]+)", pos)
 		if start then
 			return start, ed, { value = tonumber(full), negative = sign == '-' }
@@ -159,7 +159,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Hexadecimal] = function(self, str, pos)
+	[KINDS.Hexadecimal] = function(_self, str, pos)
 		local start, ed, full, sign = string.find(str, "^(([-+]?)0x[%x]+)", pos)
 		if start then
 			return start, ed, { value = tonumber(full), negative = sign == '-' }
@@ -169,7 +169,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Octal] = function(self, str, pos)
+	[KINDS.Octal] = function(_self, str, pos)
 		local start, ed, full, sign = string.find(str, "^(([-+]?)0b[01]+)", pos)
 		if start then
 			return start, ed, { value = tonumber(full, 2), negative = sign == '-' }
@@ -179,7 +179,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.String] = function(self, str, pos)
+	[KINDS.String] = function(_self, str, pos)
 		-- Escapes are not recognized in [[]] strings (so no need for \\)
 		local exp, matches = [[^"(.-)(\-)"]], {}
 		local matched = false
@@ -212,7 +212,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Operator] = function(self, str, pos)
+	[KINDS.Operator] = function(_self, str, pos)
 		-- += -= /= %= *= >= <= == != &= ^= |=
 		local op = string.match(str, "^[+%-/%*><=!^|]=", pos)
 		if op then
@@ -235,7 +235,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Grammar] = function(self, str, pos)
+	[KINDS.Grammar] = function(_self, str, pos)
 		local char = string.match(str, "^[{}()%[%]:;,]", pos)
 		if char then
 			-- ``pos`` is actually already self.pos + 1 since string.find/match is awful and 1 based. amazing
@@ -246,7 +246,7 @@ local Matchers = {
 	---@param self Tokenizer
 	---@param str string
 	---@param pos number
-	[KINDS.Identifier] = function(self, str, pos)
+	[KINDS.Identifier] = function(_self, str, pos)
 		local start, ed, name = string.find(str, "^([%a_][%w_]*)", pos)
 		return start, ed, { raw = name }
 	end

@@ -1,0 +1,32 @@
+name: Linter
+
+on:
+  push:
+    paths:
+    - 'lua/**'
+    - '!lua/expressive/core/extensions/**'
+  pull_request:
+    paths:
+    - 'lua/**'
+    - '!lua/expressive/core/extensions/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Download GluaFixer 1.19.1
+      run: |
+        curl -o glualint.zip -L https://github.com/FPtje/GLuaFixer/releases/download/1.19.1/glualint-1.19.1-linux.zip
+        unzip glualint.zip
+
+    # Don't need to remove extensions, because they have different file extensions, unlike E2 ones.
+
+    # There's way too many issues with syper to bother fixing right now
+    - name: Remove syper folder
+      run: rm -r lua/expressive/editor/syper
+
+    - name: Lint Code
+      run: ./glualint lua

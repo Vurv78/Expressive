@@ -3,7 +3,6 @@
 local Lexer = ExpressiveEditor.Lexer
 local Mode = ExpressiveEditor.Mode
 local Settings = ExpressiveEditor.Settings
-local TOKEN = ExpressiveEditor.TOKEN
 ----------------------------------------
 local editors = {}
 
@@ -132,7 +131,7 @@ function Act.newline(self)
 						local indent_sum = 0
 
 						for j = 1, i do
-							local token = tokens[j]
+							token = tokens[j]
 							local outdent = self.mode.outdent[token.str]
 
 							if outdent and not outdent[token.mode] then
@@ -2227,6 +2226,7 @@ function Editor:SetCaret(i, x, y)
 	-- caret.x = x
 	-- caret.y = y
 	-- caret.max_x = x
+	local max_x = x -- Might not be correct
 	rawset(caret, "x", x)
 	rawset(caret, "y", y)
 	rawset(caret, "max_x", max_x)

@@ -154,8 +154,8 @@ Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[NODE_KINDS.Delegate] = function(self, token)
-		-- todo
+	[NODE_KINDS.Delegate] = function(_self, _token)
+		-- TODO: Delegates
 	end,
 
 	---@param self Parser
@@ -171,8 +171,8 @@ Statements = {
 
 	---@param self Parser
 	---@param token Token
-	[NODE_KINDS.Interface] = function(self, token)
-
+	[NODE_KINDS.Interface] = function(_self, _token)
+		-- TODO: Implement interfaces
 	end,
 
 	--- Function definition

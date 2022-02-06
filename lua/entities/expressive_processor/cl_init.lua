@@ -53,18 +53,16 @@ function ENT:GetOverlayText()
 
 	local authorstr =  self.author and self.author:Trim() ~= "" and "\nAuthor: " .. self.author or ""
 
-	return "- Expressive Processor -\n[ " .. self.name .. " ]"..authorstr.."\nServer CPU: " .. serverstr .. "\nClient CPU: " .. clientstr
+	return "- Expressive Processor -\n[ " .. self.name .. " ]" .. authorstr .. "\nServer CPU: " .. serverstr .. "\nClient CPU: " .. clientstr
 end
 
 function ENT:Think()
 	local lookedAt = self:BeingLookedAtByLocalPlayer()
 	self.lookedAt = lookedAt
 
-	if lookedAt then
-		if not self:GetNoDraw() and self:GetColor().a > 0 then
-			AddWorldTip( self:EntIndex(), self:GetOverlayText(), 0.5, self:GetPos(), self )
-			halo.Add( { self }, color_white, 1, 1, 1, true, true )
-		end
+	if lookedAt and (not self:GetNoDraw() and self:GetColor().a > 0) then
+		AddWorldTip( self:EntIndex(), self:GetOverlayText(), 0.5, self:GetPos(), self )
+		halo.Add( { self }, color_white, 1, 1, 1, true, true )
 	end
 end
 
@@ -102,7 +100,7 @@ ELib.ReceiveNet("Processor.Kill", function()
 	end
 end)
 
-ELib.ReceiveNet("Processor.Used", function(len)
+ELib.ReceiveNet("Processor.Used", function(_len)
 	local chip = net.ReadEntity()
 	local used = net.ReadEntity()
 	local activator = net.ReadEntity()

@@ -75,7 +75,7 @@ function ENT:Compile()
 		end
 	end
 
-	local ok, msg, traceback = instance:init()
+	local ok, _msg, _traceback = instance:init()
 	if not ok then return end
 
 	if SERVER then

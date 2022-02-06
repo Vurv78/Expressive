@@ -94,8 +94,8 @@ function TOOL:CheckHitOwnClass(trace)
 	return trace.Entity:IsValid() and trace.Entity.Expressive
 end
 
-function TOOL:LeftClick_Update(trace)
-	--EXPR_UPLOADER.RequestFromClient(self:GetOwner(), trace.Entity)
+function TOOL:LeftClick_Update(_trace)
+	-- TODO: Update chip contents when clicking on a chip
 end
 
 if CLIENT then

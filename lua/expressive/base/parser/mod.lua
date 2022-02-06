@@ -314,7 +314,7 @@ end
 ---@param values table<number, string>
 ---@return string # The raw value from 'values' that matched.
 local function isAnyOf(token, kind, values)
-	-- Todo: Maybe we shouldn't check for nil here.
+	-- TODO: Maybe we shouldn't check for nil here.
 	if not token or token.kind ~= kind then return false end
 
 	for _, val in ipairs(values) do

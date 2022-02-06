@@ -13,7 +13,7 @@ local Analyzer = include("expressive/base/analysis/mod.lua")
 local Transpiler = include("expressive/base/transpiler/mod.lua")
 
 ---@type Ast
-local Ast = include("expressive/base/ast.lua")
+local _Ast = include("expressive/base/ast.lua")
 
 local tok = Tokenizer.new()
 local parser = Parser.new()

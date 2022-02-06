@@ -2,7 +2,6 @@
 local ELib = require("expressive/library")
 local class = require("voop")
 
-local Ast = ELib.Ast
 local Parser = ELib.Parser
 local Tokenizer = ELib.Tokenizer
 
@@ -46,10 +45,10 @@ local VarModifications = {
 	["="] = function(self, name, expr2)
 		return fmt("%s = %s", name, self:transpile(expr2))
 	end,
-	["++"] = function(self, name, expr2)
+	["++"] = function(_self, name)
 		return fmt("%s = %s + 1", name, name)
 	end,
-	["--"] = function(self, name, expr2)
+	["--"] = function(_self, name)
 		return fmt("%s = %s - 1", name, name)
 	end
 }
@@ -87,7 +86,7 @@ local Transpilers = {
 
 	---@param self Transpiler
 	---@param data table<number, any>
-	[NODE_KINDS.Variable] = function(self, data)
+	[NODE_KINDS.Variable] = function(_self, data)
 		return data[1]
 	end,
 
@@ -222,7 +221,7 @@ local Transpilers = {
 
 	---@param self Tokenizer
 	---@param data table<number, any>
-	[NODE_KINDS.Literal] = function(self, data)
+	[NODE_KINDS.Literal] = function(_self, data)
 		---@type "number"|"string"|"boolean"|"null"
 		local type = data[1]
 
@@ -321,7 +320,7 @@ local Transpilers = {
 
 	---@param self Transpiler
 	---@param data table<number, any>
-	[NODE_KINDS.Declare] = function(self, data)
+	[NODE_KINDS.Declare] = function(_self, data)
 		-- kind is "var", "function", "type" or "namespace"
 		local kind, name = data[1], data[2]
 		return fmt("-- declare %s as %s", name, kind)
@@ -355,11 +354,11 @@ local Transpilers = {
 }
 
 function Transpiler:pushScope()
-	-- todo
+	-- TODO: Transpiler scopes?
 end
 
 function Transpiler:popScope()
-	-- todo
+	-- TODO: Transpiler scopes?
 end
 
 ---@return Node?

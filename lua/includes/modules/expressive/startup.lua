@@ -23,14 +23,14 @@ local Parser = include("expressive/base/parser/mod.lua")
 ---@type Analyzer
 local Analyzer = include("expressive/base/analysis/mod.lua")
 ---@type Transpiler
-local Transpiler = include("expressive/base/transpiler/mod.lua")
+local _Transpiler = include("expressive/base/transpiler/mod.lua")
 
 include("expressive/base/ast.lua")
 include("expressive/instance.lua")
 
 ---@param extensions table<string, string> # File Name -> Content
 local function loadExtensions(extensions)
-	-- Output extension data, todo!
+	-- TODO: Output extension data in a neater format for editor to use
 	local _extensions_out = {}
 
 	---@type AnalyzerConfigs
@@ -54,12 +54,11 @@ local function loadExtensions(extensions)
 			local tokenizer = Tokenizer.new()
 			local parser = Parser.new()
 			local analyzer = Analyzer.new()
-			local transpiler = Transpiler.new()
-			local analyzer = Analyzer.new()
+			-- local transpiler = Transpiler.new() -- Don't need this quite yet. When extensions are more than just declare statements, this will be needed.
 
 			local tokens = tokenizer:parse(src)
 			local ast = parser:parse(tokens)
-			local new_ast = analyzer:process(ExtensionCtx, ast, ExtensionConfigs)
+			local _new_ast = analyzer:process(ExtensionCtx, ast, ExtensionConfigs)
 		end, debug.traceback)
 
 		if ok then
@@ -114,7 +113,7 @@ if SERVER then
 
 	-- When players join, they request from their client when they are ready to receive net messages.
 	-- Then the server can send them the extensions
-	ELib.ReceiveNet("LoadExtensions", function(len, ply)
+	ELib.ReceiveNet("LoadExtensions", function(_len, ply)
 		ELib.StartNet("LoadExtensions")
 			net.WriteStream(buf, callback)
 		net.Send(ply)
@@ -123,7 +122,7 @@ else
 	-- You have to ping pong from the client to tell the server you are ready for net messages.
 	-- Excellent, gmod / source!
 	-- (The hook does work serverside, but your player object doesn't exist)
-	hook.Add("ClientSignOnStateChanged", "Expressive.LoadExtensions", function(user_id, old, state)
+	hook.Add("ClientSignOnStateChanged", "Expressive.LoadExtensions", function(_user_id, _old, state)
 		---@diagnostic disable-next-line: undefined-global
 		if state == SIGNONSTATE_FULL then
 			ELib.StartNet("LoadExtensions")

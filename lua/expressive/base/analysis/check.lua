@@ -121,8 +121,8 @@ local Handlers = {
 	---@param self Analyzer
 	---@param data table<number, any>
 	[NODE_KINDS.Lambda] = function(self, data)
-		-- Todo: Define the lambda arguments in the scope so they can be used
-		local args, body = data[1], data[2]
+		-- TODO: Define the lambda arguments in the scope so they can be used
+		local _args, body = data[1], data[2]
 		self:pushScope()
 			self:checkPass(body)
 		self:popScope()
@@ -131,8 +131,8 @@ local Handlers = {
 	---@param self Analyzer
 	---@param data table<number, any>
 	[NODE_KINDS.Constructor] = function(self, data)
-		local name, args, body = data[1], data[2], data[3]
-		local sig = makeSignature(args, self:getReturnType(body))
+		local _name, args, body = data[1], data[2], data[3]
+		local _sig = makeSignature(args, self:getReturnType(body))
 
 		-- TODO: Define in scope
 	end
