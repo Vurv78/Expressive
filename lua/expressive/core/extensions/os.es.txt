@@ -1,0 +1,6 @@
+declare namespace os {
+	function clock(): double;
+	// function date(format: string, time: number): table;
+	function difftime(timeA: double, timeB: double): double;
+	function time(): int;
+};

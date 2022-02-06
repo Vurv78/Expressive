@@ -1,0 +1,14 @@
+declare namespace bit {
+	function arshift(value: double, shiftCount: double): double;
+	function band(value: double, otherValues: double): double;
+	function bnot(value: double): double;
+	function bor(value1: double, vararg: any[]): double;
+	function bswap(value: double): double;
+	function bxor(value: double, otherValues: double): double;
+	function lshift(value: double, shiftCount: double): double;
+	function rol(value: double, shiftCount: double): double;
+	function ror(value: double, shiftCount: double): double;
+	function rshift(value: double, shiftCount: double): double;
+	function tobit(value: double): double;
+	function tohex(value: double, digits: double): string;
+};

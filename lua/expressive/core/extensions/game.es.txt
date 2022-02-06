@@ -1,0 +1,9 @@
+declare namespace game {
+	function SinglePlayer(): boolean;
+	function IsDedicated(): boolean;
+	function GetMap(): string;
+	function GetIPAddress(): string;
+	function GetTimeScale(): double;
+	function GetSkillLevel(): int;
+	function MaxPlayers(): int;
+};
