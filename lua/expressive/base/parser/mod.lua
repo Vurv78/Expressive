@@ -442,7 +442,7 @@ end
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
 ---@return table<number, table<number, string>>?
 function Parser:acceptTypedParameters()
-	if not self:popToken(TOKEN_KINDS.Grammar, "(") then print("premature return") return end
+	if not self:popToken(TOKEN_KINDS.Grammar, "(") then return end
 	local args = {}
 	if self:popToken(TOKEN_KINDS.Grammar, ")") then return args end
 
