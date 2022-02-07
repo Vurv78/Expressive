@@ -152,10 +152,34 @@ Expressions = {
 		return expr
 	end,
 
-	-- Grouped Expression
+	--- Lambda
 	---@param self Parser
 	---@param token Token
 	[9] = function(self, token)
+		if isToken(token, TOKEN_KINDS.Keyword, "function") then
+			local params = assert(self:acceptTypedParameters(), "Expected parameters (foo: int) after lambda definition")
+			local block = self:acceptBlock()
+
+			return Node.new(NODE_KINDS.Lambda, { params, block })
+		else
+			-- Go to previous token to be able to pop the "(" token as the next token
+			self:prevToken()
+			local params = self:acceptTypedParameters()
+			if params and self:popToken(TOKEN_KINDS.Operator, "=>") then
+				local block = self:acceptBlock()
+				return Node.new(NODE_KINDS.Lambda, { params, block })
+			else
+				-- Undo the prevToken call, failed to pop tokens
+				self:nextToken()
+			end
+		end
+		return Expressions[10](self, token)
+	end,
+
+	-- Grouped Expression
+	---@param self Parser
+	---@param token Token
+	[10] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Grammar, "(") then
 			local expr = Expressions[1](self, self:nextToken())
 			assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to close grouped expression" )
@@ -163,14 +187,14 @@ Expressions = {
 			return Node.new(NODE_KINDS.GroupedExpr, { expr })
 		end
 
-		return Expressions[10](self, token)
+		return Expressions[11](self, token)
 	end,
 
 	-- Indexing with x[y] or x.y
 	---@param self Parser
 	---@param token Token
-	[10] = function(self, token)
-		local tbl = Expressions[11](self, token)
+	[11] = function(self, token)
+		local tbl = Expressions[12](self, token)
 		if self:popToken(TOKEN_KINDS.Grammar, "[") then
 			local key = Expressions[1](self, self:nextToken())
 			assert( self:popToken(TOKEN_KINDS.Grammar, "]"), "Expected ] to close indexed expression" )
@@ -189,7 +213,7 @@ Expressions = {
 	-- Literal array ([1, 2, 3])
 	---@param self Parser
 	---@param token Token
-	[11] = function(self, token)
+	[12] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Grammar, "[") then
 			local nargs, args = 0, {}
 			local arg = Expressions[1](self, self:nextToken())
@@ -211,38 +235,18 @@ Expressions = {
 
 			return Node.new(NODE_KINDS.Array, { args })
 		end
-		return Expressions[12](self, token)
+		return Expressions[13](self, token)
 	end,
 
 	-- Block expression
 	---@param self Parser
 	---@param token Token
-	[12] = function(self, token)
+	[13] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Grammar, "{") then
 			self.tok_idx = self.tok_idx - 1 -- Move backward to accept block
 			local block = self:acceptBlock()
 
 			return Node.new(NODE_KINDS.Block, { block })
-		end
-		return Expressions[13](self, token)
-	end,
-
-	--- Lambda
-	---@param self Parser
-	---@param token Token
-	[13] = function(self, token)
-		if isToken(token, TOKEN_KINDS.Keyword, "function") then
-			local params = assert(self:acceptTypedParameters(), "Expected parameters (foo: int) after lambda definition")
-			local block = self:acceptBlock()
-
-			return Node.new(NODE_KINDS.Lambda, { params, block })
-		else
-			local params = self:acceptTypedParameters()
-			if params then
-				assert( self:popToken(TOKEN_KINDS.Operator, "=>"), "Expected fat arrow to follow lambda parameters" )
-				local block = self:acceptBlock()
-				return Node.new(NODE_KINDS.Lambda, { params, block })
-			end
 		end
 		return Expressions[14](self, token)
 	end,

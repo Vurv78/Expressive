@@ -33,6 +33,9 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/editor/editor.main.nls.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.32.1/min/vs/editor/editor.main.js"></script>
 
+	<!-- Startup Lua -->
+	<script src="web.lua" type="application/lua" referrerpolicy="origin"></script>
+
 	<script>
 		const typescript = monaco.languages.typescript;
 		typescript.typescriptDefaults.setCompilerOptions({
@@ -41,11 +44,14 @@
 			allowNonTsExtensions: true,
 		});
 
+		let code;
+
 		var xmlhttp = new XMLHttpRequest();
-		xmlhttp.open("GET", "web.d.ts", false);
+		xmlhttp.open("GET", "web.es.txt", false);
 		xmlhttp.send();
 		if (xmlhttp.status == 200) {
-			typescript.typescriptDefaults.addExtraLib(xmlhttp.responseText, "web.d.ts")
+			code = xmlhttp.responseText;
+			typescript.typescriptDefaults.addExtraLib(code, "web.d.ts")
 		} else {
 			console.error("Failed to load standard library for web")
 		}
@@ -55,11 +61,12 @@
 			language: 'typescript',
 			theme: 'vs-dark',
 		});
-	</script>
 
-	<script>
+		// -- Fengari -- //
 		const lua = fengari.lua;
 		const L = fengari.L;
+		const to_jsstring = fengari.to_jsstring;
+		const to_luastring = fengari.to_luastring;
 
 		lua.lua_atnativeerror(L, function (l) {
 			lua.lua_pushstring(l, fengari.to_luastring('' + lua.lua_touserdata(l, -1)));
@@ -67,39 +74,35 @@
 
 		const output = document.getElementById("output");
 
+		lua.lua_getglobal(L, to_luastring("startup"));
+		lua.lua_pushstring(L, code);
+		const val = lua.lua_pcall(L, 1, 0, 0);
+		if (val != lua.LUA_OK) {
+			const msg = "Error when loading standard library: " + fengari.to_jsstring( lua.lua_tostring(L, -1) );
+
+			output.value = msg;
+			console.log(msg);
+
+			lua.lua_pop(L, 1);
+		}
+
 		document.getElementById("transpile").addEventListener("click", function() {
-			lua.lua_getglobal(L, "transpile");
+			lua.lua_getglobal(L, to_luastring("transpile"));
 			lua.lua_pushstring(L, editor.getValue());
-			lua.lua_pushcfunction(L, function(L) {
-				const success = lua.lua_toboolean(L, 1);
-				const code_or_err = lua.lua_tostring(L, 2);
 
-				if (success) {
-					output.value = code_or_err;
-				} else {
-					output.value = code_or_err;
-					console.log("Error: " + code_or_err);
-				}
-
-				return 0;
-			});
-
-			const val = lua.lua_pcall(L, 2, 1, 0);
+			const val = lua.lua_pcall(L, 1, 1, 0);
 			if (val != lua.LUA_OK) {
-				const msg = "Error when transpiling: " + fengari.to_jsstring( lua.lua_tostring(L, -1) );
+				const msg = "Error when transpiling: " + to_jsstring( lua.lua_tostring(L, -1) );
 
 				output.value = msg;
 				console.log(msg);
 
 				lua.lua_pop(L, 1);
 			} else {
-				const code = fengari.to_jsstring( lua.lua_tostring(L, -1) );
+				const code = to_jsstring( lua.lua_tostring(L, -1) );
 				output.value = code;
 			}
 		});
 	</script>
-
-	<!-- Startup Lua -->
-	<script src="web.lua" type="application/lua" referrerpolicy="origin" async></script>
 </body>
 </html>

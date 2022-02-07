@@ -1,0 +1,14 @@
+// type int = number;
+// type double = number;
+
+declare namespace console {
+	function log(args: string[]): void;
+	function error(args: string[]): void;
+	function warn(args: string[]): void;
+	function info(args: string[]): void;
+	function trace(args: string[]): void;
+	function assert(condition: boolean, message: string): void;
+	function clear(): void;
+};
+
+declare function alert(args: string[]): void;

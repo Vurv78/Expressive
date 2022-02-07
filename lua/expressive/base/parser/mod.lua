@@ -442,28 +442,27 @@ end
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
 ---@return table<number, table<number, string>>?
 function Parser:acceptTypedParameters()
-	if not self:popToken(TOKEN_KINDS.Grammar, "(") then return end
-
+	if not self:popToken(TOKEN_KINDS.Grammar, "(") then print("premature return") return end
 	local args = {}
+	if self:popToken(TOKEN_KINDS.Grammar, ")") then return args end
 
-	if not self:popToken(TOKEN_KINDS.Grammar, ")") then
-		local arg, ty
-		while self:hasTokens() do
-			arg = self:popToken(TOKEN_KINDS.Identifier)
-			if not arg then break end
+	local arg, ty
+	while self:hasTokens() do
+		arg = self:popToken(TOKEN_KINDS.Identifier)
+		if not arg then break end
 
-			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : after argument to begin type" )
-			ty = assert( self:acceptType(), "Expected type after : in function parameter" )
+		-- "Expected : after argument to begin type" )
 
+		if self:popToken(TOKEN_KINDS.Grammar, ":") then
+			ty = assert(self:acceptType(), "Expected type after : in function parameter")
 			args[#args + 1] = { arg.raw, ty }
+		end
 
-			if not self:popToken(TOKEN_KINDS.Grammar, ",") then
-				assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
-				break
-			end
+		if not self:popToken(TOKEN_KINDS.Grammar, ",") then
+			assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
+			return args
 		end
 	end
-	return args
 end
 
 --- Returns a table of arguments, like (bar, foo, baz, 55, "qux", 500.0 + 291.2 / 5.0)
