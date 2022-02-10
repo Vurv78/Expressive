@@ -29,13 +29,13 @@ Expressions = {
 
 		-- x ?? y
 		if self:popToken(TOKEN_KINDS.Operator, "??") then
-			local els = Expressions[2](self, self:nextToken())
+			local els = Expressions[1](self, self:nextToken())
 			return Node.new(NODE_KINDS.Ternary, { expr, els })
 		elseif self:popToken(TOKEN_KINDS.Operator, "?") then
 			-- cond ? x : y
-			local iff = Expressions[2](self, self:nextToken())
+			local iff = Expressions[1](self, self:nextToken())
 			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : after ternary '?'" )
-			local els = Expressions[2](self, self:nextToken())
+			local els = Expressions[1](self, self:nextToken())
 			return Node.new(NODE_KINDS.Ternary, { expr, iff, els })
 		end
 
@@ -50,7 +50,7 @@ Expressions = {
 
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"&&", "||"})
 		if raw then
-			local right = assert( Expressions[3](self, self:nextToken()), "Expected expression after " .. raw )
+			local right = assert( Expressions[1](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.LogicalOps, { raw, left, right })
 		end
 
@@ -63,7 +63,7 @@ Expressions = {
 
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"|", "&"})
 		if raw then
-			local right = assert( Expressions[4](self, self:nextToken()), "Expected expression after " .. raw )
+			local right = assert( Expressions[1](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.BitwiseOps, { raw, left, right })
 		end
 
@@ -78,7 +78,7 @@ Expressions = {
 
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"==", "!=", ">=", "<=", ">", "<"})
 		if raw then
-			local right = assert( Expressions[5](self, self:nextToken()), "Expected expression after " .. raw )
+			local right = assert( Expressions[1](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.ComparisonOps, { raw, left, right })
 		end
 
@@ -93,7 +93,7 @@ Expressions = {
 
 		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"<<", ">>"})
 		if raw then
-			local right = assert( Expressions[6](self, self:nextToken()), "Expected expression after " .. raw )
+			local right = assert( Expressions[1](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.BitShiftOps, { raw, left, right })
 		end
 
@@ -105,25 +105,13 @@ Expressions = {
 	---@param token Token
 	[6] = function(self, token)
 		local left = Expressions[7](self, token)
+		local op = self:popAnyOf(TOKEN_KINDS.Operator, {"+", "-", "*", "%", "/"})
 
-		local raw = self:popAnyOf(TOKEN_KINDS.Operator, {"+", "-", "*", "%", "/"})
-		if raw then
-			local right = assert( Expressions[7](self, self:nextToken()), "Expected expression after " .. raw )
-			local first = Node.new(NODE_KINDS.ArithmeticOps, { raw, left, right })
-			local last = first
-
-			while true do
-				raw = self:popAnyOf(TOKEN_KINDS.Operator, {"+", "-", "*", "%", "/"})
-				if not raw then break end
-				right = assert( Expressions[7](self, self:nextToken()), "Expected expression after " .. raw )
-
-				-- Arithmetic ops will have 4th data slot for a reference to the next arith op.
-				local current = Node.new(NODE_KINDS.ArithmeticOps, { raw, last, right })
-				last.data[4] = current
-				last = current
-			end
-			return first
+		if op then
+			local right = assert( Expressions[1](self, self:nextToken()), "Expected expression after " .. op )
+			return Node.new(NODE_KINDS.ArithmeticOps, { op, left, right })
 		end
+
 		return left
 	end,
 
@@ -133,7 +121,7 @@ Expressions = {
 	[7] = function(self, token)
 		local raw = isAnyOf(token, TOKEN_KINDS.Operator, {"!", "-"})
 		if raw then
-			local expr = assert( Expressions[8](self, self:nextToken()), "Expected expression after " .. raw )
+			local expr = assert( Expressions[1](self, self:nextToken()), "Expected expression after " .. raw )
 			return Node.new(NODE_KINDS.UnaryOps, { raw, expr })
 		end
 

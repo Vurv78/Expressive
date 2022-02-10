@@ -386,11 +386,25 @@ local Transpilers = {
 	[NODE_KINDS.LogicalOps] = function(self, data)
 		local op, expr1, expr2 = data[1], data[2], data[3]
 		if op == "&&" then
-			return fmt("%s and %s", self:transpile(expr1), self:transpile(expr2))
+			return fmt("(%s and %s)", self:transpile(expr1), self:transpile(expr2))
 		elseif op == "||" then
-			return fmt("%s or %s", self:transpile(expr1), self:transpile(expr2))
+			return fmt("(%s or %s)", self:transpile(expr1), self:transpile(expr2))
 		else
 			error("Unsupported logical op: " .. op)
+		end
+	end,
+
+	-- TODO: This is unsound. It should use a function like https://wiki.facepunch.com/gmod/Global.Either
+	---@param self Transpiler
+	---@param data table<number, any>
+	[NODE_KINDS.Ternary] = function(self, data)
+		local cond_if, lhs, rhs = data[1], data[2], data[3]
+		if rhs then
+			-- x ? y : z
+			return fmt("%s and %s or %s", self:transpile(cond_if), self:transpile(lhs), self:transpile(rhs))
+		else
+			-- x ?? y
+			return fmt("%s or %s", self:transpile(cond_if), self:transpile(lhs))
 		end
 	end
 }

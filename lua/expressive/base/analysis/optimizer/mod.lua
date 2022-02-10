@@ -73,8 +73,11 @@ Optimizations = {
 	---@param self Analyzer
 	---@param data table<number, any>
 	[NODE_KINDS.ArithmeticOps] = function(self, data)
+		---@type string
+		local op = data[1]
+
 		---@type Node
-		local op, left, right, ptr = data[1], data[2], data[3], data[4]
+		local left, right = self:optimizeNode(data[2]) or data[2], self:optimizeNode(data[3]) or data[3]
 
 		local ret
 		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
@@ -87,36 +90,165 @@ Optimizations = {
 					local left_value, right_value = left.data[2], right.data[2]
 					if op == "+" then
 						local val = left_value + right_value
-						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+						return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 					elseif op == "-" then
 						local val = left_value - right_value
-						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+						return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 					elseif op == "*" then
 						local val = left_value * right_value
-						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+						return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 					elseif op == "/" then
 						local val = left_value / right_value
-						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+						return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 					elseif op == "%" then
 						local val = left_value % right_value
-						ret = Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+						return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
 					end
-				elseif left_kind == "string" and op == "+" then
-					-- Raw string literal concat
+				elseif left_kind == "string" and op == "+" then -- String literal concat
 					-- TODO: Maybe string rep with "foo" * 5 being optimized into "foofoofoofoofoo" ? (Don't know if that exists in Typescript.)
-
 					local left_value, right_value = left.data[2], right.data[2]
-					local new = left_value .. right_value
-					ret = Node.new(NODE_KINDS.Literal, {"string", new})
+					return Node.new(NODE_KINDS.Literal, {"string", left_value .. right_value})
 				end
 			end
 		end
+	end,
 
-		if ret and ptr then
-			ptr.data[2] = ret
-			return Optimizations[NODE_KINDS.ArithmeticOps](self, ptr.data)
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.BitShiftOps] = function(self, data)
+		---@type string
+		local op = data[1]
+
+		local left, right = self:optimizeNode(data[2]) or data[2], self:optimizeNode(data[3]) or data[3]
+		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
+			local left_kind, right_kind = left.data[1], right.data[1]
+
+			if left_kind == right_kind and left_kind == "number" then
+				local left_value, right_value = left.data[2], right.data[2]
+				if op == ">>" then
+					local val = bit.rshift(left_value, right_value)
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+				elseif op == "<<" then
+					local val = bit.lshift(left_value, right_value)
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+				else
+					error("Unrecognized bshift operator: " .. op)
+				end
+			end
 		end
-		return ret
+	end,
+
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.BitwiseOps] = function(self, data)
+		---@type string
+		local op = data[1]
+
+		local left, right = self:optimizeNode(data[2]) or data[2], self:optimizeNode(data[3]) or data[3]
+		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
+			local left_kind, right_kind = left.data[1], right.data[1]
+
+			if left_kind == right_kind and left_kind == "number" then
+				local left_value, right_value = left.data[2], right.data[2]
+				if op == "|" then
+					local val = bit.bor(left_value, right_value)
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+				elseif op == "&" then
+					local val = bit.band(left_value, right_value)
+					return Node.new(NODE_KINDS.Literal, {"number", val, val < 0, data[4]})
+				else
+					error("Unrecognized bitwise operator: " .. op)
+				end
+			end
+		end
+	end,
+
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.LogicalOps] = function(self, data)
+		---@type string
+		local op = data[1]
+
+		local left, right = self:optimizeNode(data[2]) or data[2], self:optimizeNode(data[3]) or data[3]
+		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
+			local left_kind, right_kind = left.data[1], right.data[1]
+
+			if left_kind == right_kind and left_kind == "boolean" then
+				local left_value, right_value = left.data[2], right.data[2]
+				if op == "||" then
+					local val = left_value or right_value
+					return Node.new(NODE_KINDS.Literal, {"boolean", val})
+				elseif op == "&&" then
+					local val = left_value or right_value
+					return Node.new(NODE_KINDS.Literal, {"boolean", val})
+				else
+					error("Unrecognized logical operator: " .. op)
+				end
+			end
+		end
+	end,
+
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.ComparisonOps] = function(self, data)
+		---@type string
+		local op = data[1]
+
+		local left, right = self:optimizeNode(data[2]) or data[2], self:optimizeNode(data[3]) or data[3]
+		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
+			local left_kind, right_kind = left.data[1], right.data[1]
+
+			if left_kind == right_kind and left_kind == "number" then
+				local left_value, right_value = left.data[2], right.data[2]
+				if op == "<=" then
+					return Node.new(NODE_KINDS.Literal, {"boolean", left_value <= right_value})
+				elseif op == ">=" then
+					return Node.new(NODE_KINDS.Literal, {"boolean", left_value >= right_value})
+				elseif op == ">" then
+					return Node.new(NODE_KINDS.Literal, {"boolean", left_value > right_value})
+				elseif op == "<" then
+					return Node.new(NODE_KINDS.Literal, {"boolean", left_value < right_value})
+				elseif op == "!=" then
+					return Node.new(NODE_KINDS.Literal, {"boolean", left_value ~= right_value})
+				elseif op == "==" then
+					return Node.new(NODE_KINDS.Literal, {"boolean", left_value == right_value})
+				else
+					error("Unrecognized logical operator: " .. op)
+				end
+			end
+		end
+	end,
+
+	-- TODO: Doesn't seem to work.
+	---@param self Analyzer
+	---@param data table<number, any>
+	[NODE_KINDS.Ternary] = function(self, data)
+		local cond, left, right = self:optimizeNode(data[1]) or data[1], self:optimizeNode(data[2]) or data[2], data[3]
+
+		if right then
+			right = self:optimizeNode(right) or right
+			-- cond ? left : right
+			if cond.kind == NODE_KINDS.Literal and cond.data[1] == "boolean" then
+				if cond.data[2] then
+					return left
+				else
+					return right
+				end
+			end
+		else
+			-- cond ?? left
+			if cond.kind == NODE_KINDS.Literal then
+				local cond_kind = cond.data[1]
+				if cond_kind == "boolean" then
+					local cond_val = cond.data[2]
+					if cond_val then
+						return Node.new(NODE_KINDS.Literal, {"boolean", true})
+					else
+						return left
+					end
+				end
+			end
+		end
 	end
 }
 

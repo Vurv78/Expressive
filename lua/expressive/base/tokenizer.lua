@@ -225,8 +225,8 @@ local Matchers = {
 			return pos, pos + 1, { raw = op }
 		end
 
-		-- << >> ++ -- ??
-		op = string.match(str, "^[><+?-]+", pos)
+		-- << >> ++ -- ?? || &&
+		op = string.match(str, "^[><+?%-&|]+", pos)
 		if op and #op == 2 then
 			return pos, pos + 1, { raw = op }
 		end
