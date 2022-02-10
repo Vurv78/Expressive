@@ -78,8 +78,6 @@ Optimizations = {
 
 		---@type Node
 		local left, right = self:optimizeNode(data[2]) or data[2], self:optimizeNode(data[3]) or data[3]
-
-		local ret
 		if left.kind == NODE_KINDS.Literal and right.kind == NODE_KINDS.Literal then
 			local left_kind, right_kind = left.data[1], right.data[1]
 
