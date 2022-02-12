@@ -213,28 +213,16 @@ local Matchers = {
 	---@param str string
 	---@param pos number
 	[KINDS.Operator] = function(_self, str, pos)
-		-- += -= /= %= *= >= <= == != &= ^= |=
-		local op = string.match(str, "^[+%-/%*><=!^|]=", pos)
-		if op then
-			return pos, pos + 1, { raw = op }
-		end
-
-		-- Fat arrow for lambdas () => {}
-		op = string.match(str, "^=>", pos)
-		if op then
-			return pos, pos + 1, { raw = op }
-		end
-
-		-- << >> ++ -- ?? || &&
-		op = string.match(str, "^[><+?%-&|]+", pos)
-		if op and #op == 2 then
-			return pos, pos + 1, { raw = op }
-		end
-
-		-- = ^ * / % $ # @ ! + - > < ? .
-		op = string.match(str, "^[=^*/%%$#@!+%-<>?.]", pos)
-		if op then
-			return pos, pos, { raw = op }
+		-- 2 Length operators
+		local substr = string.sub(str, pos, pos + 1)
+		if ELib.Operators[substr] then
+			return pos, pos + 1, { raw = substr }
+		else
+			-- 1 Length operators
+			substr = string.sub(str, pos, pos)
+			if ELib.Operators[substr] then
+				return pos, pos, { raw = substr }
+			end
 		end
 	end,
 
@@ -242,9 +230,8 @@ local Matchers = {
 	---@param str string
 	---@param pos number
 	[KINDS.Grammar] = function(_self, str, pos)
-		local char = string.match(str, "^[{}()%[%]:;,]", pos)
-		if char then
-			-- ``pos`` is actually already self.pos + 1 since string.find/match is awful and 1 based. amazing
+		local char = string.sub(str, pos, pos)
+		if ELib.Grammar[char] then
 			return pos, pos, { raw = char }
 		end
 	end,

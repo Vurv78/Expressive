@@ -5,20 +5,25 @@ local TOKEN = Syper.TOKEN
 local CLASSES = {"int", "double", "string", "boolean", "void"} -- Base types for now
 local LIBRARIES
 local OPERATORS
+local GRAMMAR
 local KEYWORDS
 
 if ExpressiveEditor then
 	-- CLASSES = table.GetKeys(ExpressiveEditor.HelperData.classes)
 	LIBRARIES = table.GetKeys(ExpressiveEditor.HelperData.libraries)
 	OPERATORS = table.GetKeys(ELib.Operators)
+	GRAMMAR = table.GetKeys(ELib.Grammar)
 	KEYWORDS = table.GetKeys(ELib.Keywords)
 else
 	-- Some other addon's syper is trying to load this, just give generic info because ES isn't loaded yet.
 	CLASSES = {}
 	LIBRARIES = {}
 	OPERATORS = {}
+	GRAMMAR = {}
 	KEYWORDS = {}
 end
+
+local psafe = string.PatternSafe
 
 return {
 	main = {
@@ -66,13 +71,18 @@ return {
 		{"([%a_\128-\255][%w_\128-\255]*)[%w_.]*%s*[%(%{\"']", TOKEN.Callable},
 		-- identifier
 		{"([%a_\128-\255][%w_\128-\255]*)", TOKEN.Identifier},
+
 		-- operators
 		{
-			"([" .. string.PatternSafe("<>-+/*^&@|%?,;$#~.") .. "]+)", TOKEN.Operator, list = OPERATORS,
+			"([" .. psafe("<>+-%/*^=.") .. "]+)", TOKEN.Operator, list = OPERATORS,
 			list_nomatch = TOKEN.Error
 		},
-		-- other
-		{"([%(%)%[%]{},%.:])", TOKEN.Punctuation},
+
+		-- grammar
+		{
+			"([" .. psafe("()[]{},.:;") .. "])", TOKEN.Punctuation, list = GRAMMAR,
+			list_nomatch = TOKEN.Error
+		},
 		{"(.)", TOKEN.Other},
 	},
 	mcomment = {

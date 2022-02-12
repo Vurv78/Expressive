@@ -3,6 +3,8 @@ local MsgN = print
 
 -- Sequel to the E2Lib.
 ---@class ELib
+---@field Operators table<string, boolean>
+---@field Keywords table<string, boolean>
 ---@field Version string
 ---@field Version_NUM number
 ---@field Tokenizer Tokenizer
@@ -22,51 +24,50 @@ local Library = {
 	Version_NUM = 100 -- 1.0.0 -> 100, 1.0.1 -> 101, 0.2.0 -> 020, etc.
 }
 
-Library.Operators = {
-	["+"] = true,
-	["-"] = true,
-	["*"] = true,
-	["/"] = true,
-	["%"] = true,
-	["^"] = true,
-	["="] = true,
-	["+="] = true,
-	["-="] = true,
-	["*="] = true,
-	["/="] = true,
-	["++"] = true,
-	["--"] = true,
-	["=="] = true,
-	["!="] = true,
-	["<"] = true,
-	["<="] = true,
-	[">"] = true,
-	[">="] = true,
-	["&"] = true,
-	["|"] = true,
-	["^^"] = true,
-	[">>"] = true,
-	["<<"] = true,
-	["!"] = true,
-	["&&"] = true,
-	["||"] = true,
-	["?"] = true,
-	[":"] = true,
+Library.Grammar = {
 	[";"] = true,
 	[","] = true,
-	["$"] = true,
-	["#"] = true,
-	["~"] = true,
-	["->"] = true,
-	["."] = true,
 	["("] = true,
 	[")"] = true,
 	["{"] = true,
 	["}"] = true,
+	[":"] = true,
 	["["] = true,
-	["]"] = true,
-	['@'] = true,
-	["..."] = true,
+	["]"] = true
+}
+
+Library.Operators = {
+	-- += -= /= %= *=
+	["+="] = true, ["-="] = true, ["/="] = true, ["%="] = true, ["*="] = true,
+
+	-- >= <= == != > <
+	["=="] = true, ["!="] = true, ["<="] = true, [">="] = true, [">"] = true, ["<"] = true,
+
+	-- &= ^= |=
+	["&="] = true, ["^="] = true, ["|="] = true,
+
+	-- + - * / %
+	["+"] = true, ["-"] = true, ["*"] = true, ["/"] = true, ["%"] = true,
+
+	-- self modifying
+	["++"] = true, ["--"] = true,
+
+	-- bitwise & |
+	["&"] = true, ["|"] = true,
+
+	-- logical ops && ||
+	["&&"] = true, ["||"] = true,
+
+	-- bit shift
+	["<<"] = true, [">>"] = true,
+
+	-- Ternary
+	["?"] = true, ["??"] = true,
+
+	-- Special
+	["."] = true,
+	["="] = true,
+	["=>"] = true,
 }
 
 Library.Keywords = {
