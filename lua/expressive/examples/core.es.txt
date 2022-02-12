@@ -8,14 +8,12 @@
 	They are also untyped, so that you can interact with _G properly.
 */
 
-declare function print(foo: string[]): void;
-declare function error(): void;
-error("Hello world!");
-// declare function print(...args: string[]);
 
-/*declare namespace my_namespace {
-	namespace bar {
-		var baz: number;
-	}
+declare function print(foo: string[]): void;
+declare function error(input: string[]): void;
+
+error("Hello world!");
+
+declare namespace util {
+	function CRC(str: string): string;
 }
-*/
