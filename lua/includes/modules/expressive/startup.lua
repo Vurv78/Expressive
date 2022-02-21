@@ -6,26 +6,26 @@ if CLIENT then
 end
 
 ---@type Namespace
-local _Namespace = include("expressive/core/namespace.lua")
+local _Namespace = include("expressive/runtime/namespace.lua")
 
 ---@type Variable
-local _Var = include("expressive/base/variable.lua")
+local _Var = include("expressive/compiler/variable.lua")
 ---@type Type
-local _Type = include("expressive/core/type.lua")
+local _Type = include("expressive/runtime/type.lua")
 
 ---@type Context
-local Context = include("expressive/core/context.lua")
+local Context = include("expressive/runtime/context.lua")
 
 ---@type Tokenizer
-local Tokenizer = include("expressive/base/tokenizer.lua")
+local Tokenizer = include("expressive/compiler/tokenizer.lua")
 ---@type Parser
-local Parser = include("expressive/base/parser/mod.lua")
+local Parser = include("expressive/compiler/parser/mod.lua")
 ---@type Analyzer
-local Analyzer = include("expressive/base/analysis/mod.lua")
+local Analyzer = include("expressive/compiler/analysis/mod.lua")
 ---@type Transpiler
-local _Transpiler = include("expressive/base/transpiler/mod.lua")
+local _Transpiler = include("expressive/compiler/transpiler/mod.lua")
 
-include("expressive/base/ast.lua")
+include("expressive/compiler/ast.lua")
 include("expressive/instance.lua")
 
 ---@param extensions table<string, string> # File Name -> Content
@@ -80,13 +80,13 @@ local DataStream, _DataStruct = require("datastream")
 if SERVER then
 	local extensions = {}
 	---@type table<number, string>
-	local files = file.Find("expressive/core/extensions/*.es.txt", "LUA")
+	local files = file.Find("expressive/runtime/extensions/*.es.txt", "LUA")
 
 	local stream = DataStream.new()
 	stream:writeU16(#files) -- Max 65536 extensions but at that point wtf
 
 	for _, file_name in pairs(files) do
-		local path = "expressive/core/extensions/" .. file_name
+		local path = "expressive/runtime/extensions/" .. file_name
 		resource.AddSingleFile(path)
 
 		local content = file.Read(path, "LUA")

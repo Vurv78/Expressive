@@ -4,13 +4,13 @@ local ELib = require("expressive/library")
 local src = file.Read("expressive/examples/helloworld.es.txt", "LUA")
 
 ---@type Tokenizer
-local Tokenizer = include("expressive/base/tokenizer.lua")
+local Tokenizer = include("expressive/compiler/tokenizer.lua")
 ---@type Parser
-local Parser = include("expressive/base/parser/mod.lua")
+local Parser = include("expressive/compiler/parser/mod.lua")
 ---@type Analyzer
-local Analyzer = include("expressive/base/analysis/mod.lua")
+local Analyzer = include("expressive/compiler/analysis/mod.lua")
 ---@type Transpiler
-local Transpiler = include("expressive/base/transpiler/mod.lua")
+local Transpiler = include("expressive/compiler/transpiler/mod.lua")
 
 local tok = Tokenizer.new()
 local parser = Parser.new()

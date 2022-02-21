@@ -57,8 +57,8 @@ if SERVER then
 	-- Commented out as they are networked to the client for now.
 	-- https://github.com/Facepunch/garrysmod-issues/issues/5146
 	--[[
-		addResources("lua/expressive/core/extensions")
-		addResources("lua/expressive/core/extensions/client")
+		addResources("lua/expressive/runtime/extensions")
+		addResources("lua/expressive/runtime/extensions/client")
 		-- Note the absence of the server extension folder.
 	]]
 end

@@ -3,28 +3,29 @@ local paths = {
 	"../lua/includes/modules/?.lua",
 	"../?.lua",
 	"../lua/?.lua",
-	"../lua/expressive/base/parser/?.lua",
-	"../lua/expressive/base/analysis/?.lua",
-	"../lua/expressive/base/analysis/optimizer/?.lua",
-	"../lua/expressive/base/transpiler/?.lua",
+	"../lua/expressive/compiler/parser/?.lua",
+	"../lua/expressive/compiler/analysis/?.lua",
+	"../lua/expressive/compiler/analysis/optimizer/?.lua",
+	"../lua/expressive/compiler/transpiler/?.lua",
 }
 
 package.path = table.concat(paths, ";") .. package.path
 
+--- Patch in ``include`` function that should act just as garry's does. (Granted it caches.)
 ---@param path string
-function include(path)
+_G.include = function(path)
 	local p = string.match(path, "^(.*)%.lua$")
 	return require(p)
 end
 require("expressive/library")
 
-local _Var = require("expressive/base/variable")
-local _Namespace = require("expressive/core/namespace")
-local Context = require("expressive/core/context")
-local Tokenizer = require("expressive/base/tokenizer")
-local Parser = require("expressive/base/parser/mod")
-local Analyzer = require("expressive/base/analysis/mod")
-local Transpiler = require("expressive/base/transpiler/mod")
+local _Var = require("expressive/compiler/variable")
+local _Namespace = require("expressive/runtime/namespace")
+local Context = require("expressive/runtime/context")
+local Tokenizer = require("expressive/compiler/tokenizer")
+local Parser = require("expressive/compiler/parser/mod")
+local Analyzer = require("expressive/compiler/analysis/mod")
+local Transpiler = require("expressive/compiler/transpiler/mod")
 
 local ctx = Context.new()
 -- ctx:registerVar("print", Var.new( Analyzer.makeSignature({"string"}, "void"), print, false ))

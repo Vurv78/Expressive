@@ -4,11 +4,11 @@ on:
   push:
     paths:
     - 'lua/**'
-    - '!lua/expressive/core/extensions/**'
+    - '!lua/expressive/runtime/extensions/**'
   pull_request:
     paths:
     - 'lua/**'
-    - '!lua/expressive/core/extensions/**'
+    - '!lua/expressive/runtime/extensions/**'
   workflow_dispatch:
 
 jobs:
