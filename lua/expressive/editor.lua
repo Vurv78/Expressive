@@ -3,9 +3,9 @@
 local Editor = {
 	LastContent = "", -- Hack to get the content of last interacted editor.
 	HelperData = {
-		libraries = {}, -- table<string, table<string, table>>
-		libraries_sig = {}, -- table<string, table<string, table>> @ Same as libraries but using full sig instead of fn name
-		classes = {}, -- table<string, table>
+		namespaces = {}, -- table<string, table<string, table>>
+		variables = {}, -- table<string, table>
+		classes = {},
 		constants = {}
 	}
 }

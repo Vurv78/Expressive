@@ -1,27 +1,21 @@
 ﻿local ELib = require("expressive/library")
 
 local TOKEN = Syper.TOKEN
--- Const data
-local CLASSES = {"int", "double", "string", "boolean", "void"} -- Base types for now
-local LIBRARIES
-local OPERATORS
-local GRAMMAR
-local KEYWORDS
 
-if ExpressiveEditor then
-	-- CLASSES = table.GetKeys(ExpressiveEditor.HelperData.classes)
-	LIBRARIES = table.GetKeys(ExpressiveEditor.HelperData.libraries)
+local TYPES = {}
+local NAMESPACES = {}
+local OPERATORS = {}
+local GRAMMAR = {}
+local KEYWORDS = {}
+
+ELib.OnExtensionsReady(function(ctx)
+	TYPES = table.GetKeys(ctx.types)
+	NAMESPACES = table.GetKeys(ctx.namespaces)
+
 	OPERATORS = table.GetKeys(ELib.Operators)
 	GRAMMAR = table.GetKeys(ELib.Grammar)
 	KEYWORDS = table.GetKeys(ELib.Keywords)
-else
-	-- Some other addon's syper is trying to load this, just give generic info because ES isn't loaded yet.
-	CLASSES = {}
-	LIBRARIES = {}
-	OPERATORS = {}
-	GRAMMAR = {}
-	KEYWORDS = {}
-end
+end)
 
 local psafe = string.PatternSafe
 
@@ -57,11 +51,11 @@ return {
 		{"(class)", TOKEN.Keyword_Modifier, "class"},
 		-- class
 		{
-			"([%a_][%w_]*)", TOKEN.Class, list = CLASSES
+			"([%a_][%w_]*)", TOKEN.Class, list = TYPES
 		},
 		-- library
 		{
-			"([%a_][%w_]*)", TOKEN.Identifier_Modifier, list = LIBRARIES
+			"([%a_][%w_]*)", TOKEN.Identifier_Modifier, list = NAMESPACES
 		},
 		-- keyword
 		{

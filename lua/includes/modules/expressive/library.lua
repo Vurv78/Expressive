@@ -314,6 +314,28 @@ function Library.ReadProcessor(from, callback)
 	end)
 end
 
+local ExtensionCallbacks = {}
+
+---@param callback fun(ctx: Context)
+function Library.OnExtensionsReady(callback)
+	if Library.ExtensionCtx then
+		callback(Library.ExtensionCtx)
+	else
+		ExtensionCallbacks[callback] = true
+	end
+end
+
+if hook then
+	hook.Add("Expressive.PostRegisterExtensions", "Main", function()
+		local ctx = Library.ExtensionCtx
+		print("Calling extension callbacks!")
+		for callback in pairs(ExtensionCallbacks) do
+			callback(ctx)
+		end
+		ExtensionCallbacks = {}
+	end)
+end
+
 ---@param data ProcessorData
 ---@param callback fun(ok: boolean, data: ProcessorData)
 function Library.WriteProcessor(data, callback)

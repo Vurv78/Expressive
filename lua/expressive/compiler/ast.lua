@@ -23,7 +23,7 @@ function Ast:walk(callback, depth)
 		if Ast:instanceof(v) then
 			v:walk(callback, depth + 1)
 		elseif ELib.Parser.Node:instanceof(v) then
-			self.walk(v.data, callback, depth)
+			Ast.walk(v.data, callback, depth)
 			--[[for k, v2 in ipairs(v.data) do
 				print( string.format("%s[%s (%s: %s)]", string.rep("\t", depth), ELib.Parser.KINDS_INV[v.kind], type(v2), v2))
 				if getmetatable(v2) and Ast:instanceof(v2) then

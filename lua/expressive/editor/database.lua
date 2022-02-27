@@ -1,8 +1,18 @@
-﻿local _ELib = require("expressive/library")
+﻿local ELib = require("expressive/library")
 
 -- TODO: This is left over from old E3 fork implementation.
 local function store_data(_extensions)
 	local out_data = ExpressiveEditor.HelperData
+	local ctx = ELib.ExtensionCtx
+
+	table.Merge(out_data.variables, table.GetKeys( ctx.variables) )
+
+	local namespaces = out_data.namespaces
+	for k, namespace in pairs(ctx.namespaces) do
+		print("namespace", k, namespace)
+		-- TODO: No support for stacking > 1 namespaces
+		namespaces[k] = table.GetKeys( namespace.variables )
+	end
 
 	--[[for ext_name, data in pairs(extensions) do
 		local enabled = data.enabled
@@ -46,4 +56,4 @@ local function store_data(_extensions)
 	ExpressiveEditor.HelperData = out_data
 end
 
-hook.Add("Expressive.PostRegisterExtensions", "Expression4.EditorDB", store_data)
+ELib.OnExtensionsReady(store_data)

@@ -6,12 +6,47 @@ local ignore = {"mcomment", "string"}
 
 local env = {}
 
-if ExpressiveEditor then
-	table.Merge(env, ExpressiveEditor.HelperData.libraries_sig)
-	table.Merge(env, ExpressiveEditor.HelperData.constants)
-elseif ELib then
-	table.Merge(env, ELib.Keywords)
-end
+local KIND = {
+	KEYWORD = 1,
+	FUNCTION = 2,
+	VARIABLE = 3,
+	TYPE = 4,
+	NAMESPACE = 5
+}
+
+local KIND_INV = ELib.GetInverted(KIND)
+
+ELib.OnExtensionsReady(function(ctx)
+	for k in pairs(ELib.Keywords) do
+		env[k] = KIND.KEYWORD
+	end
+
+	for k, var in pairs(ctx.variables) do
+		local params = string.match(var.type, "^function%((%w+)%)")
+		if params then
+			env[k .. "(" .. params .. ")"] = KIND.FUNCTION
+		else
+			env[k] = KIND.VARIABLE
+		end
+	end
+
+	for k in pairs(ctx.types) do
+		env[k] = KIND.TYPE
+	end
+
+	for k, mod in pairs(ctx.namespaces) do
+		local tbl = {}
+		for k2, var in pairs(mod.variables) do
+			local params = string.match(var.type, "^function%((%w+)%)")
+			if params then
+				tbl[k2 .. "(" .. params .. ")"] = KIND.FUNCTION
+			else
+				tbl[k2] = KIND.VARIABLE
+			end
+		end
+		env[k] = tbl
+	end
+end)
 
 return {
 	name = "Expressive",
@@ -125,15 +160,6 @@ return {
 		return "[\"" .. tostring(key) .. "\"]", rem
 	end,
 	livevalue = function(value)
-		local typ = type(value)
-		local val = tostring(value)
-
-		if typ == "table" then
-			val = table.Count(value) .. " entries"
-		elseif typ == "function" then
-			return val
-		end
-
-		return typ .. ": " .. val
+		return KIND_INV[value] or "namespace"
 	end
 }
