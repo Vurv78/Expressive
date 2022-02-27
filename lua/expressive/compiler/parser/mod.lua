@@ -136,14 +136,13 @@ local Node = class("Node")
 Parser.Node = Node
 
 function Node:__tostring()
-	return string.format("Node \"%s\" (#%u)", KINDS_INV[self.kind], #self.data)
+	return string.format("Node \"%s\" (#%u)", ELib.Parser.KINDS_INV[self.kind], #self.data)
 end
 
 --- Returns a human friendly string description of the node, for error handling.
 ---@return string
 function Node:human()
-	local udata = KINDS_UDATA[self.kind]
-	return udata.desc
+	return ELib.Parser.KINDS_UDATA[self.kind].desc
 end
 
 ---@return boolean # Whether the node is an expression node.
@@ -172,7 +171,7 @@ end
 
 --- Parses a stream of tokens into an abstract syntax tree (AST)
 ---@param tokens table<number, Token> # Tokens retrieved from the [Tokenizer]
----@return table<number, Node>
+---@return Ast
 function Parser:parse(tokens)
 	assert(type(tokens) == "table", "bad argument #1 to 'Parser:parse' (table expected, got " .. type(tokens) .. ")")
 
@@ -184,7 +183,7 @@ function Parser:parse(tokens)
 		local tok = self.tokens[self.tok_idx]
 		error("Parser error: [" .. res .. "] at line " .. tok.line .. " char " .. tok.startchar, 0)
 	end
-	return res
+	return ELib.Ast.new(res)
 end
 
 function Parser:hasTokens()
@@ -371,16 +370,17 @@ end
 
 
 --- Accepts a block, or throws an error if it couldn't.
----@return table<number, Node>
+---@return Ast
 function Parser:acceptBlock()
 	assert( self:popToken(TOKEN_KINDS.Grammar, "{"), "Expected { in block" )
 
+	local nodes, node_idx = ELib.Ast.new({}), 0
+
 	-- Empty block
 	if self:popToken(TOKEN_KINDS.Grammar, "}") then
-		return {}
+		return nodes
 	end
 
-	local nodes, node_idx = {}, 0
 	repeat
 		node_idx = node_idx + 1
 		local node = self:next()

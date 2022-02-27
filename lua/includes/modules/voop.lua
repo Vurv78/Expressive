@@ -28,7 +28,7 @@ end
 ---@param self T
 ---@return boolean
 function Object:instanceof(x)
-	return (type(x) == "table") and getmetatable(x).__name__ == self.__name__
+	return getmetatable(x) == self.__metatable
 end
 
 ---@generic T
@@ -42,7 +42,7 @@ end
 ---@generic T : Object
 ---@return T
 local function class(name, extends)
-	local t = { __name__ = name }
+	local t = { __metatable = name }
 	t.__index = t
 
 	extends = extends or Object

@@ -35,8 +35,9 @@ local KINDS = {
 ---@class Scope: Object
 ---@field priv table<string, Variable>
 ---@field parent Scope?
----@field index number
----@field kind number
+---@field index integer
+---@field depth integer
+---@field kind integer
 local Scope = class("Scope")
 Scope.KINDS = KINDS
 
@@ -45,22 +46,26 @@ local counter = 0
 --- Creates a new scope.
 ---@see `Scope.KINDS`
 ---@param kind ScopeKind 1 | 2 | 3 | 4 | 5
+---@param index integer
+---@param depth integer
 ---@return Scope
-function Scope.new(kind)
+function Scope.new(kind, index, depth)
 	counter = counter + 1
 	return setmetatable({
 		priv = {},
 		kind = kind,
-		index = counter
+		index = index,
+		depth = depth or 0,
 	}, Scope)
 end
 
 --- Derives a new scope from a previous one.
 ---@param parent Scope
 ---@param kind ScopeKind
+---@param index integer
 ---@return Scope
-function Scope.from(parent, kind)
-	local scope = Scope.new(kind)
+function Scope.from(parent, kind, index)
+	local scope = Scope.new(kind, index, parent.depth + 1)
 	scope.parent = parent
 	scope.priv = setmetatable({}, {
 		__index = parent.priv

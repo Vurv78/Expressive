@@ -4,8 +4,18 @@ local class = require("voop")
 --- A type for Expression4
 ---@class Type: Object
 ---@field name string
+---@field extends Type?
+---@field data ClassData?
 ---@field typeof fun(x: any): boolean # Function that returns true if x is an instance of this type.
 local Type = class("Type")
+
+function Type:__tostring()
+	if self.extends then
+		return "Type: " .. self.name .. " extends " .. tostring(self.extends)
+	else
+		return "Type: " .. self.name
+	end
+end
 
 --- Creates a new type, to be registered in an extension
 ---@param name string
@@ -22,10 +32,6 @@ function Type.new(name, extends, data)
 		__metatable = Type,
 		__index = extends or Type
 	}, extends or Type)
-end
-
-function Type:__tostring()
-	return "Type: (" .. self.name .. ")"
 end
 
 --- Asserts that a [Type] struct is completely ready to be used by E4.

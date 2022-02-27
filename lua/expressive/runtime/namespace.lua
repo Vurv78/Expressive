@@ -9,6 +9,14 @@ local class = require("voop")
 ---@field types table<TypeSig, Type>
 local Namespace = class("Namespace")
 
+function Namespace:__tostring()
+	if self.super then
+		return "Namespace: " .. self.name .. " extends " .. tostring(self.super)
+	else
+		return "Namespace: " .. self.name
+	end
+end
+
 --- Creates a new namespace
 ---@param name string
 ---@param super Namespace

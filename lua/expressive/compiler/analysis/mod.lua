@@ -22,10 +22,14 @@ local Scope = include("scope.lua")
 Analyzer.Scope = Scope
 
 function Analyzer:reset()
-	local global_scope = Scope.new( Scope.KINDS.GLOBAL )
+	local global_scope = Scope.new( Scope.KINDS.GLOBAL, 0, 0 )
+
+	-- (0 .. MAX_SCOPES) * MAX_SCOPE_DEPTH
 	self.scopes = { [0] = global_scope }
 	self.global_scope = global_scope
 	self.current_scope = global_scope
+	self.scope_depth = 0
+	self.scope_ptr = 1
 
 	-- Note lack of resetting configs
 	self.ctx = nil
@@ -42,13 +46,27 @@ function Analyzer.new()
 	return instance
 end
 
+function Analyzer:setPtr(ptr)
+	self.scope_ptr = ptr
+	self.current_scope = self.scopes[ptr]
+	self.scope_depth = self.current_scope.depth
+end
+
 --- Creates a new scope derived from the current scope
 ---@param kind ScopeKind
 ---@return Scope
 function Analyzer:pushScope(kind)
-	local scope = Scope.from(self.current_scope, kind)
-	self.scopes[#self.scopes + 1] = scope
+	local scope_depth = self.scope_depth + 1
+	if scope_depth >= self.configs.MaxScopeDepth then
+		error("Reached scope depth limit")
+	end
+	local scope = Scope.from(self.current_scope, kind, self.scope_ptr)
+
+	self.scopes[self.scope_ptr] = scope
+	self.scope_ptr = self.scope_ptr + 1
 	self.current_scope = scope
+	self.scope_depth = scope_depth
+
 	return scope
 end
 
@@ -58,6 +76,7 @@ function Analyzer:popScope()
 	local scope = self:getScope()
 	if scope.parent then
 		self.current_scope = scope.parent
+		self.scope_depth = self.scope_depth - 1
 	end
 end
 
@@ -99,17 +118,32 @@ local AnalyzerConfigs = {
 	--- declare function foo(): void;
 	--- ```
 	--- **Should NOT ever be enabled for chips**
-	AllowDeclare = false
+	AllowDeclare = false,
+
+	--- ### Max scope depth
+	--- The maximum depth of scopes allowed.  
+	MaxScopeDepth = 512
 }
 
 --- Processes the given AST, properly assigning scopes and types along the way
 ---@param ctx Context # Context retrieved from [Context.new]
----@param ast table<number, Node> # AST Retrieved from the [Parser]
+---@param ast Ast # AST Retrieved from the [Parser]
 ---@param configs AnalyzerConfigs? # Optional configs for the analyzer, uses default values if passed nil.
 ---@return table<number, Node> new_ast # A processed and optimized AST.
 function Analyzer:process(ctx, ast, configs)
-	configs = configs or AnalyzerConfigs
+	if configs then
+		-- Use missing values from AnalyzerConfigs
+		for k, v in pairs(AnalyzerConfigs) do
+			if configs[k] == nil then
+				configs[k] = v
+			end
+		end
+	else
+		configs = AnalyzerConfigs
+	end
+
 	self.configs = configs
+
 	self.externs = {}
 
 	--- Throws a C like lua param error if ``ast`` param is not a table.

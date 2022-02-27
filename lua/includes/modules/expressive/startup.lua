@@ -5,13 +5,10 @@ if CLIENT then
 	include("expressive/editor/database.lua")
 end
 
----@type Namespace
-local _Namespace = include("expressive/runtime/namespace.lua")
-
----@type Variable
-local _Var = include("expressive/compiler/variable.lua")
----@type Type
-local _Type = include("expressive/runtime/type.lua")
+include("expressive/runtime/namespace.lua")
+include("expressive/compiler/variable.lua")
+include("expressive/runtime/type.lua")
+include("expressive/compiler/ast.lua")
 
 ---@type Context
 local Context = include("expressive/runtime/context.lua")
@@ -25,7 +22,6 @@ local Analyzer = include("expressive/compiler/analysis/mod.lua")
 ---@type Transpiler
 local _Transpiler = include("expressive/compiler/transpiler/mod.lua")
 
-include("expressive/compiler/ast.lua")
 include("expressive/instance.lua")
 
 ---@param extensions table<string, string> # File Name -> Content

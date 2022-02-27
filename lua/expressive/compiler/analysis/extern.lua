@@ -1,5 +1,6 @@
 --- Extern Pass
 local ELib = require("expressive/library")
+local Ast = ELib.Ast
 
 -- First pass of the analyzer.
 -- Just gather any data that can be gathered without any other variables in context.
@@ -71,28 +72,48 @@ ExternHandlers = {
 	end,
 }
 
-local Handlers = {
+local Handlers
+Handlers = {
 	---@param self Analyzer
 	---@param node Node
 	[NODE_KINDS.Declare] = function(self, node)
 		assert(self.configs.AllowDeclare, "Declare statements are not allowed in regular code")
 
+		-- Justification: These variables will be injected to the whole environment anyways, and we can't allow multiple decls which scoping would allow.
+		-- However: Gonna need to change this to work with server and client blocks.
+		assert(self.scope_depth == 0, "Declarations cannot be outside the top scope.")
+
 		local type, var_name = node.data[1], node.data[2]
+
 		local handler = ExternHandlers[type]
 		if handler then
 			ExternHandlers[type](self, var_name, node.data, self.ctx)
+		end
+	end,
+
+	---@param self Analyzer
+	---@param node Node
+	[NODE_KINDS.Export] = function(self, node)
+		-- In case of export declare ...
+		local inner = node.data[1]
+		if Handlers[inner.kind] then
+			return Handlers[inner.kind](self, inner)
 		end
 	end
 }
 
 --- Runs first pass on the analyzer
----@param ast table<number, Node>
+---@param ast Ast
 function Analyzer:externPass(ast)
 	if not ast then return end -- Empty block
-	for _, node in ipairs(ast) do
-		local handler = Handlers[node.kind]
-		if handler then
-			handler(self, node)
+
+	-- Depth hack. Probably want to make an Analyzer:walk function that does this for you.
+	local dep = self.scope_depth
+	ast:walk(function(node, depth)
+		self.scope_depth = dep + depth
+		if Handlers[node.kind] then
+			Handlers[node.kind](self, node)
 		end
-	end
+	end)
+	self.scope_depth = dep
 end

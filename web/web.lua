@@ -20,6 +20,7 @@ end
 require("expressive/library")
 
 local _Var = require("expressive/compiler/variable")
+local _Ast = require("expressive/compiler/ast")
 local _Namespace = require("expressive/runtime/namespace")
 local Context = require("expressive/runtime/context")
 local Tokenizer = require("expressive/compiler/tokenizer")

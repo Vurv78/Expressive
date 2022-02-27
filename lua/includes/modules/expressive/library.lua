@@ -10,6 +10,7 @@ local MsgN = print
 ---@field Tokenizer Tokenizer
 ---@field Analyzer Analyzer
 ---@field Parser Parser
+---@field Ast Ast
 ---@field Extensions table<number, Extension> # Table of Extensions. Do not interact with this.
 ---@field Type Type
 ---@field Instance Instance
