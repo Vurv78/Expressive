@@ -1,6 +1,5 @@
 --- Extern Pass
 local ELib = require("expressive/library")
-local Ast = ELib.Ast
 
 -- First pass of the analyzer.
 -- Just gather any data that can be gathered without any other variables in context.
