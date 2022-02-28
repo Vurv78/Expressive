@@ -78,6 +78,7 @@ end
 ---@field GroupedExpr number
 ---@field Index number
 ---@field Array number
+---@field Object number
 ---@field Block number
 ---@field Lambda number
 ---@field Constructor number
@@ -114,6 +115,7 @@ local KINDS, KINDS_UDATA = ELib.MakeEnum {
 	Expr("GroupedExpr", "grouped expression"), -- (x + y)
 	Expr("Index", "index"), -- x.y or x[y]
 	Expr("Array", "array literal"), -- [1, 2, 3]
+	Expr("Object", "literal object"), -- { foo: 5, bar: "hello" }
 	Expr("Block", "block"), -- { ... }
 	Expr("Lambda", "lambda / closure"), -- function(x...) { ... }
 	Expr("Constructor", "new expression"), -- new Foo()
@@ -255,6 +257,13 @@ function Parser:acceptCondition()
 	assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to close condition" )
 
 	return exp
+end
+
+--- Accepts an identifier and returns it as a string.
+---@return string
+function Parser:acceptIdent()
+	local tok = self:popToken(TOKEN_KINDS.Identifier)
+	return tok and tok.raw
 end
 
 ---@return Node?

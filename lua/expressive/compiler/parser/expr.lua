@@ -226,35 +226,82 @@ Expressions = {
 		return Expressions[13](self, token)
 	end,
 
-	-- Block expression
+	--- Object
+	--- Same as typescript / javascript objects, where it is a curly brace delimited
+	--- object defined with key and values, like { foo: "bar", baz: "qux" }
+	--- ```ts
+	--- let x = {
+	---    foo: 1,
+	---    bar: 2
+	--- };
+	--- ```
 	---@param self Parser
 	---@param token Token
 	[13] = function(self, token)
+		-- { key: value }
+		if isToken(token, TOKEN_KINDS.Grammar, "{") then
+			local field = self:acceptIdent()
+			if not field then return end
+			if not self:popToken(TOKEN_KINDS.Grammar, ":") then return end
+
+			local exp = Expressions[1](self, self:nextToken())
+			local expr = assert( exp, "Expected expression after field " .. field )
+
+			local fields = {}
+			while field do
+				assert( not fields[field], "Duplicate field " .. field )
+				fields[field] = expr
+
+				if self:popToken(TOKEN_KINDS.Grammar, "}") then
+					break
+				end
+
+				if self:popToken(TOKEN_KINDS.Grammar, ",") then
+					field = self:acceptIdent()
+					if not field then break end -- Allow trailing comma
+					assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected colon to follow field name" )
+
+					expr = assert( Expressions[1](self, self:nextToken()), "Expected expression after field " .. field )
+				else
+					assert( self:popToken(TOKEN_KINDS.Grammar, "}"), "Expected } or , after argument" )
+					break
+				end
+			end
+
+			return Node.new(NODE_KINDS.Object, { fields })
+		end
+		return Expressions[14](self, token)
+	end,
+
+	-- Block expression
+	---@param self Parser
+	---@param token Token
+	[14] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Grammar, "{") then
 			self.tok_idx = self.tok_idx - 1 -- Move backward to accept block
 			local block = self:acceptBlock()
 
 			return Node.new(NODE_KINDS.Block, { block })
 		end
-		return Expressions[14](self, token)
+		return Expressions[15](self, token)
 	end,
 
 	--- Constructor
 	---@param self Parser
 	---@param token Token
-	[14] = function(self, token)
+	[15] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "new") then
 			local class_name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected class name after 'new' keyword")
 			local args = assert(self:acceptArguments(), "Expected arguments for class constructor")
 			return Node.new(NODE_KINDS.Constructor, { class_name.raw, args })
 		end
-		return Expressions[15](self, token)
+		return Expressions[16](self, token)
 	end,
 
 	--- Literal
 	---@param self Parser
 	---@param token Token
-	[15] = function(self, token)
+	[16] = function(self, token)
 		local num = isAnyOfKind(token, {TOKEN_KINDS.Decimal, TOKEN_KINDS.Hexadecimal, TOKEN_KINDS.Integer, TOKEN_KINDS.Octal})
 		if num then
 			return Node.new(NODE_KINDS.Literal, { "number", token.value, token.negative, NumFormats[num] })
@@ -266,13 +313,13 @@ Expressions = {
 			return Node.new(NODE_KINDS.Literal, { "null" })
 		end
 
-		return Expressions[16](self, token)
+		return Expressions[17](self, token)
 	end,
 
 	--- Identifier (Variable references)
 	---@param self Parser
 	---@param token Token
-	[16] = function(_self, token)
+	[17] = function(_self, token)
 		if isToken(token, TOKEN_KINDS.Identifier) then
 			return Node.new(NODE_KINDS.Variable, { token.raw })
 		end

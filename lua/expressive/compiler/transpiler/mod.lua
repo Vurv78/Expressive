@@ -123,6 +123,18 @@ local Transpilers = {
 
 	---@param self Transpiler
 	---@param data table<number, any>
+	[NODE_KINDS.Object] = function(self, data)
+		local fields = data[1]
+		local buf, nbuf = {}, 1
+		for key, val in pairs(fields) do
+			buf[nbuf] = fmt("[\"%s\"] = %s", key, self:transpile(val))
+			nbuf = nbuf + 1
+		end
+		return fmt("{%s}", table.concat(buf, ", "))
+	end,
+
+	---@param self Transpiler
+	---@param data table<number, any>
 	[NODE_KINDS.CallExpr] = function(self, data)
 		local fn_expr, args = data[1], data[2]
 		for i, v in ipairs(args) do
@@ -431,7 +443,7 @@ function Transpiler:transpile(node)
 	end
 
 	if not node.kind then
-		debug.Trace()
+		print( debug.traceback() )
 	end
 	ErrorNoHalt("ES: !!! Unimplemented Transpile target: ", Parser.KINDS_INV[node.kind] or node.kind, "\n")
 	return ""

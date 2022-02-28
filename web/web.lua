@@ -17,6 +17,15 @@ _G.include = function(path)
 	local p = string.match(path, "^(.*)%.lua$")
 	return require(p)
 end
+_G.ErrorNoHalt = function(...)
+	local tbl = {}
+	for i = 1, select("#", ...) do
+		tbl[i] = tostring(select(i, ...))
+	end
+
+	error( table.concat(tbl, "") )
+end
+
 require("expressive/library")
 
 local _Var = require("expressive/compiler/variable")
