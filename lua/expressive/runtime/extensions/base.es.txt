@@ -2,8 +2,12 @@
 	Base Types for Expressive
 */
 
+/*
+declare type any;
+declare type function;
 declare type double;
 declare type string;
 declare type int;
 declare type boolean;
 declare type void;
+*/

@@ -1,6 +1,8 @@
 local ELib = require("expressive/library")
 local class = require("voop")
 
+local Type = ELib.Type
+
 ---@type TokenKinds
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
 local TOKEN_KINDS_INV = ELib.Tokenizer.KINDS_INV
@@ -405,14 +407,15 @@ end
 
 ---@return string
 function Parser:acceptType()
-	--- TODO: This needs to properly create a type struct, which stores whether it is variadic, array, etc.
-	local ty = self:popToken(TOKEN_KINDS.Identifier)
+	local ty = self:acceptIdent()
+	local data
 	if ty then
 		if self:popToken(TOKEN_KINDS.Grammar, "[") then
 			assert( self:popToken(TOKEN_KINDS.Grammar, "]"), "Expected ] to complete array type (int[])" )
-			return ty.raw
+			ty, data = Type.new(Type.KINDS.Alias, bit.bor(Type.FLAGS.Array))
+			data.array_of = ty
 		end
-		return ty.raw
+		return ty
 	else
 		local params = self:acceptTypes()
 		if params then
@@ -457,14 +460,14 @@ function Parser:acceptTypedParameters()
 
 	local arg, ty
 	while self:hasTokens() do
-		arg = self:popToken(TOKEN_KINDS.Identifier)
+		arg = self:acceptIdent()
 		if not arg then break end
 
 		-- "Expected : after argument to begin type" )
 
 		if self:popToken(TOKEN_KINDS.Grammar, ":") then
 			ty = assert(self:acceptType(), "Expected type after : in function parameter")
-			args[#args + 1] = { arg.raw, ty }
+			args[#args + 1] = { arg, ty }
 		end
 
 		if not self:popToken(TOKEN_KINDS.Grammar, ",") then

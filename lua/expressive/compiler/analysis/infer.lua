@@ -119,9 +119,11 @@ local Handlers = {
 			error("Cannot overwrite variable " .. name .. ":" .. v.type .. " with function")
 		end
 
-		---@type table<number, string>
+		---@type table<number, Type>
 		local param_types = {}
-		for k, paramdata in ipairs(args) do param_types[k] = paramdata[2] end
+		for k, paramdata in ipairs(args) do
+			param_types[k] = paramdata[2]
+		end
 
 		-- Set function in the outer scope.
 		self:getScope():setType(name, makeSignature(param_types, self:getReturnType(block)))
@@ -149,9 +151,16 @@ local Handlers = {
 	---@param self Analyzer
 	---@param data table<number, any>
 	[NODE_KINDS.Class] = function(self, data)
-		local name, class_data = data[1], data[2]
+		local name = data[1]
+		---@type ClassData
+		local class_data = data[2]
 		assert(not self.types[name], "Class " .. name .. " is already defined")
-		self.types[name] = Type.new(name, nil, class_data)
+
+		local ty = Type.new(name)
+		ty.fields = class_data.fields
+		ty.data = type_data
+
+		self.types[name] = ty
 	end,
 
 	---@param self Analyzer

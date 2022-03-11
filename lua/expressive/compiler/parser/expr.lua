@@ -291,9 +291,9 @@ Expressions = {
 	---@param token Token
 	[15] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "new") then
-			local class_name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected class name after 'new' keyword")
+			local class_name = assert( self:acceptIdent(), "Expected class name after 'new' keyword")
 			local args = assert(self:acceptArguments(), "Expected arguments for class constructor")
-			return Node.new(NODE_KINDS.Constructor, { class_name.raw, args })
+			return Node.new(NODE_KINDS.Constructor, { class_name, args })
 		end
 		return Expressions[16](self, token)
 	end,

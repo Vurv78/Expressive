@@ -123,7 +123,7 @@ function Scope:set(name, var)
 end
 
 ---@param name string
----@param ty TypeSig
+---@param ty Type
 function Scope:setType(name, ty)
 	if not self:lookup(name) then
 		self:set(name, Var.new(ty))

@@ -17,12 +17,12 @@ Declarations = {
 	---@param token Token
 	function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "function") then
-			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected function after 'function'" )
+			local name = assert( self:acceptIdent(), "Expected function name after 'function'" )
 			local params = assert(self:acceptTypedParameters(), "Expected typed parameters after function name")
 			assert(self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : to precede return type of declared function")
 			local ret_type = assert( self:acceptType(), "Expected return type after :, got " .. self:peek().raw )
 
-			return {"function", name.raw, params, ret_type}
+			return {"function", name, params, ret_type}
 		end
 	end,
 
@@ -35,10 +35,10 @@ Declarations = {
 	function(self, token)
 		local kind = isAnyOf(token, TOKEN_KINDS.Keyword, {"var", "const"})
 		if kind then
-			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected variable name after 'var' in declare statement" )
+			local name = assert( self:acceptIdent(), "Expected variable name after 'var' in declare statement" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected ':' after variable name in declare statement" )
 			local ty = assert( self:acceptType(), "Expected type after ':' in declare statement" )
-			return {"var", name.raw, kind, ty}
+			return {"var", name, kind, ty}
 		end
 	end,
 
@@ -51,8 +51,8 @@ Declarations = {
 	---@param token Token
 	function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "type") then
-			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected type name (foo) after 'type'" )
-			return {"type", name.raw}
+			local name = assert( self:acceptIdent(), "Expected type name (foo) after 'type'" )
+			return {"type", name}
 		end
 	end,
 
@@ -69,7 +69,7 @@ Declarations = {
 	---@param token Token
 	function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "namespace") then
-			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected namespace name after 'namespace'" )
+			local name = assert( self:acceptIdent(), "Expected namespace name after 'namespace'" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, "{"), "Expected '{' after namespace name" )
 			local nodes = {}
 			-- Use :peek as to not harm the current tokens for error handling if an improper node is given in the namespace body
@@ -90,7 +90,7 @@ Declarations = {
 				node = self:acceptDeclare( self:nextToken(), true )
 			end
 
-			return { "namespace", name.raw, nodes }
+			return { "namespace", name, nodes }
 		end
 	end
 }

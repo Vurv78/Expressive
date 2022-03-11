@@ -174,8 +174,12 @@ local Infer = {
 	[NODE_KINDS.CallExpr] = function(self, data)
 		-- TODO: Overloads
 		local expr = data[1]
-		local ty = self:typeFromExpr(expr)
-		return string.match(ty, "^[^:]+:(.+)")
+		---@type Type
+		local ty = assert( self:typeFromExpr(expr), "Couldn't determine type of called function" )
+
+		---@type FunctionData
+		local fndata = ty.data
+		return fndata.return_type
 	end
 }
 

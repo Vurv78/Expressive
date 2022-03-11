@@ -76,7 +76,7 @@ Statements = {
 		if isToken(token, TOKEN_KINDS.Keyword, "for") then
 			assert( self:popToken(TOKEN_KINDS.Grammar, "("), "Expected ( in for statement" )
 			local kw = assert( self:popAnyOf(TOKEN_KINDS.Keyword, {"let", "const", "var"}), "Expected keyword to start for loop (for (let x...))" )
-			local vname = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected variable name in for loop (for (let x = ...))" ).raw
+			local vname = assert( self:acceptIdent(), "Expected variable name in for loop (for (let x = ...))" )
 			assert( self:popToken(TOKEN_KINDS.Operator, "="), "Expected = in for loop (for (let x = 5...))" )
 			local start_expr = assert( self:parseExpression(self:nextToken()), "Expected expression in for loop (for (let x = 5; x > 5; x++) {})" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; in for loop, after set expression (for (let x = 5; ...))" )
@@ -98,9 +98,9 @@ Statements = {
 			local block = assert( self:acceptBlock(), "Expected block after try statement" )
 			assert( self:popToken(TOKEN_KINDS.Keyword, "catch"), "Expected catch after try statement" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, "("), "Expected (variable) after catch" )
-			local vname = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected variable name in catch statement" ).raw
+			local vname = assert( self:acceptIdent(), "Expected variable name in catch statement" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected : after variable name in catch statement, to denote type" )
-			local ty = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected type in catch statement" )
+			local ty = assert( self:acceptType(), "Expected type in catch statement after ':'" )
 			assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to close catch statement" )
 			local catch_block = assert( self:acceptBlock(), "Expected block after catch statement" )
 
@@ -123,10 +123,10 @@ Statements = {
 	[NODE_KINDS.VarDeclare] = function(self, token)
 		local assign_kw = isAnyOf(token, TOKEN_KINDS.Keyword, {"var", "let", "const"})
 		if assign_kw then
-			local vname = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected variable name in variable declaration, got " .. ELib.Inspect(self:peek()) ).raw
+			local vname = assert( self:acceptIdent(), "Expected variable name in variable declaration, got " .. ELib.Inspect(self:peek()) )
 			local ty = nil -- Type for the analyzer to infer, or else error if it could not.
 			if self:popToken(TOKEN_KINDS.Grammar, ":") then
-				ty = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected type after : in variable declaration, got " .. self:nextToken().raw ).raw
+				ty = assert( self:acceptIdent(), "Expected type after : in variable declaration, got " .. self:nextToken().raw )
 			end
 			assert( self:popToken(TOKEN_KINDS.Operator, "="), "Expected = in variable declaration" )
 			local expr = assert( self:parseExpression(self:nextToken()), "Expected expression in variable declaration" )
@@ -170,10 +170,10 @@ Statements = {
 	---@param token Token
 	[NODE_KINDS.Class] = function(self, token)
 		if isToken(token, TOKEN_KINDS.Keyword, "class") then
-			local name = assert( self:popToken(TOKEN_KINDS.Identifier), "Expected class name after class keyword" )
+			local name = assert( self:acceptIdent(), "Expected class name after class keyword" )
 			local data = assert( self:acceptClassBlock(), "Expected left curly bracket ({) to begin class definition" )
 
-			return { name.raw, data }
+			return { name, data }
 		end
 	end,
 
@@ -187,9 +187,8 @@ Statements = {
 	---@param self Parser
 	---@param token Token
 	[NODE_KINDS.Function] = function(self, token)
-		local name = self:popToken(TOKEN_KINDS.Identifier)
+		local name = self:acceptIdent()
 		if isToken(token, TOKEN_KINDS.Keyword, "function") and name then
-			name = name.raw
 			local params = assert(self:acceptTypedParameters(), "Expected function parameters after function declaration")
 			local block = self:acceptBlock()
 

@@ -7,7 +7,7 @@ end
 
 include("expressive/runtime/namespace.lua")
 include("expressive/compiler/variable.lua")
-include("expressive/runtime/type.lua")
+include("expressive/compiler/type.lua")
 include("expressive/compiler/ast.lua")
 
 ---@type Context

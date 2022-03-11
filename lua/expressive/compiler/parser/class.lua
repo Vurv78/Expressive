@@ -7,10 +7,10 @@ local isAnyOf = ELib.Parser.isAnyOf
 
 local TOKEN_KINDS = ELib.Tokenizer.KINDS
 
----@class ClassData
+---@class ClassData: TypeData
 ---@field constructor { args: table<number, table<number, string>>, body: table<number, Node> } # Constructor of the class
----@field fields table<string, TypeSig> # Field names and their types on the class.
----@field static_fields table<string, TypeSig> # Static field names and their types on the class.
+---@field fields table<string, Type> # Field names and their types on the class.
+---@field static_fields table<string, Type> # Static field names and their types on the class.
 
 local Handlers = {
 	---@param self Parser

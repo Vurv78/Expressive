@@ -1,16 +1,13 @@
 local ELib = require("expressive/library")
 local class = require("voop")
 
---- "int", "double", "boolean", "void" etc.
----@alias TypeSig string
-
 ---@class Variable : Object
----@field type TypeSig? Type of the variable if known. May be nil temporarily in between analyzing stages.
+---@field type Type? Type of the variable if known. May be nil temporarily in between analyzing stages.
 ---@field value any? Optional known value of the variable, for optimizations sake
 ---@field mutable boolean Is the variable mutable? Default true
 local Var = class("Variable")
 
----@param type TypeSig
+---@param type Type
 ---@param value any? Optional value, if known.
 ---@param mutable boolean? Is the variable mutable? Default true
 ---@return Variable

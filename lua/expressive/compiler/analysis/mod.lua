@@ -1,6 +1,8 @@
 local ELib = require("expressive/library")
 local class = require("voop")
 
+local Type = ELib.Type
+
 -- Analysis
 -- Type checking and whatnot for the output AST.
 
@@ -8,7 +10,7 @@ local class = require("voop")
 ---@field scopes table<number, Scope>
 ---@field global_scope Scope
 ---@field current_scope Scope
----@field types table<TypeSig, Type> # Registered types / classes. Inherits from context types with __index.
+---@field types table<string, Type> # Registered types / classes. Inherits from context types with __index.
 ---@field configs AnalyzerConfigs
 ---@field ctx Context
 ---@field externs table<string, Type> # Extern values retrieved from extensions. Not to be confused with imports
@@ -210,6 +212,14 @@ function Analyzer:warn(msg, ...)
 	-- TODO: Properly use current node position.
 	local err = fmt(msg, ...)
 	self.warnings[ #self.warnings + 1 ] = { 1, 1, err }
+end
+
+
+---@param name string
+---@return Type?
+function Analyzer:typeFromName(name)
+	-- self.types inherits from current ctx.
+	return self.types[name]
 end
 
 include("util.lua")

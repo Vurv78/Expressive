@@ -35,16 +35,16 @@ ExternHandlers = {
 	---@param data table
 	---@param namespace Namespace
 	["type"] = function(_self, name, _data, namespace)
-		namespace:registerType(name, Type.new(name))
+		namespace:registerType(name, Type.new( Type.KINDS.Primitive ))
 	end,
 
 	---@param self Analyzer
 	---@param name string
 	---@param data table
 	---@param namespace Namespace
-	["var"] = function(_self, name, data, namespace)
+	["var"] = function(self, name, data, namespace)
 		local mutability = data[3] -- "var" or "const"
-		local type = data[4]
+		local type = assert( self:typeFromName(data[4]), "Type " .. data[4] .. " is not defined" )
 		namespace:registerVar(name, Var.new(type, nil, mutability))
 		-- self.externs[name] = Var.new(type, mutability == "const")
 	end,
@@ -53,20 +53,26 @@ ExternHandlers = {
 	---@param name string
 	---@param data table
 	---@param namespace Namespace
-	["function"] = function(_self, name, data, namespace)
+	["function"] = function(self, name, data, namespace)
 		-- Should create a proper function signature with this in the future.
 		local params, ret = data[3], data[4]
 
 		if not params then debug.Trace() end
 
 		-- Extract types from params
-		---@type table<number, TypeSig>
+		---@type table<number, Type>
 		local fn_params = {}
-		for k, v in ipairs(params) do fn_params[k] = v[2] end
-		local type_sig = makeSignature(fn_params, ret)
+		for k, v in ipairs(params) do
+			print("ya", v[2])
+			fn_params[k] = assert( self:typeFromName(v[2]), "Unknown type " .. v[2] .. " for parameter " .. v[1] .. " in function " .. name)
+		end
+
+		local ty, tdata = Type.new()
+		tdata.return_type = assert( self:typeFromName(ret), "Unknown type " .. ret .. " for return type in function " .. name)
+		tdata.params = fn_params
 
 		-- Cannot modify externs
-		local var = Var.new(type_sig, nil, false)
+		local var = Var.new(ty, nil, false)
 		namespace:registerVar(name, var)
 	end,
 }
