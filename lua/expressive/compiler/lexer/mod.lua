@@ -10,7 +10,9 @@ local KINDS,
 	NumericAtom,
 	NumericTypes,
 	BooleanAtom,
-	StringAtom = i.KINDS, i.Atom, i.OperatorAtom, i.NumericAtom, i.NumericTypes, i.BooleanAtom, i.StringAtom
+	StringAtom,
+	CommentAtom,
+	CommentType = i.KINDS, i.Atom, i.OperatorAtom, i.NumericAtom, i.NumericTypes, i.BooleanAtom, i.StringAtom, i.CommentAtom, i.CommentType
 
 ---@class Lexer: Object
 ---@field column integer
@@ -40,8 +42,10 @@ function Lexer:reset()
 	self.code = nil
 end
 
+---@return string?
 function Lexer:peek()
-	return string.sub(self.code, self.pos + 1, self.pos + 1)
+	local c = string.sub(self.code, self.pos + 1, self.pos + 1)
+	return c ~= "" and c or nil
 end
 
 ---@return string? # Character or nil if reached eof
@@ -60,11 +64,11 @@ function Lexer:take()
 		self.column = self.column + 1
 	end
 
-	return c ~= "" and c
+	return c ~= "" and c or nil
 end
 
 ---@param str string # Initial string to drain
----@param cond fun(s: string): boolean
+---@param cond fun(s: string?): boolean
 function Lexer:drain(str, cond)
 	local buf, pos = { str }, 2
 
@@ -183,6 +187,44 @@ function Lexer:next()
 			self.line,
 			char
 		)
+	elseif char == "/" and self:peek() == "/" then
+		self:take()
+
+		-- Single comment
+		return CommentAtom.new(
+			start_col,
+			start_line,
+			self.column,
+			self.line,
+			CommentType.Line,
+			self:drain(self:take(), function(c) return c and c ~= "\n" end)
+		)
+	elseif char == "/" and self:peek() == "*" then
+		-- Multiline comment
+		self:take()
+
+		local buf, nbuf = {}, 1
+		while true do
+			local c = self:take()
+			assert(c, "*/ expected")
+
+			if c == "*" and self:peek() == "/" then
+				self:take()
+				break
+			end
+
+			buf[nbuf] = c
+			nbuf = nbuf + 1
+		end
+
+		return CommentAtom.new(
+			start_col,
+			start_line,
+			self.column,
+			self.line,
+			CommentType.Multiline,
+			table.concat(buf, '')
+		)
 	elseif is_operator(char) then
 		local operator = self:drain(char, is_operator)
 		local op = assert(ELib.Operator[operator], "Invalid operator: " .. operator)
@@ -195,14 +237,15 @@ function Lexer:next()
 			op
 		)
 	elseif char == '"' then
-		local buf = ""
+		local buf, nbuf = {}, 1
 
 		local function check(c)
 			return c and c ~= "\\" and c ~= "\"" and c ~= "\n"
 		end
 
 		while true do
-			buf = buf .. self:drain("", check)
+			buf[nbuf] = self:drain("", check)
+			nbuf = nbuf + 1
 
 			local peek = self:peek()
 			if peek == "\\" then
@@ -212,29 +255,30 @@ function Lexer:next()
 				if n == nil then
 					error("Invalid escape: (reached eof)")
 				elseif n == "\\" then
-					buf = buf .. "\\"
+					buf[nbuf] = "\\"
 				elseif n == '"' then
-					buf = buf .. '"'
+					buf[nbuf] = '"'
 				elseif n == "\n" then
-					buf = buf .. "\n"
+					buf[nbuf] = '\n'
 				elseif n == "\r" then
-					buf = buf .. "\n"
-					if self:peek() == "\n" then
-						self:next()
+					buf[nbuf] = '\n'
+					if self:peek() == '\n' then
+						self:take()
 					end
 				elseif n == "r" then
-					buf = buf .. "\r"
+					buf[nbuf] = '\r'
 				elseif n == "n" then
-					buf = buf .. "\n"
+					buf[nbuf] = '\n'
 				elseif n == "t" then
-					buf = buf .. "\t"
+					buf[nbuf] = '\t'
 				elseif n == "b" then
-					buf = buf .. "\b"
+					buf[nbuf] = '\b'
 				elseif n == "x" then
 					error("Unimplemented: \\x escapes")
 				else
 					error("Invalid escape: (\\" .. self:take() .. ")")
 				end
+				nbuf = nbuf + 1
 			elseif peek == "\n" then
 				error("String ran off eol (escape with \\)")
 			elseif peek == nil then
@@ -250,7 +294,7 @@ function Lexer:next()
 			start_line,
 			self.column,
 			self.line,
-			buf
+			table.concat(buf, '')
 		);
 	elseif char ~= nil then
 		error("Unrecognized character: (" .. char .. ")")
@@ -269,7 +313,7 @@ function Lexer:lex(code)
 		local atom = self:next()
 		if not atom then return out end
 
-		if atom.kind ~= KINDS.Whitespace then
+		if atom.kind ~= KINDS.Whitespace and atom.kind ~= KINDS.Comment then
 			out[nout] = atom
 			nout = nout + 1
 		end

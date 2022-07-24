@@ -5,8 +5,5 @@
 	// These are Expressive files. Extension is .txt because gmod has a file whitelist.
 	"files.associations": {
 		"*.es.txt": "typescript"
-	},
-	"Lua.diagnostics.disable": [
-		"return-type-mismatch"
-	]
+	}
 }

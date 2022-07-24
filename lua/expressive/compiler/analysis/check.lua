@@ -112,10 +112,10 @@ local Handlers = {
 			type_args[k] = self:typeFromExpr(arg)
 		end
 
-		local type_args = table.concat(type_args, ",")
+		local type_args_str = table.concat(type_args, ",")
 		local fn_args = string.match(ty, "^function%((.*)%)")
 
-		assert(type_args == fn_args, "Function '" .. expr.data[1] .. "' expects arguments (" .. fn_args .. ") but got (" .. type_args .. ")")
+		assert(type_args_str == fn_args, "Function '" .. expr.data[1] .. "' expects arguments (" .. fn_args .. ") but got (" .. type_args .. ")")
 	end,
 
 	---@param self Analyzer

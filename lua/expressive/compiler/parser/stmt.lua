@@ -189,11 +189,10 @@ Statements = {
 	[NODE_KINDS.Function] = function(self, atom)
 		local name = self:consumeIf(ATOM_KINDS.Identifier)
 		if is(atom, ATOM_KINDS.Keyword, "function") and name then
-			local name = name.raw
 			local params = assert(self:acceptTypedParameters(), "Expected function parameters after function declaration")
 			local block = self:acceptBlock()
 
-			return {name, params, block}
+			return {name.raw, params, block}
 		end
 	end,
 

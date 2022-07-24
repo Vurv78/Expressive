@@ -5,14 +5,13 @@ local Class = ELib.Class
 local KINDS = {
 	Whitespace = 1,
 	Comment = 2,
-	MComment = 3,
-	Boolean = 4,
-	Keyword = 5,
-	Numeric = 6,
-	String = 7,
-	Operator = 8,
-	Grammar = 9,
-	Identifier = 10
+	Boolean = 3,
+	Keyword = 4,
+	Numeric = 5,
+	String = 6,
+	Operator = 7,
+	Grammar = 8,
+	Identifier = 9
 }
 
 local KINDS_INV = ELib.GetInverted(KINDS)
@@ -78,7 +77,8 @@ function OperatorAtom.new(start_col, start_line, end_col, end_line, op)
 		end_col = end_col,
 		end_line = end_line,
 
-		op = op
+		op = op,
+		raw = op.op
 	}, OperatorAtom)
 end
 
@@ -102,7 +102,8 @@ function BooleanAtom.new(start_col, start_line, end_col, end_line, value)
 		end_col = end_col,
 		end_line = end_line,
 
-		value = value
+		value = value,
+		raw = value and "true" or "false"
 	}, BooleanAtom)
 end
 
@@ -126,7 +127,9 @@ function StringAtom.new(start_col, start_line, end_col, end_line, value)
 		end_col = end_col,
 		end_line = end_line,
 
-		value = value
+		value = value,
+
+		raw = '"' .. value .. '"'
 	}, StringAtom)
 end
 
@@ -155,6 +158,7 @@ end
 ---@param type integer # Type from NumericTypes
 ---@return NumericAtom
 function NumericAtom.new(start_col, start_line, end_col, end_line, value, type)
+	---@diagnostic disable-next-line: return-type-mismatch
 	return setmetatable({
 		kind = KINDS.Numeric,
 		start_col = start_col,
@@ -164,8 +168,49 @@ function NumericAtom.new(start_col, start_line, end_col, end_line, value, type)
 		end_line = end_line,
 
 		value = value,
-		type = type
+		type = type,
+
+		raw = tostring(value)
 	}, NumericAtom)
+end
+
+---@class CommentAtom: Atom
+---@field inner string
+---@field type CommentType
+local CommentAtom = Class("CommentAtom", Atom)
+
+---@enum CommentType
+local CommentType = {
+	Line = 1,
+	Multiline = 2,
+	Documentation = 3
+}
+
+---@param start_col integer
+---@param start_line integer
+---@param end_col integer
+---@param end_line integer
+---@param type CommentType
+---@param inner string
+---@return CommentAtom
+function CommentAtom.new(start_col, start_line, end_col, end_line, type, inner)
+	print(inner)
+	---@diagnostic disable-next-line: return-type-mismatch
+	return setmetatable({
+		kind = KINDS.Comment,
+		start_col = start_col,
+		start_line = start_line,
+
+		end_col = end_col,
+		end_line = end_line,
+
+		type = type,
+		inner = inner,
+
+		raw = type == CommentType.Multiline
+			and ("/*" .. inner .. "*/")
+			or ("//" .. inner)
+	}, CommentAtom)
 end
 
 return {
@@ -178,6 +223,9 @@ return {
 
 	BooleanAtom = BooleanAtom,
 	StringAtom = StringAtom,
+
+	CommentAtom = CommentAtom,
+	CommentType = CommentType,
 
 	KINDS = KINDS
 }

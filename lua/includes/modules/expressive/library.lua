@@ -29,11 +29,6 @@ local Library = {
 
 local Import
 do
-	local function getCurrentDir()
-		---@diagnostic disable-next-line: missing-parameter
-		return debug.getinfo(1, "S").short_src:match("^(.*)%.lua$")
-	end
-
 	local Cache = {}
 	local Loading = {}
 
@@ -238,7 +233,7 @@ Library.OperatorChar = {
 
 ---@type table<string, Operator>
 Library.Operator = {}
-for k, v in ipairs(Library.Operators) do
+for _, v in ipairs(Library.Operators) do
 	Library.Operator[v.op] = v
 end
 
