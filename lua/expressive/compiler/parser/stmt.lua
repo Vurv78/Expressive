@@ -28,31 +28,25 @@ Statements = {
 			local cond = assert( self:acceptCondition(), "Expected condition after 'if'" )
 			local body = self:acceptBlock()
 
-			return { cond, body }
-		end
-	end,
 
-	---@param self Parser
-	---@param atom Atom
-	[NODE_KINDS.Elseif] = function(self, atom)
-		if is(atom, ATOM_KINDS.Keyword, "elseif") then
-			assert( self:lastNodeWith(NODE_KINDS.If), "Expected if statement before elseif" )
-			local cond = assert( self:acceptCondition(), "Expected condition after 'elseif'" )
-			local block = assert( self:acceptBlock(), "Expected block after 'elseif'" )
+			local other_cases, ncases = {}, 1
+			while true do
+				if self:consumeIf(ATOM_KINDS.Keyword, "elseif") then
+					local condition = assert( self:acceptCondition(), "Expected condition for 'elseif'" )
+					local block = assert( self:acceptBlock(), "Expected block after elseif statement" )
 
-			return { cond, block }
-		end
-	end,
+					other_cases[ncases] = { condition, block }
+					ncases = ncases + 1
+				elseif self:consumeIf(ATOM_KINDS.Keyword, "else") then
+					local otherwise = assert( self:acceptBlock(), "Expected block for else statement")
+					other_cases[ncases] = { nil, otherwise }
+					break
+				else
+					break
+				end
+			end
 
-	---@param self Parser
-	---@param atom Atom
-	[NODE_KINDS.Else] = function(self, atom)
-		-- TODO: Also needs to account for elseif
-		if is(atom, ATOM_KINDS.Keyword, "else") then
-			assert( self:lastNodeAnyOfKind({NODE_KINDS.If, NODE_KINDS.Elseif}), "Expected if or elseif statement before else" )
-
-			local body = self:acceptBlock()
-			return { body }
+			return { cond, body, other_cases }
 		end
 	end,
 

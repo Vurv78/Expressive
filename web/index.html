@@ -57,7 +57,11 @@
 		}
 
 		const editor = monaco.editor.create(document.getElementById("editor"), {
-			value: `print("Hello world!")`,
+			value: `if (true) {
+				let my_array = [1, 2, 3, 4];
+				let my_obj = { foo: 55 };
+				console.log("Hello world!");
+			}`.replaceAll("\n\t\t\t", "\n"),
 			language: 'typescript',
 			theme: 'vs-dark',
 		});

@@ -18,7 +18,7 @@ ExternHandlers = {
 	---@param data table
 	---@param namespace Namespace
 	["namespace"] = function(self, name, data, namespace)
-		---@type table<number, Node>
+		---@type Node[]
 		local nodes = data[3]
 		local mod = Namespace.new(name, namespace)
 
@@ -60,7 +60,7 @@ ExternHandlers = {
 		if not params then debug.Trace() end
 
 		-- Extract types from params
-		---@type table<number, TypeSig>
+		---@type TypeSig[]
 		local fn_params = {}
 		for k, v in ipairs(params) do fn_params[k] = v[2] end
 		local type_sig = makeSignature(fn_params, ret)

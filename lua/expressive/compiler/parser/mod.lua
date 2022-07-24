@@ -6,9 +6,9 @@ local ATOM_KINDS_INV = ELib.Lexer.KINDS_INV
 
 ---@class Parser: Object
 ---@field atom_idx number Index of the current atom
----@field atoms table<number, Atom>
+---@field atoms Atom[]
 ---@field node_idx number Index of the current node
----@field nodes table<number, Node>
+---@field nodes Node[]
 local Parser = Class("Parser")
 ELib.Parser = Parser
 
@@ -53,46 +53,42 @@ end
 ---@enum ParserKind
 local KINDS = {
 	If = 1,
-	Elseif = 2,
-	Else = 3,
-	While = 4,
-	For = 5,
-	Try = 6,
-	Realm = 7,
-	VarDeclare = 8,
-	VarModify = 9,
-	Delegate = 10,
-	Class = 11,
-	Interface = 12,
-	Function = 13,
-	Escape = 14,
-	Declare = 15,
-	Export = 16,
+	While = 2,
+	For = 3,
+	Try = 4,
+	Realm = 5,
+	VarDeclare = 6,
+	VarModify = 7,
+	Delegate = 8,
+	Class = 9,
+	Interface = 10,
+	Function = 11,
+	Escape = 12,
+	Declare = 13,
+	Export = 14,
 
-	Ternary = 17,
-	LogicalOps = 18,
-	BitwiseOps = 19,
-	ComparisonOps = 20,
-	BitShiftOps = 21,
-	ArithmeticOps = 22,
-	UnaryOps = 23,
-	CallExpr = 24,
-	GroupedExpr = 25,
-	Index = 26,
-	Array = 27,
-	Object = 28,
-	Block = 29,
-	Lambda = 30,
-	Constructor = 31,
-	Literal = 32,
-	Variable = 33
+	Ternary = 15,
+	LogicalOps = 16,
+	BitwiseOps = 17,
+	ComparisonOps = 18,
+	BitShiftOps = 19,
+	ArithmeticOps = 20,
+	UnaryOps = 21,
+	CallExpr = 22,
+	GroupedExpr = 23,
+	Index = 24,
+	Array = 25,
+	Object = 26,
+	Block = 27,
+	Lambda = 28,
+	Constructor = 29,
+	Literal = 30,
+	Variable = 31
 }
 
 local KINDS_UDATA = {
 	--- Statements
-	[KINDS.If] = Control("if statement"), -- if (true) {}
-	[KINDS.Elseif] = Control("elseif statement"), -- if (true) {} elseif (true) {}
-	[KINDS.Else] = Control("else statement"), -- if (true) {} else {}
+	[KINDS.If] = Control("if statement"), -- if (true) {} elseif (false) {} else {}
 	[KINDS.While] = Control("while loop"), -- while (true) {}
 	[KINDS.For] = Control("for loop"), -- for(let foo = 5; foo < 5; foo++) {}
 	[KINDS.Try] = Control("try"), -- try {} catch (e: int) {}
@@ -176,7 +172,7 @@ function Node.new(kind, data)
 end
 
 --- Parses a stream of atoms into an abstract syntax tree (AST)
----@param atoms table<number, Atom> # Atoms retrieved from the [Lexer]
+---@param atoms Atom[] # Atoms retrieved from the [Lexer]
 ---@return Ast
 function Parser:parse(atoms)
 	assert(type(atoms) == "table", "bad argument #1 to 'Parser:parse' (table expected, got " .. type(atoms) .. ")")
@@ -201,15 +197,16 @@ function Parser:root()
 	self.nodes = nodes
 
 	repeat
-		local node = self:next()
+		local node = self:next(true)
 		nodes[#nodes + 1] = node
 	until not node
 
 	return nodes
 end
 
+---@param top boolean # Whether this is being parsed on top level (not inside an expr)
 ---@return Node?
-function Parser:next()
+function Parser:next(top)
 	if not self:hasAtoms() then
 		return nil
 	end
@@ -224,11 +221,14 @@ function Parser:next()
 
 	if res then
 		-- Expect ; after declaration statements.
-		if res:isExpression() or res:isDeclaration() then
-			assert(self:consumeIf(ATOM_KINDS.Grammar, ";"), "Expected ; after " .. res:human())
+		if ( res:isExpression() or res:isDeclaration() ) then
+			--assert(
+				self:consumeIf(ATOM_KINDS.Grammar, ";")
+			--, "Expected ; after " .. res:human())
 		end
 		return res
 	else
+		print(debug.traceback())
 		error("Unexpected atom " .. ATOM_KINDS_INV[atom.kind] .. " '" .. atom.raw .. "'")
 	end
 end
@@ -307,7 +307,7 @@ function Parser:lastNodeWith(kind, value)
 end
 
 --- Returns the last node with the given metadata (assuming it exists and fits the given kind and value)
----@param kind table<number, ParserKind>
+---@param kind ParserKind[]
 ---@return boolean
 function Parser:lastNodeAnyOfKind(kind)
 	local last = self:lastNode()
@@ -339,7 +339,7 @@ end
 --- Like is, but accepts an array of values rather than just one
 ---@param atom Atom?
 ---@param kind AtomKind
----@param values table<number, string>
+---@param values string[]
 ---@return string? # The raw value from 'values' that matched.
 local function isAnyOf(atom, kind, values)
 	if not atom or atom.kind ~= kind then return false end
@@ -351,7 +351,7 @@ end
 
 --- Like isAnyOf, but for the kind instead of values.
 ---@param atom Atom?
----@param kinds table<number, AtomKind>
+---@param kinds AtomKind[]
 ---@return AtomKind?
 local function isAnyOfKind(atom, kinds)
 	for _, kind in ipairs(kinds) do
@@ -376,7 +376,7 @@ end
 
 --- Same as isAnyOf, but skips if it matches it.
 ---@param kind AtomKind
----@param values table<number, string> # Values to match against
+---@param values string[] # Values to match against
 ---@return string? # Raw value that matched from 'values'
 function Parser:consumeIfAnyOf(kind, values)
 	local ret = isAnyOf(self:peek(), kind, values)
@@ -387,7 +387,7 @@ function Parser:consumeIfAnyOf(kind, values)
 end
 
 --- Same as isAnyOfKind, but skips if it matches it.
----@param kinds table<number, AtomKind>
+---@param kinds AtomKind[]
 ---@return Atom? # The atom that matched
 function Parser:consumeIfAnyOfKind(kinds)
 	local atom = self:peek()
@@ -411,7 +411,7 @@ function Parser:acceptBlock()
 
 	repeat
 		node_idx = node_idx + 1
-		local node = self:next()
+		local node = self:next(false)
 		nodes[node_idx] = node
 
 		if self:consumeIf(ATOM_KINDS.Grammar, "}") then
@@ -444,7 +444,7 @@ function Parser:acceptType()
 end
 
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
----@return table<number, table<number, string>>?
+---@return table<number, string[]>?
 function Parser:acceptTypes()
 	if not self:consumeIf(ATOM_KINDS.Grammar, "(") then return end
 
@@ -468,7 +468,7 @@ function Parser:acceptTypes()
 end
 
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
----@return table<number, table<number, string>>?
+---@return table<number, string[]>?
 function Parser:acceptTypedParameters()
 	if not self:consumeIf(ATOM_KINDS.Grammar, "(") then return end
 	local args = {}

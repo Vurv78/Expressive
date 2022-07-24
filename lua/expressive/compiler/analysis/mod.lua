@@ -5,14 +5,14 @@ local Class = ELib.Class
 -- Type checking and whatnot for the output AST.
 
 ---@class Analyzer: Object
----@field scopes table<number, Scope>
+---@field scopes Scope[]
 ---@field global_scope Scope
 ---@field current_scope Scope
 ---@field types table<TypeSig, Type> # Registered types / classes. Inherits from context types with __index.
 ---@field configs AnalyzerConfigs
 ---@field ctx Context
 ---@field externs table<string, Type> # Extern values retrieved from extensions. Not to be confused with imports
----@field warnings table<number, {start: number, end: number, message: string}>
+---@field warnings {start: number, end: number, message: string}[]
 local Analyzer = Class("Analyzer")
 ELib.Analyzer = Analyzer
 
@@ -130,7 +130,7 @@ local AnalyzerConfigs = {
 ---@param ctx Context # Context retrieved from [Context.new]
 ---@param ast Ast # AST Retrieved from the [Parser]
 ---@param configs AnalyzerConfigs? # Optional configs for the analyzer, uses default values if passed nil.
----@return table<number, Node> new_ast # A processed and optimized AST.
+---@return Node[] new_ast # A processed and optimized AST.
 function Analyzer:process(ctx, ast, configs)
 	if configs then
 		-- Use missing values from AnalyzerConfigs
@@ -219,19 +219,19 @@ include("infer.lua") -- Second pass
 include("check.lua") -- Third pass, sanity checks
 include("optimizer/mod.lua") -- Final pass, Optimizing
 
----@type fun(self: Analyzer, ast: table<number, Node>)
+---@type fun(self: Analyzer, ast: Node[])
 Analyzer.externPass = Analyzer.externPass
 
----@type fun(self: Analyzer, ast: table<number, Node>)
+---@type fun(self: Analyzer, ast: Node[])
 Analyzer.inferPass = Analyzer.inferPass
 
 ---@type fun(self: Analyzer, node: Node)
 Analyzer.check = Analyzer.check
 
----@type fun(self: Analyzer, ast: table<number, Node>)
+---@type fun(self: Analyzer, ast: Node[])
 Analyzer.checkPass = Analyzer.checkPass
 
----@type fun(self: Analyzer, ast: table<number, Node>): table<number, Node>
+---@type fun(self: Analyzer, ast: Node[]): Node[]
 Analyzer.optimize = Analyzer.optimize
 
 ---@type fun(self: Analyzer, node: Node): Node?
@@ -241,11 +241,11 @@ Analyzer.optimizeNode = Analyzer.optimizeNode
 Analyzer.typeFromExpr = Analyzer.typeFromExpr
 
 --- Gets the return type from a block, searching for the first return statement.
----@type fun(self: Analyzer, block: table<number, Node>): string
+---@type fun(self: Analyzer, block: Node[]): string
 Analyzer.getReturnType = Analyzer.getReturnType
 
 --- Creates a function signature from type params and return type
----@type fun(params: table<number, string>, ret: TypeSig)
+---@type fun(params: string[], ret: TypeSig)
 Analyzer.makeSignature = Analyzer.makeSignature
 
 return Analyzer

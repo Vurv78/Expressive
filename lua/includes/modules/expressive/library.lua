@@ -13,7 +13,7 @@ local MsgN = print
 ---@field Analyzer Analyzer
 ---@field Parser Parser
 ---@field Ast Ast
----@field Extensions table<number, Extension> # Table of Extensions. Do not interact with this.
+---@field Extensions Extension[] # Table of Extensions. Do not interact with this.
 ---@field Type Type
 ---@field Instance Instance
 ---@field Context Context
@@ -375,9 +375,9 @@ function Library.Inspect(object, depth, dumped)
 end
 
 --- Creates an enum from a sequential table of tables
----@param t table<number, table<number, {name: number, udata: table}>>
+---@param t table<number, {name: number, udata: table}[]>
 ---@return table<string, number>
----@return table<number, table> # Table of Enum value => Userdata table
+---@return table[] # Table of Enum value => Userdata table
 function Library.MakeEnum(t)
 	local ret, ret2 = {}, {}
 	for k, entry in ipairs(t) do

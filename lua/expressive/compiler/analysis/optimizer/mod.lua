@@ -10,10 +10,11 @@ local Optimizations
 Optimizations = {
 	--- Optimizes away cases of if(true), if(!0), if("Foo"), etc.
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.If] = function(self, data)
 		---@type Node
 		local cond, block = data[1], data[2]
+
 		if cond.kind == NODE_KINDS.Literal then
 			---@type string
 			local literal_kind = cond.data[1]
@@ -35,7 +36,7 @@ Optimizations = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.VarDeclare] = function(self, data)
 		local expr = data[4]
 		local opt = self:optimizeNode(expr)
@@ -45,14 +46,14 @@ Optimizations = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.GroupedExpr] = function(self, data)
 		return self:optimizeNode(data[1])
 	end,
 
 	-- Optimize not operator on bools
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.UnaryOps] = function(self, data)
 		local op, expr = data[1], data[2]
 
@@ -71,7 +72,7 @@ Optimizations = {
 
 	--- Optimizes away cases of simple arithmetic like (5 + 5) or "Hello" + "World"
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.ArithmeticOps] = function(self, data)
 		---@type string
 		local op = data[1]
@@ -112,7 +113,7 @@ Optimizations = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.BitShiftOps] = function(self, data)
 		---@type string
 		local op = data[1]
@@ -137,7 +138,7 @@ Optimizations = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.BitwiseOps] = function(self, data)
 		---@type string
 		local op = data[1]
@@ -162,7 +163,7 @@ Optimizations = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.LogicalOps] = function(self, data)
 		---@type string
 		local op = data[1]
@@ -187,7 +188,7 @@ Optimizations = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.ComparisonOps] = function(self, data)
 		---@type string
 		local op = data[1]
@@ -219,7 +220,7 @@ Optimizations = {
 
 	-- TODO: Doesn't seem to work.
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Ternary] = function(self, data)
 		local cond, left, right = self:optimizeNode(data[1]) or data[1], self:optimizeNode(data[2]) or data[2], data[3]
 
@@ -263,8 +264,8 @@ function Analyzer:optimizeNode(node)
 end
 
 --- Tries to optimize an ast by cutting down on useless instructions
----@param ast table<number, Node>
----@return table<number, Node> # Optimized AST
+---@param ast Node[]
+---@return Node[] # Optimized AST
 function Analyzer:optimize(ast)
 	local new = {}
 	if not ast then return new end -- Empty block

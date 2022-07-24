@@ -335,7 +335,7 @@ end
 --- 	```
 ---@class DataStruct
 ---@field fields table<number, { key: string, rtype: string, count: string }>
----@field data table<number, any>
+---@field data any[]
 ---@field n integer # Number of fields in the struct
 ---@field stream DataStream # Internal data stream used for encoding types to bytes.
 local DataStruct = {}

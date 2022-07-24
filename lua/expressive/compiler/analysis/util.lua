@@ -1,4 +1,6 @@
 require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
+
 local Analyzer = ELib.Analyzer
 local NODE_KINDS = ELib.Parser.KINDS
 
@@ -13,7 +15,7 @@ local NODE_KINDS = ELib.Parser.KINDS
 --- ```text
 ---		function(number,number,int):number
 --- ```
----@param params table<number, Node>
+---@param params Node[]
 ---@param ret string
 ---@return string
 local function makeSignature(params, ret)
@@ -24,7 +26,7 @@ Analyzer.makeSignature = makeSignature
 
 --- Gets the return type from a block, searching for the first return statement.
 -- If no statement is found, returns "void"
----@param block table<number, Node>
+---@param block Node[]
 ---@return TypeSig
 function Analyzer:getReturnType(block)
 	for _, node in ipairs(block) do
@@ -35,20 +37,31 @@ function Analyzer:getReturnType(block)
 	return "void"
 end
 
+local NumericTypes = Import("atom", true).NumericTypes
+
+local NumericNames = {
+	[NumericTypes.Integer] = "int",
+	[NumericTypes.Decimal] = "double",
+	[NumericTypes.Hexadecimal] = "int",
+	[NumericTypes.Octal] = "int",
+	[NumericTypes.Binary] = "int"
+}
+
 local Infer = {
 	---@param _self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Literal] = function(_self, data)
 		-- Either "int", "string", "boolean" or "null"
 		local ty = data[1]
+		print("infer", ty)
 		if ty == "number" then
-			return data[4] -- Specific number type -- either "int" or "double"
+			return NumericNames[data[4]] -- Specific number type -- either "int" or "double"
 		end
 		return ty
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Block] = function(self, data)
 		---@type Node
 		local last_node = data[1][#data[1]]
@@ -58,7 +71,7 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.ArithmeticOps] = function(self, data)
 		local lhs, rhs = data[2], data[3]
 		if lhs.kind == rhs.kind and rhs.kind == NODE_KINDS.Literal then
@@ -71,7 +84,7 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Array] = function(self, data)
 		local nodes = data[1]
 
@@ -91,7 +104,7 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Variable] = function(self, data)
 		local name = data[1]
 		local var = self:getScope():lookup(name)
@@ -102,7 +115,7 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Lambda] = function(self, data)
 		local params, block = data[1], data[2]
 
@@ -116,7 +129,7 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Ternary] = function(self, data)
 		local expr, iff, els = data[1], data[2], data[3]
 		if els ~= nil then
@@ -142,14 +155,14 @@ local Infer = {
 	end,
 
 	---@param _self Analyzer
-	---@param _data table<number, any>
+	---@param _data any[]
 	[NODE_KINDS.LogicalOps] = function(_self, _data)
 		-- TODO: Logical Ops
 	end,
 
 	--- x.y or x[y]. This only applies to arrays right now, so can just return the type of the array.
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.Index] = function(self, data)
 		local kind, tbl, field = data[1], data[2], data[3]
 
@@ -171,7 +184,7 @@ local Infer = {
 	end,
 
 	---@param self Analyzer
-	---@param data table<number, any>
+	---@param data any[]
 	[NODE_KINDS.CallExpr] = function(self, data)
 		-- TODO: Overloads
 		local expr = data[1]

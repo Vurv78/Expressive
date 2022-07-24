@@ -120,7 +120,7 @@ local StringAtom = Class("StringAtom", Atom)
 function StringAtom.new(start_col, start_line, end_col, end_line, value)
 	---@diagnostic disable-next-line: return-type-mismatch
 	return setmetatable({
-		kind = KINDS.Boolean,
+		kind = KINDS.String,
 		start_col = start_col,
 		start_line = start_line,
 
@@ -194,7 +194,6 @@ local CommentType = {
 ---@param inner string
 ---@return CommentAtom
 function CommentAtom.new(start_col, start_line, end_col, end_line, type, inner)
-	print(inner)
 	---@diagnostic disable-next-line: return-type-mismatch
 	return setmetatable({
 		kind = KINDS.Comment,

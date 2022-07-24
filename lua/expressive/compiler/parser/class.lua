@@ -8,7 +8,7 @@ local isAnyOf = ELib.Parser.isAnyOf
 local ATOM_KINDS = ELib.Lexer.KINDS
 
 ---@class ClassData
----@field constructor { args: table<number, table<number, string>>, body: table<number, Node> } # Constructor of the class
+---@field constructor { args: table<number, string[]>, body: Node[] } # Constructor of the class
 ---@field fields table<string, TypeSig> # Field names and their types on the class.
 ---@field static_fields table<string, TypeSig> # Static field names and their types on the class.
 

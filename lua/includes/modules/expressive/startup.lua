@@ -44,7 +44,7 @@ local function loadExtensions(extensions)
 	local ExtensionCtx = Context.new()
 	ELib.ExtensionCtx = ExtensionCtx
 
-	---@type table<number, string>
+	---@type string[]
 	MsgN("<< Loading Expressive Extensions >>")
 	for name, src in pairs(extensions) do
 		local ok, traceback = xpcall(function()
@@ -77,7 +77,7 @@ local DataStream, _DataStruct = Import("datastream", true)
 
 if SERVER then
 	local extensions = {}
-	---@type table<number, string>
+	---@type string[]
 	local files = file.Find("expressive/runtime/extensions/*.es.txt", "LUA")
 
 	local stream = DataStream.new()

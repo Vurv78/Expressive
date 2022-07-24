@@ -83,13 +83,19 @@ end
 function Transpile(code)
 	Lexer:reset()
 
-	local atoms = Lexer:lex(code)
-	print("Transpile atoms", atoms, #atoms)
+	local ok, ret = xpcall(function()
+		local atoms = Lexer:lex(code)
+		print("Transpile atoms", atoms, #atoms)
 
-	for k, v in ipairs( atoms ) do print(k, v) end
-	local ast = Parser:parse(atoms)
-	local new_ast = Analyzer:process(Context, ast)
-	local lua = Transpiler:process(Context, new_ast)
+		for k, v in ipairs( atoms ) do print(k, v) end
+		local ast = Parser:parse(atoms)
+		local new_ast = Analyzer:process(Context, ast)
+		local lua = Transpiler:process(Context, new_ast)
 
-	return lua
+		return lua
+	end, debug.traceback)
+
+	assert(ok, ret)
+
+	return ret
 end
