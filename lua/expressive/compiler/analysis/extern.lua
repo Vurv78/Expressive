@@ -1,5 +1,5 @@
 --- Extern Pass
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
 
 -- First pass of the analyzer.
 -- Just gather any data that can be gathered without any other variables in context.
@@ -30,15 +30,15 @@ ExternHandlers = {
 	end,
 
 	--- Primitive type decl
-	---@param self Analyzer
+	---@param _self Analyzer
 	---@param name string
-	---@param data table
+	---@param _data table
 	---@param namespace Namespace
 	["type"] = function(_self, name, _data, namespace)
 		namespace:registerType(name, Type.new(name))
 	end,
 
-	---@param self Analyzer
+	---@param _self Analyzer
 	---@param name string
 	---@param data table
 	---@param namespace Namespace
@@ -49,7 +49,7 @@ ExternHandlers = {
 		-- self.externs[name] = Var.new(type, mutability == "const")
 	end,
 
-	---@param self Analyzer
+	---@param _self Analyzer
 	---@param name string
 	---@param data table
 	---@param namespace Namespace

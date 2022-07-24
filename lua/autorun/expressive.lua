@@ -66,11 +66,9 @@ end
 -- Make sure netstream loads before startup, which depends on it
 include("autorun/netstream.lua")
 
--- Fix require() function to return values.
--- Because this 5 year old issue will never be fixed. https://github.com/Facepunch/garrysmod-requests/issues/445
-require("fix_require")
+require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
 
-local ELib = require("expressive/library")
 --- TODO: Probably want to cut down on these for servers with a massive load of addons.
 -- Or get a system to condense this into one single network string. Could be made into a tiny autorun library.
 
@@ -88,4 +86,4 @@ ELib.AddNetworkString("Processor.Errored")
 ELib.AddNetworkString("Processor.Download")
 ELib.AddNetworkString("Processor.Upload")
 
-require("expressive/startup")
+Import("expressive/startup")

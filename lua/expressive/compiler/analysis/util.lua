@@ -1,4 +1,4 @@
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
 local Analyzer = ELib.Analyzer
 local NODE_KINDS = ELib.Parser.KINDS
 
@@ -36,7 +36,7 @@ function Analyzer:getReturnType(block)
 end
 
 local Infer = {
-	---@param self Analyzer
+	---@param _self Analyzer
 	---@param data table<number, any>
 	[NODE_KINDS.Literal] = function(_self, data)
 		-- Either "int", "string", "boolean" or "null"
@@ -111,6 +111,7 @@ local Infer = {
 		for k, v in ipairs(params) do
 			ptypes[k] = v[2]
 		end
+
 		return makeSignature(ptypes, assert(self:getReturnType(block), "Couldn't determine return type of lambda"))
 	end,
 
@@ -140,8 +141,8 @@ local Infer = {
 		end
 	end,
 
-	---@param self Analyzer
-	---@param data table<number, any>
+	---@param _self Analyzer
+	---@param _data table<number, any>
 	[NODE_KINDS.LogicalOps] = function(_self, _data)
 		-- TODO: Logical Ops
 	end,

@@ -1,10 +1,11 @@
-﻿local ELib = require("expressive/library")
-local class = require("voop")
-require("expressive/startup")
+﻿require("expressive/library"); local ELib = ELib
+local Import, Class = ELib.Import, ELib.Class
+
+Import("expressive/startup", true)
 
 ---@class Validator: Object
 ---@field editor any
-local Validator = class("Validator")
+local Validator = Class("Validator")
 
 local rgb = Color
 local C_WARN = rgb(200, 200, 100)
@@ -28,8 +29,8 @@ function Validator:Validate(code, _move_to, _export_compiled)
 	end
 
 	local ok, data, warnings, ast, tokens = xpcall(function()
-		local Tokenizer = ELib.Tokenizer.new()
-		local tokens = Tokenizer:parse(code)
+		local Lexer = ELib.Lexer.new()
+		local tokens = Lexer:lex(code)
 
 		local Parser = ELib.Parser.new()
 		local ast = Parser:parse(tokens)

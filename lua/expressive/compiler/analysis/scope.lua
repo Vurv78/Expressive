@@ -1,10 +1,9 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 local Var = ELib.Var
 
----@alias ScopeKind "1|2|3|4|5"
----@class ScopeKinds
+---@enum ScopeKind
 local KINDS = {
 	---```ts
 	--- 	function foo() {};
@@ -38,14 +37,14 @@ local KINDS = {
 ---@field index integer
 ---@field depth integer
 ---@field kind integer
-local Scope = class("Scope")
+local Scope = Class("Scope")
 Scope.KINDS = KINDS
 
 local counter = 0
 
 --- Creates a new scope.
 ---@see `Scope.KINDS`
----@param kind ScopeKind 1 | 2 | 3 | 4 | 5
+---@param kind ScopeKind
 ---@param index integer
 ---@param depth integer
 ---@return Scope
@@ -89,7 +88,7 @@ end
 
 --- Like Scope:lookup(name), but if the variable doesn't exist, creates it.
 ---@param name string
----@param init Variable?
+---@param init Variable
 ---@return Variable
 ---@return boolean # If the variable was created.
 function Scope:lookupOrInit(name, init)
@@ -101,7 +100,7 @@ function Scope:lookupOrInit(name, init)
 		return var, false
 	end
 
-	self:set(name, init or Var.new())
+	self:set(name, init)
 	return self:lookup(name), true
 end
 
@@ -117,9 +116,9 @@ function Scope:getResult()
 end
 
 ---@param name string
----@param var Variable? Optional variable. If not given, type will not be set.
+---@param var Variable
 function Scope:set(name, var)
-	self.priv[name] = var or Var.new()
+	self.priv[name] = var
 end
 
 ---@param name string

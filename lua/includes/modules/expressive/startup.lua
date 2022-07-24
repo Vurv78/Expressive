@@ -1,4 +1,5 @@
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
 
 if CLIENT then
 	include("expressive/editor.lua")
@@ -13,8 +14,8 @@ include("expressive/compiler/ast.lua")
 ---@type Context
 local Context = include("expressive/runtime/context.lua")
 
----@type Tokenizer
-local Tokenizer = include("expressive/compiler/tokenizer.lua")
+---@type Lexer
+local Lexer = include("expressive/compiler/lexer/mod.lua")
 ---@type Parser
 local Parser = include("expressive/compiler/parser/mod.lua")
 ---@type Analyzer
@@ -47,13 +48,13 @@ local function loadExtensions(extensions)
 	MsgN("<< Loading Expressive Extensions >>")
 	for name, src in pairs(extensions) do
 		local ok, traceback = xpcall(function()
-			local tokenizer = Tokenizer.new()
+			local lexer = Lexer.new()
 			local parser = Parser.new()
 			local analyzer = Analyzer.new()
 			-- local transpiler = Transpiler.new() -- Don't need this quite yet. When extensions are more than just declare statements, this will be needed.
 
-			local tokens = tokenizer:parse(src)
-			local ast = parser:parse(tokens)
+			local atoms = lexer:lex(src)
+			local ast = parser:parse(atoms)
 			local _new_ast = analyzer:process(ExtensionCtx, ast, ExtensionConfigs)
 		end, debug.traceback)
 
@@ -72,7 +73,8 @@ local function loadExtensions(extensions)
 end
 
 --- Network Extensions to Client
-local DataStream, _DataStruct = require("datastream")
+local DataStream, _DataStruct = Import("datastream", true)
+
 if SERVER then
 	local extensions = {}
 	---@type table<number, string>
@@ -152,6 +154,5 @@ end
 -- TODO: Make it reload all currently placed chips
 concommand.Add("expressive_reload" .. (CLIENT and "_cl" or ""), function()
 	-- Include self
-	package.required["expressive/startup"] = nil
-	require("expressive/startup")
+	Import("expressive/startup", false)
 end)

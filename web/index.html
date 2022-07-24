@@ -69,25 +69,31 @@
 		const to_luastring = fengari.to_luastring;
 
 		lua.lua_atnativeerror(L, function (l) {
-			lua.lua_pushstring(l, fengari.to_luastring('' + lua.lua_touserdata(l, -1)));
+			lua.lua_pushstring(l, to_luastring('' + lua.lua_touserdata(l, -1)));
 		});
 
 		const output = document.getElementById("output");
 
-		lua.lua_getglobal(L, to_luastring("startup"));
+		lua.lua_getglobal(L, to_luastring("Startup"));
 		lua.lua_pushstring(L, code);
-		const val = lua.lua_pcall(L, 1, 0, 0);
-		if (val != lua.LUA_OK) {
+		const val = lua.lua_call(L, 1, 2);
+
+		if (!lua.lua_toboolean(L, -2)) {
+			// Failed
 			const msg = "Error when loading standard library: " + fengari.to_jsstring( lua.lua_tostring(L, -1) );
 
 			output.value = msg;
 			console.log(msg);
 
-			lua.lua_pop(L, 1);
+			lua.lua_pop(L, 2);
+		} else {
+			output.value = "Success ?"
+			lua.lua_pop(L, 2);
 		}
 
 		document.getElementById("transpile").addEventListener("click", function() {
-			lua.lua_getglobal(L, to_luastring("transpile"));
+			console.log("Transpiling");
+			lua.lua_getglobal(L, to_luastring("Transpile"));
 			lua.lua_pushstring(L, editor.getValue());
 
 			const val = lua.lua_pcall(L, 1, 1, 0);
@@ -99,6 +105,7 @@
 
 				lua.lua_pop(L, 1);
 			} else {
+				console.log("Transpile success!");
 				const code = to_jsstring( lua.lua_tostring(L, -1) );
 				output.value = code;
 			}

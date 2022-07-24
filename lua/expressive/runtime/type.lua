@@ -1,5 +1,5 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 --- A type for Expression4
 ---@class Type: Object
@@ -7,7 +7,7 @@ local class = require("voop")
 ---@field extends Type?
 ---@field data ClassData?
 ---@field typeof fun(x: any): boolean # Function that returns true if x is an instance of this type.
-local Type = class("Type")
+local Type = Class("Type")
 
 function Type:__tostring()
 	if self.extends then

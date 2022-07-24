@@ -1,4 +1,4 @@
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
 
 -- First pass of the analyzer.
 -- Just gather any data that can be gathered without any other variables in context.
@@ -112,7 +112,7 @@ local Handlers = {
 			type_args[k] = self:typeFromExpr(arg)
 		end
 
-		type_args = table.concat(type_args, ",")
+		local type_args = table.concat(type_args, ",")
 		local fn_args = string.match(ty, "^function%((.*)%)")
 
 		assert(type_args == fn_args, "Function '" .. expr.data[1] .. "' expects arguments (" .. fn_args .. ") but got (" .. type_args .. ")")

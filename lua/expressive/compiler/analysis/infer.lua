@@ -1,4 +1,4 @@
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
 
 -- First pass of the analyzer.
 -- Just gather any data that can be gathered without any other variables in context.

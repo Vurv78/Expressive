@@ -1,5 +1,6 @@
 -- Toolgun screen for Expression4.
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 local Res = Vector(256, 256)
 local Offset = Vector(0, 0)
@@ -33,7 +34,7 @@ HexMesh:BuildFromTriangles({
 ---@field last_think number
 ---@field alpha number
 ---@field matrix GVMatrix
-local Hex = class("Hexagon")
+local Hex = Class("Hexagon")
 
 local ObjectMat = CreateMaterial("Expression4.Gear", "UnlitGeneric")
 ObjectMat:SetInt("$flags", 32816)

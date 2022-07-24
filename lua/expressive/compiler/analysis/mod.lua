@@ -1,5 +1,5 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 -- Analysis
 -- Type checking and whatnot for the output AST.
@@ -13,7 +13,7 @@ local class = require("voop")
 ---@field ctx Context
 ---@field externs table<string, Type> # Extern values retrieved from extensions. Not to be confused with imports
 ---@field warnings table<number, {start: number, end: number, message: string}>
-local Analyzer = class("Analyzer")
+local Analyzer = Class("Analyzer")
 ELib.Analyzer = Analyzer
 
 local Var = ELib.Var
@@ -40,9 +40,11 @@ end
 
 ---@return Analyzer
 function Analyzer.new()
-	---@type Analyzer
 	local instance = setmetatable({}, Analyzer)
+
+	---@cast instance Analyzer
 	instance:reset()
+
 	return instance
 end
 
@@ -53,14 +55,13 @@ function Analyzer:setPtr(ptr)
 end
 
 --- Creates a new scope derived from the current scope
----@param kind ScopeKind
+---@param kind ScopeKind?
 ---@return Scope
 function Analyzer:pushScope(kind)
 	local scope_depth = self.scope_depth + 1
-	if scope_depth >= self.configs.MaxScopeDepth then
-		error("Reached scope depth limit")
-	end
-	local scope = Scope.from(self.current_scope, kind, self.scope_ptr)
+	assert(scope_depth < self.configs.MaxScopeDepth, "Reached scope depth limit")
+
+	local scope = Scope.from(self.current_scope, kind or Analyzer.Scope.KINDS.STATEMENT, self.scope_ptr)
 
 	self.scopes[self.scope_ptr] = scope
 	self.scope_ptr = self.scope_ptr + 1
@@ -240,7 +241,7 @@ Analyzer.optimizeNode = Analyzer.optimizeNode
 Analyzer.typeFromExpr = Analyzer.typeFromExpr
 
 --- Gets the return type from a block, searching for the first return statement.
----@type fun(block: table<number, Node>): string
+---@type fun(self: Analyzer, block: table<number, Node>): string
 Analyzer.getReturnType = Analyzer.getReturnType
 
 --- Creates a function signature from type params and return type

@@ -1,24 +1,21 @@
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
 
 --- TODO: This should adapt to different addon names, using the value fetched from autorun
 local src = file.Read("expressive/examples/helloworld.es.txt", "LUA")
 
----@type Tokenizer
-local Tokenizer = include("expressive/compiler/tokenizer.lua")
----@type Parser
-local Parser = include("expressive/compiler/parser/mod.lua")
----@type Analyzer
-local Analyzer = include("expressive/compiler/analysis/mod.lua")
----@type Transpiler
-local Transpiler = include("expressive/compiler/transpiler/mod.lua")
+local Lexer = Import("expressive/compiler/lexer/mod", false)
+local Parser = Import("expressive/compiler/parser/mod", false)
+local Analyzer = Import("expressive/compiler/analysis/mod", false)
+local Transpiler = Import("expressive/compiler/transpiler/mod", false)
 
-local tok = Tokenizer.new()
+local lexer = Lexer.new()
 local parser = Parser.new()
 local analyzer = Analyzer.new()
 local transpiler = Transpiler.new()
 
-local tokens = tok:parse(src)
-local ast = parser:parse(tokens)
+local atoms = lexer:lex(src)
+local ast = parser:parse(atoms)
 local new_ast = analyzer:process(ELib.ExtensionCtx, ast)
 local code = transpiler:process(ELib.ExtensionCtx, new_ast)
 

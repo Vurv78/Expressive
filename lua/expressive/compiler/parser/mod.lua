@@ -1,126 +1,130 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
----@type TokenKinds
-local TOKEN_KINDS = ELib.Tokenizer.KINDS
-local TOKEN_KINDS_INV = ELib.Tokenizer.KINDS_INV
+local ATOM_KINDS = ELib.Lexer.KINDS
+local ATOM_KINDS_INV = ELib.Lexer.KINDS_INV
 
 ---@class Parser: Object
----@field tok_idx number Index of the current token
----@field tokens table<number, Token>
+---@field atom_idx number Index of the current atom
+---@field atoms table<number, Atom>
 ---@field node_idx number Index of the current node
 ---@field nodes table<number, Node>
-local Parser = class("Parser")
+local Parser = Class("Parser")
 ELib.Parser = Parser
 
 function Parser:reset()
-	self.tok_idx = 0
+	self.atom_idx = 0
 	self.nodes = {}
 	self.node_idx = 0
 end
 
 ---@return Parser
 function Parser.new()
-	---@type Parser
 	local instance = setmetatable({}, Parser)
+
+	---@cast instance Parser
 	instance:reset()
+
 	return instance
 end
 
+---@alias ParserKindData { desc: string, type: "stmt"|"expr", decl: boolean }
+
 --- Creates a control flow statement e.g. if, while, for, etc.
----@param name string # Name of the statement
 ---@param desc string # Human description of the statement, for debugging.
----@return table
-local function Control(name, desc)
-	return { name = name, udata = { desc = desc, type = "stmt", decl = false } }
+---@return ParserKindData
+local function Control(desc)
+	return { desc = desc, type = "stmt", decl = false }
 end
 
 --- Creates a declaration statement e.g. "var x = 1"
----@param name string # Name of the statement
 ---@param desc string # Human description of the statement, for debugging.
----@return table
-local function Declare(name, desc)
-	return { name = name, udata = { desc = desc, type = "stmt", decl = true } }
+---@return ParserKindData
+local function Declare(desc)
+	return { desc = desc, type = "stmt", decl = true }
 end
 
----@param name string # Name of the statement
 ---@param desc string # Human description of the statement, for debugging.
----@return table
-local function Expr(name, desc)
-	return { name = name, udata = { desc = desc, type = "expr" } }
+---@return ParserKindData
+local function Expr(desc)
+	return { desc = desc, type = "expr", decl = false }
 end
 
----@class ParserKinds
----@field If number
----@field Elseif number
----@field Else number
----@field While number
----@field For number
----@field Try number
----@field Realm number
----@field VarDeclare number
----@field VarModify number
----@field Delegate number
----@field Class number
----@field Interface number
----@field Function number
----@field Escape number
----@field Declare number
----@field Export number
----@field Ternary number
----@field LogicalOps number
----@field BitwiseOps number
----@field ComparisonOps number
----@field BitShiftOps number
----@field ArithmeticOps number
----@field UnaryOps number
----@field CallExpr number
----@field GroupedExpr number
----@field Index number
----@field Array number
----@field Object number
----@field Block number
----@field Lambda number
----@field Constructor number
----@field Literal number
----@field Variable number
-local KINDS, KINDS_UDATA = ELib.MakeEnum {
+---@enum ParserKind
+local KINDS = {
+	If = 1,
+	Elseif = 2,
+	Else = 3,
+	While = 4,
+	For = 5,
+	Try = 6,
+	Realm = 7,
+	VarDeclare = 8,
+	VarModify = 9,
+	Delegate = 10,
+	Class = 11,
+	Interface = 12,
+	Function = 13,
+	Escape = 14,
+	Declare = 15,
+	Export = 16,
+
+	Ternary = 17,
+	LogicalOps = 18,
+	BitwiseOps = 19,
+	ComparisonOps = 20,
+	BitShiftOps = 21,
+	ArithmeticOps = 22,
+	UnaryOps = 23,
+	CallExpr = 24,
+	GroupedExpr = 25,
+	Index = 26,
+	Array = 27,
+	Object = 28,
+	Block = 29,
+	Lambda = 30,
+	Constructor = 31,
+	Literal = 32,
+	Variable = 33
+}
+
+local KINDS_UDATA = {
 	--- Statements
-	Control("If", "if statement"), -- if (true) {}
-	Control("Elseif", "elseif statement"), -- if (true) {} elseif (true) {}
-	Control("Else", "else statement"), -- if (true) {} else {}
-	Control("While", "while loop"), -- while (true) {}
-	Control("For", "for loop"), -- for(let foo = 5; foo < 5; foo++) {}
-	Control("Try", "try"), -- try {} catch (e: int) {}
-	Control("Realm", "realm block"), -- Set realm for block
-	Declare("VarDeclare", "variable declaration"), -- var Foo = 5;
-	Declare("VarModify", "variable modification"), -- Foo += 5;
-	Declare("Delegate", "delegate"),
-	Declare("Class", "class definition"), -- class Main {}
-	Declare("Interface", "interface definition"), -- interface Main {}
-	Declare("Function", "function definition"), -- function foo(): number {}
-	Control("Escape", "return, break or continue"), -- Either return Var?, break or continue.
-	Declare("Declare", "extern declaration"), -- declare function foo(): number
-	Declare("Export", "export modifier"), -- export declare var foo: number
+	[KINDS.If] = Control("if statement"), -- if (true) {}
+	[KINDS.Elseif] = Control("elseif statement"), -- if (true) {} elseif (true) {}
+	[KINDS.Else] = Control("else statement"), -- if (true) {} else {}
+	[KINDS.While] = Control("while loop"), -- while (true) {}
+	[KINDS.For] = Control("for loop"), -- for(let foo = 5; foo < 5; foo++) {}
+	[KINDS.Try] = Control("try"), -- try {} catch (e: int) {}
+	[KINDS.Realm] = Control("realm block"), -- Set realm for block
+	[KINDS.VarDeclare] = Declare("variable declaration"), -- var Foo = 5;
+	[KINDS.VarModify] = Declare("variable modification"), -- Foo += 5;
+	[KINDS.Delegate] = Declare("delegate"),
+	[KINDS.Class] = Declare("class definition"), -- class Main {}
+	[KINDS.Interface] = Declare("interface definition"), -- interface Main {}
+	[KINDS.Function] = Declare("function definition"), -- function foo(): number {}
+	[KINDS.Escape] = Control("return, break or continue"), -- Either return Var?, break or continue.
+	[KINDS.Declare] = Declare("extern declaration"), -- declare function foo(): number
+	[KINDS.Export] = Declare("export modifier"), -- export declare var foo: number
 
 	--- Expressions
-	Expr("Ternary", "ternary operation"), -- a ? b : c (a ?? b)
-	Expr("LogicalOps", "logical operation"), -- || &&
-	Expr("BitwiseOps", "binary operation"), -- | ^ &
-	Expr("ComparisonOps", "comparison"), -- == != > >= < <=
-	Expr("BitShiftOps", "bit shift operation"), -- << >>
-	Expr("ArithmeticOps", "arithmetic"), -- + - / * %
-	Expr("UnaryOps", "unary operation"), -- ! -
-	Expr("CallExpr", "call"), -- foo()
-	Expr("GroupedExpr", "grouped expression"), -- (x + y)
-	Expr("Index", "index"), -- x.y or x[y]
-	Expr("Array", "array literal"), -- [1, 2, 3]
-	Expr("Object", "literal object"), -- { foo: 5, bar: "hello" }
-	Expr("Block", "block"), -- { ... }
-	Expr("Lambda", "lambda / closure"), -- function(x...) { ... }
-	Expr("Constructor", "new expression"), -- new Foo()
-	Expr("Literal", "literal value"), -- 5, "foo", true, false, nil
-	Expr("Variable", "variable") -- foo
+	[KINDS.Ternary] = Expr("ternary operation"), -- a ? b : c (a ?? b)
+	[KINDS.LogicalOps] = Expr("logical operation"), -- || &&
+	[KINDS.BitwiseOps] = Expr("binary operation"), -- | ^ &
+	[KINDS.ComparisonOps] = Expr("comparison"), -- == != > >= < <=
+	[KINDS.BitShiftOps] = Expr("bit shift operation"), -- << >>
+	[KINDS.ArithmeticOps] = Expr("arithmetic"), -- + - / * %
+	[KINDS.UnaryOps] = Expr("unary operation"), -- ! -
+	[KINDS.CallExpr] = Expr("call"), -- foo()
+	[KINDS.GroupedExpr] = Expr("grouped expression"), -- (x + y)
+	[KINDS.Index] = Expr("index"), -- x.y or x[y]
+	[KINDS.Array] = Expr("array literal"), -- [1, 2, 3]
+	[KINDS.Object] = Expr("literal object"), -- { foo: 5, bar: "hello" }
+	[KINDS.Block] = Expr("block"), -- { ... }
+	[KINDS.Lambda] = Expr("lambda / closure"), -- function(x...) { ... }
+	[KINDS.Constructor] = Expr("new expression"), -- new Foo()
+	[KINDS.Literal] = Expr("literal value"), -- 5, "foo", true, false, nil
+	[KINDS.Variable] = Expr("variable") -- foo
 }
 
 local KINDS_INV = ELib.GetInverted(KINDS)
@@ -128,13 +132,13 @@ local KINDS_INV = ELib.GetInverted(KINDS)
 Parser.KINDS = KINDS
 Parser.KINDS_INV = KINDS_INV
 
----@type table<number, {type: string}>
+---@type table<ParserKind, ParserKindData>
 Parser.KINDS_UDATA = KINDS_UDATA
 
 ---@class Node: Object
----@field kind ParserKinds
+---@field kind ParserKind
 ---@field data table
-local Node = class("Node")
+local Node = Class("Node")
 Parser.Node = Node
 
 function Node:__tostring()
@@ -162,7 +166,7 @@ function Node:isDeclaration()
 	return KINDS_UDATA[self.kind].decl
 end
 
----@param kind ParserKinds
+---@param kind ParserKind
 ---@param data table
 function Node.new(kind, data)
 	return setmetatable({
@@ -171,25 +175,25 @@ function Node.new(kind, data)
 	}, Node)
 end
 
---- Parses a stream of tokens into an abstract syntax tree (AST)
----@param tokens table<number, Token> # Tokens retrieved from the [Tokenizer]
+--- Parses a stream of atoms into an abstract syntax tree (AST)
+---@param atoms table<number, Atom> # Atoms retrieved from the [Lexer]
 ---@return Ast
-function Parser:parse(tokens)
-	assert(type(tokens) == "table", "bad argument #1 to 'Parser:parse' (table expected, got " .. type(tokens) .. ")")
+function Parser:parse(atoms)
+	assert(type(atoms) == "table", "bad argument #1 to 'Parser:parse' (table expected, got " .. type(atoms) .. ")")
 
 	self:reset()
-	self.tokens = tokens
+	self.atoms = atoms
 
 	local ok, res = pcall(self.root, self)
 	if not ok then
-		local tok = self.tokens[self.tok_idx]
-		error("Parser error: [" .. res .. "] at line " .. tok.line .. " char " .. tok.startchar, 0)
+		local atom = self.atoms[self.atom_idx]
+		error("Parser error: [" .. res .. "] at line " .. atom.start_line .. " char " .. atom.start_col, 0)
 	end
 	return ELib.Ast.new(res)
 end
 
-function Parser:hasTokens()
-	return self.tok_idx < #self.tokens
+function Parser:hasAtoms()
+	return self.atom_idx < #self.atoms
 end
 
 function Parser:root()
@@ -206,55 +210,71 @@ end
 
 ---@return Node?
 function Parser:next()
-	if not self:hasTokens() then
+	if not self:hasAtoms() then
 		return nil
 	end
 
-	local tok = self:nextToken()
+	local atom = self:consume()
+
+	-- hasAtom assures that there is another available atom to consume.
+	---@cast atom Atom
+
 	---@type Node?
-	local res = self:parseStatement(tok) or self:parseExpression(tok)
+	local res = self:parseStatement(atom) or self:parseExpression(atom)
 
 	if res then
 		-- Expect ; after declaration statements.
 		if res:isExpression() or res:isDeclaration() then
-			assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after " .. res:human())
+			assert(self:consumeIf(ATOM_KINDS.Grammar, ";"), "Expected ; after " .. res:human())
 		end
 		return res
 	else
-		error("Unexpected token " .. TOKEN_KINDS_INV[tok.kind] .. " '" .. tok.raw .. "'")
+		error("Unexpected atom " .. ATOM_KINDS_INV[atom.kind] .. " '" .. atom.raw .. "'")
 	end
 end
 
---- Shifts the parser to the next token.
---- Not to be confused with [Parser:next()], which tries to create another node
----@return Token?
-function Parser:nextToken()
-	self.tok_idx = self.tok_idx + 1
-	return self.tokens[ self.tok_idx ]
+--- Consumes the next atom in the atom stream.
+---@nodiscard
+---@return Atom?
+function Parser:consume()
+	self.atom_idx = self.atom_idx + 1
+	return self.atoms[ self.atom_idx ]
 end
 
---- Inverse of [Parser:nextToken()].
-function Parser:prevToken()
-	self.tok_idx = self.tok_idx - 1
-	return self.tokens[ self.tok_idx ]
+--- Consumes the next atom in the atom stream.
+--- # Safety
+--- Must only be used when sure that you won't reach eof.
+--- Either by [Parser.hasAtoms] or a [Parser.is] check
+---@nodiscard
+---@return Atom
+function Parser:consume_unchecked()
+	self.atom_idx = self.atom_idx + 1
+	return self.atoms[ self.atom_idx ]
 end
 
----@return Token?
+--- Inverse of [Parser:consume()].
+function Parser:prev()
+	self.atom_idx = self.atom_idx - 1
+	return self.atoms[ self.atom_idx ]
+end
+
+---@nodiscard
+---@return Atom?
 function Parser:peek()
-	return self.tokens[ self.tok_idx + 1 ]
+	return self.atoms[ self.atom_idx + 1 ]
 end
 
----@return Token?
+---@return Atom?
 function Parser:peekBack()
-	return self.tokens[ self.tok_idx - 1 ]
+	return self.atoms[ self.atom_idx - 1 ]
 end
 
 --- Accepts a condition, delimited by parenthesis
 ---@return Node? # Expression node
 function Parser:acceptCondition()
-	assert( self:popToken(TOKEN_KINDS.Grammar, "("), "Expected ( in condition" )
-	local exp = self:parseExpression( self:nextToken() )
-	assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to close condition" )
+	assert( self:consumeIf(ATOM_KINDS.Grammar, "("), "Expected ( in condition" )
+	local exp = self:parseExpression( assert( self:consume(), "Expected condition, got <eof>") )
+	assert( self:consumeIf(ATOM_KINDS.Grammar, ")"), "Expected ) to close condition" )
 
 	return exp
 end
@@ -262,8 +282,8 @@ end
 --- Accepts an identifier and returns it as a string.
 ---@return string
 function Parser:acceptIdent()
-	local tok = self:popToken(TOKEN_KINDS.Identifier)
-	return tok and tok.raw
+	local atom = self:consumeIf(ATOM_KINDS.Identifier)
+	return atom and atom.raw
 end
 
 ---@return Node?
@@ -272,14 +292,14 @@ function Parser:lastNode()
 end
 
 --- Returns the last node with the given metadata (assuming it exists and fits the given kind and value)
----@param kind ParserKinds
+---@param kind ParserKind
 ---@param value string?
----@return Node
+---@return Node?
 function Parser:lastNodeWith(kind, value)
 	local last = self:lastNode()
 	if not last then return end
 
-	if value ~= nil  then
+	if value ~= nil then
 		return (last.kind == kind and last.raw == value) and last
 	else
 		return (last.kind == kind) and last
@@ -287,11 +307,11 @@ function Parser:lastNodeWith(kind, value)
 end
 
 --- Returns the last node with the given metadata (assuming it exists and fits the given kind and value)
----@param kind table<number, ParserKinds>
+---@param kind table<number, ParserKind>
 ---@return boolean
 function Parser:lastNodeAnyOfKind(kind)
 	local last = self:lastNode()
-	if not last then return end
+	if not last then return false end
 
 	for _, k in ipairs(kind) do
 		if last.kind == k then
@@ -301,79 +321,78 @@ function Parser:lastNodeAnyOfKind(kind)
 	return false
 end
 
---- Returns if a given token is of kind 'kind' and has an inner value
----@param token Token
----@param kind TokenKinds
+--- Returns if a given atom is of kind 'kind' and has an inner value
+---@param atom Atom?
+---@param kind AtomKind
 ---@param value string? # Optional value to match against
 ---@return boolean
-local function isToken(token, kind, value)
-	if not token then return false end
+local function is(atom, kind, value)
+	if atom == nil then return false end
 
 	if value ~= nil then
-		return token.kind == kind and token.raw == value
+		return atom.kind == kind and atom.raw == value
 	else
-		return token.kind == kind
+		return atom.kind == kind
 	end
 end
 
---- Like isToken, but accepts an array of values rather than just one
----@param token Token?
----@param kind TokenKinds
+--- Like is, but accepts an array of values rather than just one
+---@param atom Atom?
+---@param kind AtomKind
 ---@param values table<number, string>
----@return string # The raw value from 'values' that matched.
-local function isAnyOf(token, kind, values)
-	-- TODO: Maybe we shouldn't check for nil here.
-	if not token or token.kind ~= kind then return false end
+---@return string? # The raw value from 'values' that matched.
+local function isAnyOf(atom, kind, values)
+	if not atom or atom.kind ~= kind then return false end
 
 	for _, val in ipairs(values) do
-		if token.raw == val then return val end
+		if atom.raw == val then return val end
 	end
 end
 
 --- Like isAnyOf, but for the kind instead of values.
----@param token Token?
----@param kinds table<number, TokenKinds>
----@return TokenKinds? # The [TokenKinds] that matched.
-local function isAnyOfKind(token, kinds)
+---@param atom Atom?
+---@param kinds table<number, AtomKind>
+---@return AtomKind?
+local function isAnyOfKind(atom, kinds)
 	for _, kind in ipairs(kinds) do
-		if isToken(token, kind, nil) then return kind end
+		if is(atom, kind, nil) then return kind end
 	end
 end
 
-Parser.isToken = isToken
+Parser.is = is
 Parser.isAnyOf = isAnyOf
 Parser.isAnyOfKind = isAnyOfKind
 
---- Like isToken, but peeks ahead, uses that as the token, skips if it matches it.
----@param kind TokenKinds
+--- Like :consume, but peeks ahead, uses that as the atom, skips if it matches it.
+---@param kind AtomKind
 ---@param value string? # Optional value to match against
----@return Token? # The token that matched
-function Parser:popToken(kind, value)
-	local token = self:peek()
-	if isToken(token, kind, value) then
-		return self:nextToken()
+---@return Atom? # The atom that matched
+function Parser:consumeIf(kind, value)
+	local atom = self:peek()
+	if is(atom, kind, value) then
+		return self:consume()
 	end
 end
 
 --- Same as isAnyOf, but skips if it matches it.
----@param kind TokenKinds
+---@param kind AtomKind
 ---@param values table<number, string> # Values to match against
 ---@return string? # Raw value that matched from 'values'
-function Parser:popAnyOf(kind, values)
+function Parser:consumeIfAnyOf(kind, values)
 	local ret = isAnyOf(self:peek(), kind, values)
 	if ret then
-		self.tok_idx = self.tok_idx + 1
+		self.atom_idx = self.atom_idx + 1
 		return ret
 	end
 end
 
 --- Same as isAnyOfKind, but skips if it matches it.
----@param kinds table<number, TokenKinds>
----@return Token? # The token that matched
-function Parser:popAnyOfKind(kinds)
-	local token = self:peek()
-	if isAnyOfKind(token, kinds) then
-		return self:nextToken()
+---@param kinds table<number, AtomKind>
+---@return Atom? # The atom that matched
+function Parser:consumeIfAnyOfKind(kinds)
+	local atom = self:peek()
+	if isAnyOfKind(atom, kinds) then
+		return self:consume()
 	end
 end
 
@@ -381,12 +400,12 @@ end
 --- Accepts a block, or throws an error if it couldn't.
 ---@return Ast
 function Parser:acceptBlock()
-	assert( self:popToken(TOKEN_KINDS.Grammar, "{"), "Expected { in block" )
+	assert( self:consumeIf(ATOM_KINDS.Grammar, "{"), "Expected { in block" )
 
 	local nodes, node_idx = ELib.Ast.new({}), 0
 
 	-- Empty block
-	if self:popToken(TOKEN_KINDS.Grammar, "}") then
+	if self:consumeIf(ATOM_KINDS.Grammar, "}") then
 		return nodes
 	end
 
@@ -395,7 +414,7 @@ function Parser:acceptBlock()
 		local node = self:next()
 		nodes[node_idx] = node
 
-		if self:popToken(TOKEN_KINDS.Grammar, "}") then
+		if self:consumeIf(ATOM_KINDS.Grammar, "}") then
 			return nodes
 		end
 	until not node
@@ -403,20 +422,20 @@ function Parser:acceptBlock()
 	error("Right curly bracket (}) missing, to close block")
 end
 
----@return string
+---@return string?
 function Parser:acceptType()
 	--- TODO: This needs to properly create a type struct, which stores whether it is variadic, array, etc.
-	local ty = self:popToken(TOKEN_KINDS.Identifier)
+	local ty = self:consumeIf(ATOM_KINDS.Identifier)
 	if ty then
-		if self:popToken(TOKEN_KINDS.Grammar, "[") then
-			assert( self:popToken(TOKEN_KINDS.Grammar, "]"), "Expected ] to complete array type (int[])" )
+		if self:consumeIf(ATOM_KINDS.Grammar, "[") then
+			assert( self:consumeIf(ATOM_KINDS.Grammar, "]"), "Expected ] to complete array type (int[])" )
 			return ty.raw
 		end
 		return ty.raw
 	else
 		local params = self:acceptTypes()
 		if params then
-			assert( self:popToken(TOKEN_KINDS.Operator, "=>"), "Expected => to complete function signature" )
+			assert( self:consumeIf(ATOM_KINDS.Operator, "=>"), "Expected => to complete function signature" )
 			local ret = assert( self:acceptType(), "Expected type to follow function signature arrow" )
 
 			return "function(" .. table.concat(params, ",") .. ":" .. ret
@@ -427,20 +446,20 @@ end
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
 ---@return table<number, table<number, string>>?
 function Parser:acceptTypes()
-	if not self:popToken(TOKEN_KINDS.Grammar, "(") then return end
+	if not self:consumeIf(ATOM_KINDS.Grammar, "(") then return end
 
 	local args = {}
 
-	if not self:popToken(TOKEN_KINDS.Grammar, ")") then
+	if not self:consumeIf(ATOM_KINDS.Grammar, ")") then
 		local arg, ty
-		while self:hasTokens() do
+		while self:hasAtoms() do
 			arg = self:acceptType()
 			if not arg then break end
 
 			args[#args + 1] = ty
 
-			if not self:popToken(TOKEN_KINDS.Grammar, ",") then
-				assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
+			if not self:consumeIf(ATOM_KINDS.Grammar, ",") then
+				assert( self:consumeIf(ATOM_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
 				break
 			end
 		end
@@ -451,24 +470,24 @@ end
 --- Returns a table in the format of { { [1] = name, [2] = type } ... }, with both fields being strings
 ---@return table<number, table<number, string>>?
 function Parser:acceptTypedParameters()
-	if not self:popToken(TOKEN_KINDS.Grammar, "(") then return end
+	if not self:consumeIf(ATOM_KINDS.Grammar, "(") then return end
 	local args = {}
-	if self:popToken(TOKEN_KINDS.Grammar, ")") then return args end
+	if self:consumeIf(ATOM_KINDS.Grammar, ")") then return args end
 
 	local arg, ty
-	while self:hasTokens() do
-		arg = self:popToken(TOKEN_KINDS.Identifier)
+	while self:hasAtoms() do
+		arg = self:consumeIf(ATOM_KINDS.Identifier)
 		if not arg then break end
 
 		-- "Expected : after argument to begin type" )
 
-		if self:popToken(TOKEN_KINDS.Grammar, ":") then
+		if self:consumeIf(ATOM_KINDS.Grammar, ":") then
 			ty = assert(self:acceptType(), "Expected type after : in function parameter")
 			args[#args + 1] = { arg.raw, ty }
 		end
 
-		if not self:popToken(TOKEN_KINDS.Grammar, ",") then
-			assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
+		if not self:consumeIf(ATOM_KINDS.Grammar, ",") then
+			assert( self:consumeIf(ATOM_KINDS.Grammar, ")"), "Expected ) to end function parameters" )
 			return args
 		end
 	end
@@ -476,21 +495,21 @@ end
 
 --- Returns a table of arguments, like (bar, foo, baz, 55, "qux", 500.0 + 291.2 / 5.0)
 function Parser:acceptArguments()
-	if self:popToken(TOKEN_KINDS.Grammar, "(") then
+	if self:consumeIf(ATOM_KINDS.Grammar, "(") then
 		local nargs, args = 1, {}
-		local arg = self:parseExpression(self:nextToken())
+		local arg = self:parseExpression(self:consume())
 		while arg do
 			args[nargs] = arg
 			nargs = nargs + 1
 
-			if self:popToken(TOKEN_KINDS.Grammar, ")") then
+			if self:consumeIf(ATOM_KINDS.Grammar, ")") then
 				break
 			end
 
-			if self:popToken(TOKEN_KINDS.Grammar, ",") then
-				arg = self:parseExpression(self:nextToken())
+			if self:consumeIf(ATOM_KINDS.Grammar, ",") then
+				arg = self:parseExpression(self:consume())
 			else
-				assert( self:popToken(TOKEN_KINDS.Grammar, ")"), "Expected ) or , after argument in call expr" )
+				assert( self:consumeIf(ATOM_KINDS.Grammar, ")"), "Expected ) or , after argument in call expr" )
 				break
 			end
 		end
@@ -505,16 +524,16 @@ include("expr.lua")
 include("declare.lua")
 include("class.lua")
 
----@type fun(self: Parser, tok: Token): Node?
+---@type fun(self: Parser, atom: Atom): Node?
 Parser.parseExpression = Parser.parseExpression
 
----@type fun(self: Parser, tok: Token): Node?
+---@type fun(self: Parser, atom: Atom): Node?
 Parser.parseStatement = Parser.parseStatement
 
----@type fun(self: Parser, tok: Token): Node?
+---@type fun(self: Parser, atom: Atom, ignore_kw: boolean): Node?
 Parser.acceptDeclare = Parser.acceptDeclare
 
----@type fun(self: Parser, tok: Token): Node?
+---@type fun(self: Parser): Node?
 Parser.acceptClassBlock = Parser.acceptClassBlock
 
 return Parser

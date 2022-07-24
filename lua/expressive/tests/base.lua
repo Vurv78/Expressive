@@ -3,8 +3,8 @@ local src = file.Read("expressive/examples/helloworld.es.txt", "LUA")
 
 ---@type Context
 local Context = include("expressive/runtime/context.lua")
----@type Tokenizer
-local Tokenizer = include("expressive/compiler/tokenizer.lua")
+---@type Lexer
+local Lexer = include("expressive/compiler/lexer/mod.lua")
 ---@type Parser
 local Parser = include("expressive/compiler/parser/mod.lua")
 ---@type Analyzer
@@ -15,14 +15,14 @@ local Transpiler = include("expressive/compiler/transpiler/mod.lua")
 ---@type Ast
 local _Ast = include("expressive/compiler/ast.lua")
 
-local tok = Tokenizer.new()
+local lexer = Lexer.new()
 local parser = Parser.new()
 local analyzer = Analyzer.new()
 local transpiler = Transpiler.new()
 
 local ctx = Context.new()
-local tokens = tok:parse(src)
-local ast = parser:parse(tokens)
+local atoms = lexer:lex(src)
+local ast = parser:parse(atoms)
 local new_ast = analyzer:process(ctx, ast)
 local code = transpiler:process(ctx, new_ast)
 

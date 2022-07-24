@@ -3,11 +3,13 @@ local MsgN = print
 
 -- Sequel to the E2Lib.
 ---@class ELib
----@field Operators table<string, boolean>
+---@field Operators Operator[]
+---@field OperatorChar table<string, boolean>
+---@field Operator table<string, Operator>
 ---@field Keywords table<string, boolean>
 ---@field Version string
 ---@field Version_NUM number
----@field Tokenizer Tokenizer
+---@field Lexer Lexer
 ---@field Analyzer Analyzer
 ---@field Parser Parser
 ---@field Ast Ast
@@ -25,6 +27,127 @@ local Library = {
 	Version_NUM = 100 -- 1.0.0 -> 100, 1.0.1 -> 101, 0.2.0 -> 020, etc.
 }
 
+local Import
+do
+	local function getCurrentDir()
+		---@diagnostic disable-next-line: missing-parameter
+		return debug.getinfo(1, "S").short_src:match("^(.*)%.lua$")
+	end
+
+	local Cache = {}
+	local Loading = {}
+
+	if gmod then
+		--- Loads the given module, returns any value returned by the given module (true when nil).
+		---@param path string
+		---@param cache boolean? # Whether to cache return values.
+		---@return ...
+		function Import(path, cache)
+			if Loading[path] then
+				return true
+			end
+
+			if cache and Cache[path] then
+				return unpack(Cache[path])
+			end
+
+			Loading[path] = true
+				local rets = { pcall(include, path .. ".lua") }
+				local success = table.remove(rets, 1)
+			Loading[path] = nil
+
+			if not success then
+				ErrorNoHalt("Error loading module " .. path .. ": " .. rets[1] .. "\n")
+			end
+
+			if cache then
+				Cache[path] = rets
+			end
+
+			return unpack(rets)
+		end
+	else
+		Import = require
+	end
+
+	Library.Import = Import
+end
+
+do
+	--- Completely unnecessary OOP Library by yours truly
+
+	---@class Object
+	local Object = {}
+	Object.__index = Object
+	Object.__metatable = "Object"
+
+	---@param name "gc"|"tostring"|"eq"|"len"|"unm"|"add"|"sub"|"mul"|"div"|"mod"|"pow"|"concat"|"call"|"index"|"newindex"
+	---@param fn function
+	function Object:meta(name, fn)
+		-- Compat for Lua 5.1 / LuaJIT
+		if name == "gc" then
+			local proxy = newproxy(true)
+			debug.setmetatable(proxy, {
+				__gc = function()
+					fn(self)
+				end
+			})
+		end
+		self["__" .. name] = fn
+	end
+
+	function Object:__tostring()
+		return "Object"
+	end
+
+	---@generic T
+	---@param self T
+	---@return boolean
+	function Object:instanceof(x)
+		return getmetatable(x) == self.__metatable
+	end
+
+	---@generic T
+	---@return T
+	function Object:new(...)
+		return setmetatable({}, self)
+	end
+
+	---@param name string
+	---@param extends Object?
+	---@generic T : Object
+	---@return T
+	function Library.Class(name, extends)
+		local t = { __metatable = name }
+		t.__index = t
+
+		extends = extends or Object
+
+		return setmetatable(t, {
+			__tostring = function() return name end,
+			__metatable = name,
+			__index = extends
+		})
+	end
+
+	--[[
+	local A = Class("foo")
+	function A.new()
+		return setmetatable({}, A)
+	end
+
+	function A:bar()
+		MsgN("Bar")
+	end
+
+	local B = Class("bar", A)
+
+	B.new():bar()
+
+	MsgN(A.new(), A, A.bar, A:instanceof(A.new()), A.new():bar())
+	]]
+end
+
 Library.Grammar = {
 	[";"] = true,
 	[","] = true,
@@ -37,39 +160,87 @@ Library.Grammar = {
 	["]"] = true
 }
 
+---@alias Operator {op: string, precedence: integer, is_unary: boolean}
+
+---@param c string
+---@return Operator
+local function Unary(c)
+	-- Unary ops do not use precedence and are parsed manually.
+	return { op = c, precedence = -1, is_unary = true }
+end
+
+---@param c string
+---@param precedence integer
+---@return Operator
+local function Binary(c, precedence)
+	return { op = c, precedence = precedence, is_unary = true }
+end
+
+-- https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
 Library.Operators = {
-	-- += -= /= %= *=
-	["+="] = true, ["-="] = true, ["/="] = true, ["%="] = true, ["*="] = true,
+	Unary("++"),
+	Unary("--"),
 
-	-- >= <= == != > <
-	["=="] = true, ["!="] = true, ["<="] = true, [">="] = true, [">"] = true, ["<"] = true,
+	Unary("!"),
+	Unary("-"),
+	Unary("~"),
 
-	-- &= ^= |=
-	["&="] = true, ["^="] = true, ["|="] = true,
+	Binary(".", 14), Binary(".?", 14), -- x.y
 
-	-- + - * / %
-	["+"] = true, ["-"] = true, ["*"] = true, ["/"] = true, ["%"] = true,
+	Binary("**", 13),
 
-	-- self modifying
-	["++"] = true, ["--"] = true,
+	Binary("*", 12), Binary("/", 12), Binary("%", 12),
 
-	-- bitwise & |
-	["&"] = true, ["|"] = true,
+	Binary("+", 11), Binary("-", 11),
 
-	-- logical ops && ||
-	["&&"] = true, ["||"] = true,
+	Binary("<<", 10), Binary(">>", 10),
 
-	-- bit shift
-	["<<"] = true, [">>"] = true,
+	Binary("<", 9), Binary("<=", 9),
+	Binary(">", 9), Binary(">=", 9),
 
-	-- Ternary
-	["?"] = true, ["??"] = true,
+	Binary("==", 8), Binary("!=", 8),
 
-	-- Special
-	["."] = true,
-	["="] = true,
-	["=>"] = true,
+	Binary("&", 7),
+
+	Binary("^", 6),
+
+	Binary("|", 5),
+
+	Binary("&&", 4),
+
+	Binary("||", 3), Binary("??", 3),
+
+	Binary("=", 2), Binary("+=", 2),
+	Binary("-=", 2), Binary("*=", 2),
+	Binary("/=", 2), Binary("%=", 2),
+	Binary("^=", 2), Binary("|=", 2),
+	Binary("&&=", 2), Binary("||=", 2),
+	Binary("??=", 2)
 }
+
+Library.OperatorChar = {
+	["+"] = true,
+	["-"] = true,
+	["/"] = true,
+	["*"] = true,
+	["%"] = true,
+	["^"] = true,
+	["<"] = true,
+	["="] = true,
+	[">"] = true,
+	["|"] = true,
+	["&"] = true,
+	["."] = true,
+	["?"] = true,
+	["~"] = true,
+	[":"] = true
+}
+
+---@type table<string, Operator>
+Library.Operator = {}
+for k, v in ipairs(Library.Operators) do
+	Library.Operator[v.op] = v
+end
 
 Library.Keywords = {
 	-- ES6 Keywords (Active)
@@ -273,7 +444,7 @@ end
 ---@field owner GEntity # Owner entity
 ---@field owner_id integer # Owner entity ID
 
-local DataStream = require("datastream")
+local DataStream = Import("includes/modules/datastream")
 
 ---@param from GPlayer?
 ---@param callback fun(ok: boolean, data: ProcessorData)
@@ -520,8 +691,9 @@ end
 
 -- Just in case..
 _G.ExpressiveLoaded = true
+_G.ELib = Library
 
-Library.Extension = require("expressive/extension")
+Library.Extension = Import("includes/modules/expressive/extension")
 
 MsgN("ExpressiveLib Loaded!")
 

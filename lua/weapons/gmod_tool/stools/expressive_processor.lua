@@ -1,4 +1,4 @@
-﻿local ELib = require("expressive/library")
+﻿require("expressive/library"); local ELib = ELib
 
 ---@type GTool
 local TOOL = _G.TOOL

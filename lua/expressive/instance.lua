@@ -1,5 +1,5 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 --- Instance
 --- This is different from the [Context], which is the immutable environment it runs in.
@@ -21,7 +21,7 @@ local class = require("voop")
 ---@field stack_level number
 ---@field owner GEntity|GPlayer
 ---@field chip GEntity
-local Instance = class("Expressive Instance")
+local Instance = Class("Expressive Instance")
 
 --- Most of the cpu limiting stuff is taken from E3 / StarfallEx.
 function Instance:movingCPUAverage()

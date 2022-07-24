@@ -1,4 +1,4 @@
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
 
 local Analyzer = ELib.Analyzer
 local Parser = ELib.Parser

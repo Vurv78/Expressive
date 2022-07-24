@@ -1,5 +1,5 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 local Var = ELib.Var
 
@@ -9,7 +9,7 @@ local Var = ELib.Var
 ---@field funcs table<string, fun()>
 ---@field constants table<string, {value: any, type: Type}>
 ---@field extensions table<Extension, boolean>
-local Context = class("Context", ELib.Namespace)
+local Context = Class("Context", ELib.Namespace)
 
 ---@return Context
 function Context.new()

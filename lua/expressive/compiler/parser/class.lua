@@ -1,23 +1,24 @@
 --- Parse the internals of a class Foo {} block.
-local ELib = require("expressive/library")
+require("expressive/library"); local ELib = ELib
 local Parser = ELib.Parser
 
-local isToken = ELib.Parser.isToken
+local is = ELib.Parser.is
 local isAnyOf = ELib.Parser.isAnyOf
 
-local TOKEN_KINDS = ELib.Tokenizer.KINDS
+local ATOM_KINDS = ELib.Lexer.KINDS
 
 ---@class ClassData
 ---@field constructor { args: table<number, table<number, string>>, body: table<number, Node> } # Constructor of the class
 ---@field fields table<string, TypeSig> # Field names and their types on the class.
 ---@field static_fields table<string, TypeSig> # Static field names and their types on the class.
 
+---@type table<string, fun(self: Parser, data: ClassData, atom: Atom): boolean?>
 local Handlers = {
 	---@param self Parser
-	---@param data ClassData
-	---@param token Token
-	["constructor"] = function(self, _data, token)
-		if isToken(token, TOKEN_KINDS.Keyword, "constructor") then
+	---@param _data ClassData
+	---@param atom Atom
+	["constructor"] = function(self, _data, atom)
+		if is(atom, ATOM_KINDS.Keyword, "constructor") then
 			local args = assert(self:acceptTypedParameters(), "Expected typed parameters for constructor")
 			local body = self:acceptBlock()
 
@@ -27,20 +28,20 @@ local Handlers = {
 	end,
 
 	---@param self Parser
-	---@param data ClassData
-	---@param token Token
-	["static_block"] = function(self, _data, token)
-		if isToken(token, TOKEN_KINDS.Keyword, "static") then
-			assert(not self:popToken(TOKEN_KINDS.Grammar, "{"), "Static blocks are not supported")
+	---@param _data ClassData
+	---@param atom Atom
+	["static_block"] = function(self, _data, atom)
+		if is(atom, ATOM_KINDS.Keyword, "static") then
+			assert(not self:consumeIf(ATOM_KINDS.Grammar, "{"), "Static blocks are not supported")
 		end
 	end,
 
-	["get"] = function(_self, _data, token)
-		assert( not isToken(token, TOKEN_KINDS.Keyword, "get"), "Getters are not implemented")
+	["get"] = function(_self, _data, atom)
+		assert( not is(atom, ATOM_KINDS.Keyword, "get"), "Getters are not implemented")
 	end,
 
-	["set"] = function(_self, _data, token)
-		assert( not isToken(token, TOKEN_KINDS.Keyword, "set"), "Setters are not implemented")
+	["set"] = function(_self, _data, atom)
+		assert( not is(atom, ATOM_KINDS.Keyword, "set"), "Setters are not implemented")
 	end,
 
 	--- ```ts
@@ -50,30 +51,30 @@ local Handlers = {
 	--- ```
 	---@param self Parser
 	---@param data ClassData
-	---@param token Token
-	["field"] = function(self, data, token)
+	---@param atom Atom
+	["field"] = function(self, data, atom)
 		-- Do this first, to prevent modifier order mismatch with a proper error message.
-		local is_static = isToken(token, TOKEN_KINDS.Keyword, "static")
+		local is_static = is(atom, ATOM_KINDS.Keyword, "static")
 		if is_static then
-			token = self:nextToken()
+			atom = assert( self:consume(), "Expected field name after 'static' modifier")
 		end
 
-		local modifier = isAnyOf(token, TOKEN_KINDS.Keyword, {"public", "private", "protected"})
+		local modifier = isAnyOf(atom, ATOM_KINDS.Keyword, {"public", "private", "protected"})
 		if modifier then
-			assert(not is_static, "Visibility modifier must precede static: '" .. modifier .. "'")
-			token = self:nextToken()
+			assert(not is_static, "Visibility modifier '" .. modifier .. "' must precede static")
+			atom = self:consume_unchecked()
 		end
 
 		if not is_static then
-			is_static = isToken(token, TOKEN_KINDS.Keyword, "static")
+			is_static = is(atom, ATOM_KINDS.Keyword, "static")
 			if is_static then
-				token = self:nextToken()
+				atom = self:consume_unchecked()
 			end
 		end
 
-		if isToken(token, TOKEN_KINDS.Identifier) then
-			local name = token.raw
-			assert(self:popToken(TOKEN_KINDS.Grammar, ":"), "Expected ':' after field name")
+		if is(atom, ATOM_KINDS.Identifier) then
+			local name = atom.raw
+			assert(self:consumeIf(ATOM_KINDS.Grammar, ":"), "Expected ':' after field name")
 			local ty = assert(self:acceptType(), "Expected type after ':' in field declaration")
 
 			if data.fields[name] or data.static_fields[name] then
@@ -97,25 +98,25 @@ local Handlers = {
 --- 	...
 --- }
 --- ```
----@return ClassData
+---@return ClassData?
 function Parser:acceptClassBlock()
-	if self:popToken(TOKEN_KINDS.Grammar, "{") then
+	if self:consumeIf(ATOM_KINDS.Grammar, "{") then
 		---@type ClassData
 		local data = {}
-		while not self:popToken(TOKEN_KINDS.Grammar, "}") do
-			local token, matched = self:nextToken(), false
-			if token then
+		while not self:consumeIf(ATOM_KINDS.Grammar, "}") do
+			local atom, matched = self:consume(), false
+			if atom then
 				for _, handler in pairs(Handlers) do
-					matched = handler(self, token)
+					matched = handler(self, data, atom)
 					if matched then
 						print("Matched", _, handler)
 						break
 					end
 				end
 				if matched then
-					assert(self:popToken(TOKEN_KINDS.Grammar, ";"), "Expected ; after " .. matched:human())
+					assert(self:consumeIf(ATOM_KINDS.Grammar, ";"), "Expected ; after " .. matched:human())
 				else
-					error("Unexpected token '" .. tostring(token) .. "' in class block")
+					error("Unexpected atom '" .. tostring(atom) .. "' in class block")
 				end
 			end
 		end

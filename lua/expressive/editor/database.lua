@@ -1,4 +1,4 @@
-﻿local ELib = require("expressive/library")
+﻿require("expressive/library"); local ELib = ELib
 
 -- TODO: This is left over from old E3 fork implementation.
 local function store_data(_extensions)

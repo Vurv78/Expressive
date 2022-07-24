@@ -4,8 +4,10 @@
 ---@type ExpressiveProcessor
 local ENT = _G.ENT
 
-local ELib = require("expressive/library")
-require("expressive/startup")
+require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
+
+Import("expressive/startup", true)
 
 AddCSLuaFile("cl_init.lua")
 AddCSLuaFile("shared.lua")

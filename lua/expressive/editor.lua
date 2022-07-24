@@ -1,4 +1,5 @@
-﻿local ELib = require("expressive/library")
+﻿require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
 
 local Editor = {
 	LastContent = "", -- Hack to get the content of last interacted editor.

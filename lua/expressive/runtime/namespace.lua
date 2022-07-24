@@ -1,5 +1,5 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 ---@class Namespace: Object
 ---@field name string
@@ -7,7 +7,7 @@ local class = require("voop")
 ---@field variables table<string, Variable>
 ---@field namespaces table<string, Namespace>
 ---@field types table<TypeSig, Type>
-local Namespace = class("Namespace")
+local Namespace = Class("Namespace")
 
 function Namespace:__tostring()
 	if self.super then

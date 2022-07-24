@@ -1,5 +1,5 @@
-local ELib = require("expressive/library")
-local class = require("voop")
+require("expressive/library"); local ELib = ELib
+local Class = ELib.Class
 
 --- "int", "double", "boolean", "void" etc.
 ---@alias TypeSig string
@@ -8,7 +8,7 @@ local class = require("voop")
 ---@field type TypeSig? Type of the variable if known. May be nil temporarily in between analyzing stages.
 ---@field value any? Optional known value of the variable, for optimizations sake
 ---@field mutable boolean Is the variable mutable? Default true
-local Var = class("Variable")
+local Var = Class("Variable")
 
 ---@param type TypeSig
 ---@param value any? Optional value, if known.

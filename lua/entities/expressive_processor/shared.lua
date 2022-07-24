@@ -25,8 +25,10 @@ ENT.States = {
 
 ENT.Expressive = true
 
-local ELib = require("expressive/library")
-require("expressive/startup")
+require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
+
+Import("expressive/startup", true)
 
 function ENT:Compile()
 	if self.instance then
@@ -46,12 +48,12 @@ function ENT:Compile()
 	local lua_modules = {}
 	local success, why = xpcall(function()
 		for name, code in pairs(data.modules) do
-			local Tokenizer = ELib.Tokenizer.new()
+			local Lexer = ELib.Lexer.new()
 			local Parser = ELib.Parser.new()
 			local Transpiler = ELib.Transpiler.new()
 			local Analyzer = ELib.Analyzer.new()
 
-			local tokens = Tokenizer:parse(code)
+			local tokens = Lexer:lex(code)
 			local ast = Parser:parse(tokens)
 			local new_ast = Analyzer:process(ELib.ExtensionCtx, ast)
 
