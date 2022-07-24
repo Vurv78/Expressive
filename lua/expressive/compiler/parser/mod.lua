@@ -204,9 +204,8 @@ function Parser:root()
 	return nodes
 end
 
----@param top boolean # Whether this is being parsed on top level (not inside an expr)
 ---@return Node?
-function Parser:next(top)
+function Parser:next()
 	if not self:hasAtoms() then
 		return nil
 	end
