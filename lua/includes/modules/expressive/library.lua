@@ -407,7 +407,7 @@ function Library.AddNetworkString(name)
 end
 
 ---@param name string
----@param unreliable boolean
+---@param unreliable boolean?
 function Library.StartNet(name, unreliable)
 	if net then
 		local str = "Expressive." .. name

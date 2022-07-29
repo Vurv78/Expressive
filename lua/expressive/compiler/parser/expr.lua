@@ -293,8 +293,7 @@ Expressions = {
 	---@param self Parser
 	---@param atom Atom
 	[16] = function(self, atom)
-		local num = isAnyOfKind(atom, {ATOM_KINDS.Decimal, ATOM_KINDS.Hexadecimal, ATOM_KINDS.Integer, ATOM_KINDS.Octal})
-		if num then
+		if is(atom, ATOM_KINDS.Numeric) then
 			---@cast atom NumericAtom
 			return Node.new(NODE_KINDS.Literal, { "number", atom.value, atom.value < 0, atom.type })
 		elseif is(atom, ATOM_KINDS.String) then

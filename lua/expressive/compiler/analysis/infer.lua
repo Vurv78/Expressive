@@ -112,7 +112,8 @@ local Handlers = {
 		for k, paramdata in ipairs(args) do param_types[k] = paramdata[2] end
 
 		-- Set function in the outer scope.
-		self:getScope():setType(name, makeSignature(param_types, self:getReturnType(block)))
+		local sig = makeSignature(param_types, self:getReturnType(block))
+		self:getScope():setType(name, sig)
 
 		self:pushScope()
 			scope = self:getScope()

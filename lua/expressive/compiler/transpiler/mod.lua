@@ -209,21 +209,21 @@ local Transpilers = {
 		local cond, block, elses = data[1], data[2], data[3]
 
 		if #elses == 0 then
-			return fmt("if %s then %s end", self:transpile(cond), self:transpileAst(block))
+			return fmt("if %s then\n\t%s\nend", self:transpile(cond), self:transpileAst(block, true))
 		else
 			local buf = {}
 			for k, case in ipairs(elses) do
 				local elseif_cond, else_block = case[1], case[2]
 				if elseif_cond then
 					-- elseif
-					buf[k] = "elseif " .. self:transpile(elseif_cond) .. " then " .. self:transpileAst(else_block)
+					buf[k] = "elseif " .. self:transpile(elseif_cond) .. " then\n\t" .. self:transpileAst(else_block, true)
 				else
 					-- else
-					buf[k] = "else " .. self:transpileAst(else_block)
+					buf[k] = "else\n\t" .. self:transpileAst(else_block)
 				end
 			end
 
-			return fmt("if %s then %s %s end", self:transpile(cond), self:transpileAst(block), table.concat(buf, "\n"))
+			return fmt("if %s then\n\t%s\n%s\nend", self:transpile(cond), self:transpileAst(block, true), table.concat(buf, "\n"))
 		end
 	end,
 

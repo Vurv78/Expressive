@@ -1,5 +1,5 @@
 require("expressive/library"); local ELib = ELib
-local Class = ELib.Class
+local Import, Class = ELib.Import, ELib.Class
 
 -- Analysis
 -- Type checking and whatnot for the output AST.
@@ -17,8 +17,7 @@ local Analyzer = Class("Analyzer")
 ELib.Analyzer = Analyzer
 
 local Var = ELib.Var
----@type Scope
-local Scope = include("scope.lua")
+local Scope = Import("scope")
 Analyzer.Scope = Scope
 
 function Analyzer:reset()
@@ -213,11 +212,11 @@ function Analyzer:warn(msg, ...)
 	self.warnings[ #self.warnings + 1 ] = { 1, 1, err }
 end
 
-include("util.lua")
-include("extern.lua") -- First pass, extern declarations
-include("infer.lua") -- Second pass
-include("check.lua") -- Third pass, sanity checks
-include("optimizer/mod.lua") -- Final pass, Optimizing
+Import("util")
+Import("extern") -- First pass, extern declarations
+Import("infer") -- Second pass
+Import("check") -- Third pass, sanity checks
+Import("optimizer/mod") -- Final pass, Optimizing
 
 ---@type fun(self: Analyzer, ast: Node[])
 Analyzer.externPass = Analyzer.externPass
@@ -245,7 +244,7 @@ Analyzer.typeFromExpr = Analyzer.typeFromExpr
 Analyzer.getReturnType = Analyzer.getReturnType
 
 --- Creates a function signature from type params and return type
----@type fun(params: string[], ret: TypeSig)
+---@type fun(params: string[], ret: TypeSig): string
 Analyzer.makeSignature = Analyzer.makeSignature
 
 return Analyzer

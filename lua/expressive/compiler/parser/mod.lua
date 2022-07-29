@@ -1,5 +1,5 @@
 require("expressive/library"); local ELib = ELib
-local Class = ELib.Class
+local Import, Class = ELib.Import, ELib.Class
 
 local ATOM_KINDS = ELib.Lexer.KINDS
 local ATOM_KINDS_INV = ELib.Lexer.KINDS_INV
@@ -197,7 +197,7 @@ function Parser:root()
 	self.nodes = nodes
 
 	repeat
-		local node = self:next(true)
+		local node = self:next()
 		nodes[#nodes + 1] = node
 	until not node
 
@@ -279,45 +279,10 @@ function Parser:acceptCondition()
 end
 
 --- Accepts an identifier and returns it as a string.
----@return string
+---@return string?
 function Parser:acceptIdent()
 	local atom = self:consumeIf(ATOM_KINDS.Identifier)
 	return atom and atom.raw
-end
-
----@return Node?
-function Parser:lastNode()
-	return self.nodes[ self.node_idx ]
-end
-
---- Returns the last node with the given metadata (assuming it exists and fits the given kind and value)
----@param kind ParserKind
----@param value string?
----@return Node?
-function Parser:lastNodeWith(kind, value)
-	local last = self:lastNode()
-	if not last then return end
-
-	if value ~= nil then
-		return (last.kind == kind and last.raw == value) and last
-	else
-		return (last.kind == kind) and last
-	end
-end
-
---- Returns the last node with the given metadata (assuming it exists and fits the given kind and value)
----@param kind ParserKind[]
----@return boolean
-function Parser:lastNodeAnyOfKind(kind)
-	local last = self:lastNode()
-	if not last then return false end
-
-	for _, k in ipairs(kind) do
-		if last.kind == k then
-			return true
-		end
-	end
-	return false
 end
 
 --- Returns if a given atom is of kind 'kind' and has an inner value
@@ -341,7 +306,7 @@ end
 ---@param values string[]
 ---@return string? # The raw value from 'values' that matched.
 local function isAnyOf(atom, kind, values)
-	if not atom or atom.kind ~= kind then return false end
+	if not atom or atom.kind ~= kind then return end
 
 	for _, val in ipairs(values) do
 		if atom.raw == val then return val end
@@ -410,7 +375,7 @@ function Parser:acceptBlock()
 
 	repeat
 		node_idx = node_idx + 1
-		local node = self:next(false)
+		local node = self:next()
 		nodes[node_idx] = node
 
 		if self:consumeIf(ATOM_KINDS.Grammar, "}") then
@@ -517,11 +482,10 @@ function Parser:acceptArguments()
 	end
 end
 
--- Cannot be relative for fengari / native lua
-include("stmt.lua")
-include("expr.lua")
-include("declare.lua")
-include("class.lua")
+Import("stmt")
+Import("expr")
+Import("declare")
+Import("class")
 
 ---@type fun(self: Parser, atom: Atom): Node?
 Parser.parseExpression = Parser.parseExpression

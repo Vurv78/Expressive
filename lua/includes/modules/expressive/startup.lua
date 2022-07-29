@@ -6,24 +6,18 @@ if CLIENT then
 	include("expressive/editor/database.lua")
 end
 
-include("expressive/runtime/namespace.lua")
-include("expressive/compiler/variable.lua")
-include("expressive/runtime/type.lua")
-include("expressive/compiler/ast.lua")
+Import("expressive/runtime/namespace")
+Import("expressive/compiler/variable")
+Import("expressive/runtime/type")
+Import("expressive/compiler/ast")
 
----@type Context
-local Context = include("expressive/runtime/context.lua")
+local Context = Import("expressive/runtime/context")
+local Lexer = Import("expressive/compiler/lexer/mod")
+local Parser = Import("expressive/compiler/parser/mod")
+local Analyzer = Import("expressive/compiler/analysis/mod")
+local _Transpiler = Import("expressive/compiler/transpiler/mod")
 
----@type Lexer
-local Lexer = include("expressive/compiler/lexer/mod.lua")
----@type Parser
-local Parser = include("expressive/compiler/parser/mod.lua")
----@type Analyzer
-local Analyzer = include("expressive/compiler/analysis/mod.lua")
----@type Transpiler
-local _Transpiler = include("expressive/compiler/transpiler/mod.lua")
-
-include("expressive/instance.lua")
+Import("expressive/instance")
 
 ---@param extensions table<string, string> # File Name -> Content
 local function loadExtensions(extensions)

@@ -18,11 +18,11 @@ local NODE_KINDS = ELib.Parser.KINDS
 ---@param params Node[]
 ---@param ret string
 ---@return string
-local function makeSignature(params, ret)
+function Analyzer.makeSignature(params, ret)
 	return "function(" .. table.concat(params, ",") .. "):" .. ret
 end
 
-Analyzer.makeSignature = makeSignature
+local makeSignature = Analyzer.makeSignature
 
 --- Gets the return type from a block, searching for the first return statement.
 -- If no statement is found, returns "void"

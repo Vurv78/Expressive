@@ -10,7 +10,10 @@ function Ast:__tostring()
 	return "Ast: " .. #self
 end
 
+---@param tbl Node[]
+---@return Ast
 function Ast.new(tbl)
+	---@diagnostic disable-next-line: return-type-mismatch
 	return setmetatable(tbl, Ast)
 end
 

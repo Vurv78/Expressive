@@ -82,6 +82,8 @@ end
 ---@param code string # Expressive code
 function Transpile(code)
 	Lexer:reset()
+	Parser:reset()
+	Analyzer:reset()
 
 	local ok, ret = xpcall(function()
 		local atoms = Lexer:lex(code)

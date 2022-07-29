@@ -118,10 +118,12 @@ Statements = {
 		local assign_kw = isAnyOf(atom, ATOM_KINDS.Keyword, {"var", "let", "const"})
 		if assign_kw then
 			local vname = assert( self:consumeIf(ATOM_KINDS.Identifier), "Expected variable name in variable declaration, got " .. ELib.Inspect(self:peek()) ).raw
+
 			local ty = nil -- Type for the analyzer to infer, or else error if it could not.
 			if self:consumeIf(ATOM_KINDS.Grammar, ":") then
 				ty = assert( self:consumeIf(ATOM_KINDS.Identifier), "Expected type after : in variable declaration, got " .. self:consume().raw ).raw
 			end
+
 			assert( self:consumeIf(ATOM_KINDS.Operator, "="), "Expected = in variable declaration" )
 			local expr = assert( self:parseExpression(self:consume()), "Expected expression in variable declaration" )
 
