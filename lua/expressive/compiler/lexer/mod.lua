@@ -140,9 +140,8 @@ function Lexer:next()
 
 		local nums = self:drain(char, is_numeric)
 		if self:peek() == "." then
-			self:take()
+			nums = nums .. self:drain(self:take(), is_numeric)
 
-			nums = nums .. self:drain(char, is_numeric)
 			return NumericAtom.new(
 				start_col,
 				start_line,
