@@ -125,7 +125,67 @@ local Handlers = {
 		local _sig = makeSignature(args, self:getReturnType(body))
 
 		-- TODO: Define in scope
-	end
+	end,
+
+	---@param self Analyzer
+	---@param data any[]
+	[NODE_KINDS.ArithmeticOps] = function(self, data)
+		local op, lhs, rhs = data[1], data[2], data[3]
+		local lhs_t, rhs_t = self:typeFromExpr(lhs), self:typeFromExpr(rhs)
+
+		assert(lhs_t, "Couldn't infer type for " .. lhs:human())
+		assert(rhs_t, "Couldn't infer type for " .. rhs:human())
+
+		assert(lhs_t == "double" or lhs_t == "int", "Cannot use " .. lhs_t .. " in arithmetic operation (lhs)")
+		assert(rhs_t == "double" or rhs_t == "int", "Cannot use " .. rhs_t .. " in arithmetic operation (rhs)")
+
+		assert(lhs_t == rhs_t, "Cannot perform " .. op .. " operation on two differently sized numeric types")
+	end,
+
+	---@param self Analyzer
+	---@param data any[]
+	[NODE_KINDS.ComparisonOps] = function(self, data)
+		local op, lhs, rhs = data[1], data[2], data[3]
+		local lhs_t, rhs_t = self:typeFromExpr(lhs), self:typeFromExpr(rhs)
+
+		assert(lhs_t, "Couldn't infer type for " .. lhs:human())
+		assert(rhs_t, "Couldn't infer type for " .. rhs:human())
+
+		assert(lhs_t == "double" or lhs_t == "int", "Cannot use " .. lhs_t .. " in comparison operation (lhs)")
+		assert(rhs_t == "double" or rhs_t == "int", "Cannot use " .. rhs_t .. " in comparison operation (rhs)")
+
+		assert(lhs_t == rhs_t, "Cannot perform " .. op .. " operation on two differently sized numeric types")
+	end,
+
+	---@param self Analyzer
+	---@param data any[]
+	[NODE_KINDS.BitShiftOps] = function(self, data)
+		local op, lhs, rhs = data[1], data[2], data[3]
+		local lhs_t, rhs_t = self:typeFromExpr(lhs), self:typeFromExpr(rhs)
+
+		assert(lhs_t, "Couldn't infer type for " .. lhs:human())
+		assert(rhs_t, "Couldn't infer type for " .. rhs:human())
+
+		assert(lhs_t == "double" or lhs_t == "int", "Cannot use " .. lhs_t .. " in bitshift operation (lhs)")
+		assert(rhs_t == "double" or rhs_t == "int", "Cannot use " .. rhs_t .. " in bitshift operation (rhs)")
+
+		assert(lhs_t == rhs_t, "Cannot perform " .. op .. " operation on two differently sized numeric types")
+	end,
+
+	---@param self Analyzer
+	---@param data any[]
+	[NODE_KINDS.BitwiseOps] = function(self, data)
+		local op, lhs, rhs = data[1], data[2], data[3]
+		local lhs_t, rhs_t = self:typeFromExpr(lhs), self:typeFromExpr(rhs)
+
+		assert(lhs_t, "Couldn't infer type for " .. lhs:human())
+		assert(rhs_t, "Couldn't infer type for " .. rhs:human())
+
+		assert(lhs_t == "double" or lhs_t == "int", "Cannot use " .. lhs_t .. " in bitwise operation (lhs)")
+		assert(rhs_t == "double" or rhs_t == "int", "Cannot use " .. rhs_t .. " in bitwise operation (rhs)")
+
+		assert(lhs_t == rhs_t, "Cannot perform " .. op .. " operation on two differently sized numeric types")
+	end,
 }
 
 --- Like Analyzer:checkPass, but for a single node.

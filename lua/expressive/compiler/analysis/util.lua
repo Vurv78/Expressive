@@ -53,7 +53,6 @@ local Infer = {
 	[NODE_KINDS.Literal] = function(_self, data)
 		-- Either "int", "string", "boolean" or "null"
 		local ty = data[1]
-		print("infer", ty)
 		if ty == "number" then
 			return NumericNames[data[4]] -- Specific number type -- either "int" or "double"
 		end

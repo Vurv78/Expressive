@@ -22,14 +22,18 @@ Optimizations = {
 				if cond.data[2] then
 					self:warn("Redundant if(true). Optimized into block.")
 					return Node.new(NODE_KINDS.Block, { block })
+				else
+					-- Return nothing, this is if(false)
+					return true
 				end
-				-- Return nothing, this is if(false)
 			elseif literal_kind == "string" then
 				-- Strings will always be true.
 				return Node.new(NODE_KINDS.Block, { block })
 			elseif literal_kind == "number" then
 				if cond.data[2] ~= 0 then
 					return Node.new(NODE_KINDS.Block, { block })
+				else
+					return true
 				end
 			end
 		end
@@ -252,7 +256,7 @@ Optimizations = {
 }
 
 ---@param node Node
----@return Node? # New optimized node, or nil if no optimization was possible
+---@return Node|boolean? # New optimized node, true if optimized away, or nil if no optimization was possible
 function Analyzer:optimizeNode(node)
 	local handler = Optimizations[node.kind]
 	if handler then
@@ -272,7 +276,9 @@ function Analyzer:optimize(ast)
 	for i, node in ipairs(ast) do
 		local opt = self:optimizeNode(node)
 		--if opt then print("Optimized", node:human(), "to", opt:human()) end
-		new[i] = opt or node
+		if opt and opt ~= true then
+			new[i] = opt
+		end
 	end
 
 	return new
