@@ -167,7 +167,7 @@ local Transpilers = {
 		elseif method == "." then
 			-- Static indices
 			---@cast key Atom
-			if Parser.is(key, ATOM_KINDS.Integer) then
+			if Parser.is(key, ATOM_KINDS.Numeric) then
 				---@cast key NumericAtom
 				return fmt("%s[%i]" , self:transpile(tbl), key.value)
 			else

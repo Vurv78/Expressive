@@ -1,14 +1,16 @@
 require("expressive/library"); local ELib = ELib
+local Import = ELib.Import
 
 local Parser = ELib.Parser
 local Node = Parser.Node
 
 local is = ELib.Parser.is
 local isAnyOf = ELib.Parser.isAnyOf
-local isAnyOfKind = ELib.Parser.isAnyOfKind
 
 local ATOM_KINDS = ELib.Lexer.KINDS
 local NODE_KINDS = ELib.Parser.KINDS
+
+local NumericTypes = Import("atom", true).NumericTypes
 
 local Expressions
 Expressions = {
@@ -182,7 +184,11 @@ Expressions = {
 		end
 
 		if self:consumeIf(ATOM_KINDS.Operator, ".") then
-			local key = assert( self:consumeIfAnyOfKind({ATOM_KINDS.Identifier, ATOM_KINDS.Integer}), "Expected identifier or integer after ." )
+			local key = assert( self:consumeIfAnyOfKind({ATOM_KINDS.Identifier, ATOM_KINDS.Numeric}), "Expected identifier or integer after ." )
+
+			---@cast key Atom|NumericAtom
+			assert(key.kind ~= ATOM_KINDS.Numeric or key.type == NumericTypes.Integer, "Expected integer for literal index number")
+
 			return Node.new(NODE_KINDS.Index, { ".", tbl, key })
 		end
 
