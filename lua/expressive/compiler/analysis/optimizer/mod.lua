@@ -21,15 +21,15 @@ Optimizations = {
 			if literal_kind == "boolean" and cond.data[2] then
 				if cond.data[2] then
 					self:warn("Redundant if(true). Optimized into block.")
-					return Node.new(NODE_KINDS.Block, block)
+					return Node.new(NODE_KINDS.Block, { block })
 				end
 				-- Return nothing, this is if(false)
 			elseif literal_kind == "string" then
 				-- Strings will always be true.
-				return Node.new(NODE_KINDS.Block, block)
+				return Node.new(NODE_KINDS.Block, { block })
 			elseif literal_kind == "number" then
 				if cond.data[2] ~= 0 then
-					return Node.new(NODE_KINDS.Block, block)
+					return Node.new(NODE_KINDS.Block, { block })
 				end
 			end
 		end
