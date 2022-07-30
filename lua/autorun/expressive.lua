@@ -86,4 +86,4 @@ ELib.AddNetworkString("Processor.Errored")
 ELib.AddNetworkString("Processor.Download")
 ELib.AddNetworkString("Processor.Upload")
 
-Import("expressive/startup")
+Import("includes/modules/expressive/startup", true)

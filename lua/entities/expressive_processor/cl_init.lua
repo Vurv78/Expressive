@@ -4,7 +4,7 @@ local ENT = _G.ENT
 require("expressive/library"); local ELib = ELib
 local Import = ELib.Import
 
-Import("expressive/startup", true)
+Import("includes/modules/expressive/startup", true)
 
 include("shared.lua")
 

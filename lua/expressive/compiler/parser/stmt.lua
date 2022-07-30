@@ -196,15 +196,13 @@ Statements = {
 	---@param self Parser
 	---@param atom Atom
 	[NODE_KINDS.Escape] = function(self, atom)
-		local kw = isAnyOf(atom, ATOM_KINDS.Keyword, {"break", "continue"})
-		if kw then
-			return { kw }
-		end
-
-		if is(atom, ATOM_KINDS.Keyword, "return") then
+		local kw = isAnyOf(atom, ATOM_KINDS.Keyword, {"break", "continue", "return"})
+		if kw == "return" then
 			-- Optional return value
-			local expr = self:parseExpression( self:consume() )
+			local expr = self:parseExpression( self:peek() )
 			return { "return", expr }
+		elseif kw then
+			return { kw }
 		end
 	end,
 

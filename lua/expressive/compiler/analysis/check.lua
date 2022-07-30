@@ -132,6 +132,7 @@ local Handlers = {
 	[NODE_KINDS.ArithmeticOps] = function(self, data)
 		local op, lhs, rhs = data[1], data[2], data[3]
 		local lhs_t, rhs_t = self:typeFromExpr(lhs), self:typeFromExpr(rhs)
+		print(op, lhs, rhs)
 
 		assert(lhs_t, "Couldn't infer type for " .. lhs:human())
 		assert(rhs_t, "Couldn't infer type for " .. rhs:human())

@@ -31,6 +31,7 @@ local makeSignature = Analyzer.makeSignature
 function Analyzer:getReturnType(block)
 	for _, node in ipairs(block) do
 		if node.kind == NODE_KINDS.Escape and node.data[1] == "return" then
+			if node.data[2] == nil then return "void" end
 			return self:typeFromExpr(node.data[2])
 		end
 	end
@@ -72,14 +73,8 @@ local Infer = {
 	---@param self Analyzer
 	---@param data any[]
 	[NODE_KINDS.ArithmeticOps] = function(self, data)
-		local lhs, rhs = data[2], data[3]
-		if lhs.kind == rhs.kind and rhs.kind == NODE_KINDS.Literal then
-			local lhs_ty = self:typeFromExpr(lhs)
-			local rhs_ty = self:typeFromExpr(rhs)
-			if lhs_ty == rhs_ty then
-				return lhs_ty
-			end
-		end
+		local lhs, rhs = self:typeFromExpr(data[2]), self:typeFromExpr(data[3])
+		return lhs
 	end,
 
 	---@param self Analyzer
@@ -195,6 +190,7 @@ local Infer = {
 ---@param node Node # Parsing node to get type from
 ---@return string?
 function ELib.Analyzer:typeFromExpr(node)
+	if not node then print( debug.traceback() ) end
 	local handler = Infer[node.kind]
 	if handler then
 		local out = handler(self, node.data)

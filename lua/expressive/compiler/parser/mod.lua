@@ -164,7 +164,9 @@ end
 
 ---@param kind ParserKind
 ---@param data table
+---@return Node
 function Node.new(kind, data)
+	---@diagnostic disable-next-line: return-type-mismatch
 	return setmetatable({
 		kind = kind,
 		data = data
@@ -445,10 +447,9 @@ function Parser:acceptTypedParameters()
 
 		-- "Expected : after argument to begin type" )
 
-		if self:consumeIf(ATOM_KINDS.Grammar, ":") then
-			ty = assert(self:acceptType(), "Expected type after : in function parameter")
-			args[#args + 1] = { arg.raw, ty }
-		end
+		assert( self:consumeIf(ATOM_KINDS.Grammar, ":"), "Expected : for type after parameter name")
+		ty = assert(self:acceptType(), "Expected type after : in function parameter")
+		args[#args + 1] = { arg.raw, ty }
 
 		if not self:consumeIf(ATOM_KINDS.Grammar, ",") then
 			assert( self:consumeIf(ATOM_KINDS.Grammar, ")"), "Expected ) to end function parameters" )

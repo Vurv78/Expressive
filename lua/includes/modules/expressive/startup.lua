@@ -67,7 +67,7 @@ local function loadExtensions(extensions)
 end
 
 --- Network Extensions to Client
-local DataStream, _DataStruct = Import("datastream", true)
+local DataStream, _DataStruct = Import("includes/modules/datastream", true)
 
 if SERVER then
 	local extensions = {}
@@ -148,5 +148,5 @@ end
 -- TODO: Make it reload all currently placed chips
 concommand.Add("expressive_reload" .. (CLIENT and "_cl" or ""), function()
 	-- Include self
-	Import("expressive/startup", false)
+	Import("includes/modules/expressive/startup", false)
 end)

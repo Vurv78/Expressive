@@ -1,7 +1,7 @@
 ﻿require("expressive/library"); local ELib = ELib
 local Import, Class = ELib.Import, ELib.Class
 
-Import("expressive/startup", true)
+Import("includes/modules/expressive/startup", false)
 
 ---@class Validator: Object
 ---@field editor any
@@ -13,8 +13,12 @@ local C_ERROR = rgb(255, 100, 100)
 local C_SUCCESS = rgb(100, 200, 100)
 
 --- Validates given code and returns true and transpiled code if successful
+---@param _move_to boolean?
+---@param _export_compiled boolean?
 ---@return boolean
 ---@return string? # Lua code generated if successfully validated.
+---@return Ast? # Ast generated if successfully validated
+---@return Atom[] # Atoms generated if successfully validated
 function Validator:Validate(code, _move_to, _export_compiled)
 	if not code or code == "" then
 		self:Throw("No code submitted")
@@ -28,19 +32,19 @@ function Validator:Validate(code, _move_to, _export_compiled)
 		return {msg, debug.traceback(msg)}
 	end
 
-	local ok, data, warnings, ast, tokens = xpcall(function()
+	local ok, data, warnings, ast, atoms = xpcall(function()
 		local Lexer = ELib.Lexer.new()
-		local tokens = Lexer:lex(code)
+		local atoms = Lexer:lex(code)
 
 		local Parser = ELib.Parser.new()
-		local ast = Parser:parse(tokens)
+		local ast = Parser:parse(atoms)
 
 		local Analyzer = ELib.Analyzer.new()
 		ast = Analyzer:process(ELib.ExtensionCtx, ast)
 
 		local Transpiler = ELib.Transpiler.new()
 
-		return Transpiler:process(ELib.ExtensionCtx, ast), Analyzer.warnings, ast, tokens
+		return Transpiler:process(ELib.ExtensionCtx, ast), Analyzer.warnings, ast, atoms
 	end, xpcaller)
 
 	if ok then
@@ -61,7 +65,7 @@ function Validator:Validate(code, _move_to, _export_compiled)
 		return self:Throw("Failed to compile: " .. msg, traceback, true)
 	end
 
-	return true, data, ast, tokens
+	return true, data, ast, atoms
 end
 
 --- Throws a validation error (puts traceback in console, error message on validation bar.)

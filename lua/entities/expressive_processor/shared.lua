@@ -28,7 +28,7 @@ ENT.Expressive = true
 require("expressive/library"); local ELib = ELib
 local Import = ELib.Import
 
-Import("expressive/startup", true)
+Import("includes/modules/expressive/startup", true)
 
 function ENT:Compile()
 	if self.instance then

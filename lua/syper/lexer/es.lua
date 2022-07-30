@@ -12,7 +12,7 @@ ELib.OnExtensionsReady(function(ctx)
 	TYPES = table.GetKeys(ctx.types)
 	NAMESPACES = table.GetKeys(ctx.namespaces)
 
-	OPERATORS = table.GetKeys(ELib.Operators)
+	OPERATORS = table.GetKeys(ELib.Operator)
 	GRAMMAR = table.GetKeys(ELib.Grammar)
 	KEYWORDS = table.GetKeys(ELib.Keywords)
 end)

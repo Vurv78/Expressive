@@ -1150,7 +1150,7 @@ end
 
 --- Returns whether code validated successfully
 ---@param code string
----@param move_to boolean
+---@param move_to boolean?
 ---@return boolean
 function Editor:Validate(code, move_to)
 	self.console:Clear()

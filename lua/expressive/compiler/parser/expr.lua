@@ -325,8 +325,59 @@ Expressions = {
 	end
 }
 
+local OPKINDS = {
+	["+"] = NODE_KINDS.ArithmeticOps,
+	["-"] = NODE_KINDS.ArithmeticOps,
+	["*"] = NODE_KINDS.ArithmeticOps,
+	["/"] = NODE_KINDS.ArithmeticOps,
+	["%"] = NODE_KINDS.ArithmeticOps,
+
+	["<<"] = NODE_KINDS.BitShiftOps,
+	[">>"] = NODE_KINDS.BitShiftOps,
+
+	["&"] = NODE_KINDS.BitwiseOps,
+	["|"] = NODE_KINDS.BitwiseOps,
+
+	["&&"] = NODE_KINDS.LogicalOps,
+	["||"] = NODE_KINDS.LogicalOps
+}
+
+---@param lhs Node
+---@param min_precedence integer?
+function Parser:parseSubExpression(lhs, min_precedence)
+	min_precedence = min_precedence or 0
+
+	local lookahead = self:peek();
+	---@cast lookahead OperatorAtom
+		while
+			lookahead and lookahead.kind == ATOM_KINDS.Operator
+			and not lookahead.op.is_unary and lookahead.op.precedence >= min_precedence
+		do
+			local op = self:consume()
+			---@cast op OperatorAtom
+
+			local rhs = Expressions[1](self, self:consume())
+			lookahead = self:peek()
+
+			---@cast lookahead OperatorAtom
+
+			while
+				lookahead and lookahead.kind == ATOM_KINDS.Operator
+				and not lookahead.op.is_unary and lookahead.op.precedence > min_precedence
+			do
+				rhs = self:parseSubExpression(rhs, op.op.precedence + 1);
+				lookahead = self:peek()
+			end
+
+			lhs = Node.new(assert(OPKINDS[op], "Unreachable: " .. op), {op, lhs, rhs})
+		end
+
+		return lhs;
+end
+
 ---@param atom Atom
 ---@return Node?
 function Parser:parseExpression(atom)
-	return Expressions[1](self, atom)
+	local exp = Expressions[1](self, atom)
+	return exp and self:parseSubExpression(exp, 0)
 end
