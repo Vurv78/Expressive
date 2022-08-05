@@ -2,5 +2,19 @@
 	// These are Expressive files. Extension is .txt because gmod has a file whitelist.
 	"files.associations": {
 		"*.es.txt": "typescript"
+	},
+
+	"Lua.runtime.builtin": {
+		"io": "disable",
+		"bit32": "disable",
+		"ffi": "disable",
+		"table.new": "disable",
+		"table.clear": "disable",
+		"package": "disable"
+	},
+
+	"Lua.runtime.special": {
+		"include": "require",
+		"Import": "require"
 	}
 }
