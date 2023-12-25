@@ -24,9 +24,5 @@ jobs:
 
     # Don't need to remove extensions, because they have different file extensions, unlike E2 ones.
 
-    # There's way too many issues with syper to bother fixing right now
-    - name: Remove syper folder
-      run: rm -r lua/expressive/editor/syper
-
     - name: Lint Code
       run: ./glualint lua

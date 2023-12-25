@@ -14,8 +14,6 @@ Practically everything.
 There are classes, you can finally make lowercase variables, lambdas, and whatnot.
 Everything is neatly in libraries, like ``holograms.create``
 
-This also leverages the powerful [Syper](https://github.com/Sevii77/syper) editor instead of the wire editor, which comes with autocomplete, "intellisense", code folding, custom themes and more.
-
 <!-- TODO List of stuff here -->
 
 ## Example Code
