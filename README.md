@@ -1,3 +1,8 @@
+> [!NOTE] 
+> This project never came to fruition, but it'll return for TASBox in my wiremod replacement.  
+> It's already much further along than Expressive was.  
+> Keep an eye on https://github.com/mekkanics :)
+
 # Expressive [![Linter Badge](https://github.com/Vurv78/Expressive/workflows/Linter/badge.svg)](https://github.com/Vurv78/Expressive/actions) [![License](https://img.shields.io/github/license/Vurv78/Expressive?color=red&include_prereleases)](https://github.com/Vurv78/Expressive/blob/master/LICENSE) [![Expressive Discord](https://img.shields.io/discord/936811504706134036?label=Discord&logo=discord&logoColor=ffffff&labelColor=7289DA&color=2c2f33)](https://discord.gg/u6eQPcZv4y) [![Website](https://img.shields.io/website?down_message=Offline&label=Try%20Me%21&up_color=Blue&up_message=Online&url=https%3A%2F%2Fvurv78.github.io%2FExpressive%2Fweb%2Findex.html)](https://vurv78.github.io/Expressive/web/index.html)
 > Expression, but it's Typescript with extras
 
